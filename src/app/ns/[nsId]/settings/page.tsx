@@ -2,7 +2,13 @@
 import { EditNSName } from "@/app/ns/[nsId]/settings/_components/EditNSName";
 import { useNamespace } from "@/hooks/use-namespace";
 import { redirect } from "next/navigation";
+import { BreadcrumbUpdater } from "../components/Breadcrumb/BreadcrumbUpdater";
 import GroupDetails from "../components/GroupDetails";
+
+const paths = [
+  { label: "ネームスペース設定", path: `/ns/[nsId]/settings` },
+  { label: "基本設定", path: `/ns/[nsId]/settings` },
+]
 
 type Props = {
   params: {
@@ -21,14 +27,10 @@ export default function GroupSettingsPage({ params: { nsId } }: Props) {
   }
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">
-        グループ設定: {namespace.name}
-      </h1>
       <EditNSName namespace={namespace} refetch={refetch} key={namespace.name} />
       <GroupDetails namespace={namespace} />
-      {/* <h1 className="text-2xl font-bold mb-6">
-        グループ設定: {namespace.name}
-      </h1>
+      <BreadcrumbUpdater paths={paths}/>
+      {/* 
       <GroupDetails namespace={namespace} isOwner={isOwner} />
       {/*<ExternalProviderList groupId={namespace.id} externalProviders={group.externalProviders} />*/}
       {/* {isOwner && <InviteAdminForm groupId={namespace.id} />} */}

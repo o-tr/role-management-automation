@@ -1,8 +1,13 @@
 "use client";
-import { BreadcrumbUpdater } from "@/app/ns/[nsId]/settings/tags/BreadcrumbUpdater";
+import { BreadcrumbUpdater } from "@/app/ns/[nsId]/components/Breadcrumb/BreadcrumbUpdater";
 import TagList from "@/app/ns/[nsId]/settings/tags/TagList";
 import { useNamespace } from "@/hooks/use-namespace";
 import { GroupId } from "@/types/brandTypes";
+
+const paths = [
+  { label: "ネームスペース設定", path: `/ns/[nsId]/settings` },
+  { label: "タグ管理", path: `/ns/[nsId]/settings/tags` },
+]
 
 export default function GroupTagsPage({
   params,
@@ -17,11 +22,8 @@ export default function GroupTagsPage({
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">
-        グループ設定: {namespace.name}
-      </h1>
       <TagList namespaceId={namespace.id as GroupId} />
-      <BreadcrumbUpdater />
+      <BreadcrumbUpdater paths={paths}/>
     </div>
   );
 }

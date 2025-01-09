@@ -8,9 +8,9 @@ import {
   SidebarMenuItem, SidebarMenuSub, SidebarMenuSubButton, SidebarMenuSubItem
 } from "@/components/ui/sidebar";
 import Link from "next/link";
-import {FC, ReactNode} from "react";
-import {useParams, usePathname} from "next/navigation";
-import {TbCloudCode, TbSettings, TbTags, TbTool, TbUsersGroup} from "react-icons/tb";
+import { useParams, usePathname } from "next/navigation";
+import { FC, ReactNode } from "react";
+import { TbCloudCode, TbKey, TbSettings, TbTags, TbTool, TbUserCode, TbUsersGroup } from "react-icons/tb";
 
 export const AppSidebarContent: FC = () => {
   const {nsId} = useParams<{nsId: string}>();
@@ -27,11 +27,16 @@ export const AppSidebarContent: FC = () => {
         </SidebarMenu>
       </SidebarGroup>
       <SidebarGroup>
-        <SidebarGroupLabel>グループ設定</SidebarGroupLabel>
+        <SidebarGroupLabel>ネームスペース設定</SidebarGroupLabel>
         <SidebarMenu>
           <MenuItem link={`/ns/${nsId}/settings`} label={"基本設定"} icon={<TbSettings/>}/>
           <MenuItem link={`/ns/${nsId}/settings/tags`} label={"タグ管理"} icon={<TbTags/>}/>
-          <MenuItem link={`/ns/${nsId}/settings/providers`} label={"外部プロバイダー"} icon={<TbCloudCode/>}/>
+          <MenuItem link={`/ns/${nsId}/settings/services`} label={"外部サービス"} icon={<TbCloudCode/>}>
+            <SidebarMenuSub>
+              <MenuItem sub link={`/ns/${nsId}/settings/services/authentication`} label={"認証情報"} icon={<TbKey />}/>
+              <MenuItem sub link={`/ns/${nsId}/settings/services/accounts`} label={"アカウント"} icon={<TbUserCode />}/>
+            </SidebarMenuSub>
+          </MenuItem>
           <MenuItem link={`/ns/${nsId}/settings/admins`} label={"管理者"} icon={<TbTool/>}/>
         </SidebarMenu>
       </SidebarGroup>
@@ -53,7 +58,10 @@ const MenuItem:FC<MenuItemProps> = ({sub = false, link, label, icon, children}) 
     return (
       <SidebarMenuSubItem>
         <SidebarMenuSubButton asChild isActive={link === pathname}>
-          <Link href={link}>{label}</Link>
+          <Link href={link}>
+            {icon}
+            {label}
+          </Link>
         </SidebarMenuSubButton>
         {children}
       </SidebarMenuSubItem>

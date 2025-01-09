@@ -1,7 +1,14 @@
-import { BreadcrumbUpdater } from "@/app/ns/[nsId]/settings/tags/BreadcrumbUpdater";
-import ExternalProviderList from "../../components/ExternalProviderList";
+import { BreadcrumbUpdater } from "@/app/ns/[nsId]/components/Breadcrumb/BreadcrumbUpdater";
 import { getServerSession } from "next-auth/next";
 import { redirect } from "next/navigation";
+
+const paths = [
+  { label: "ネームスペース設定", path: `/ns/[nsId]/settings` },
+  {
+    label: "外部サービス",
+    path: `/ns/[nsId]/settings/providers`,
+  },
+]
 
 export default async function GroupProvidersPage({
   params,
@@ -14,6 +21,11 @@ export default async function GroupProvidersPage({
     redirect("/api/auth/signin");
   }
 
+  return (
+    <div>
+      <BreadcrumbUpdater paths={paths} />
+    </div>
+  )
   // const groupId = params.groupId;
   // if (!result) {
   //   return <div>Group not found</div>;

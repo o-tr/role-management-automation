@@ -1,7 +1,7 @@
 "use client";
-import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { useNamespaces } from "@/hooks/use-namespaces";
+import Link from "next/link";
 
 export const GroupList = () => {
   const { namespaces, isPending } = useNamespaces();
@@ -12,7 +12,7 @@ export const GroupList = () => {
 
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-3">管理者グループ</h2>
+      <h2 className="text-xl font-semibold mb-3">所属ネームスペース</h2>
       {namespaces.map((namespace) => (
         <Link
           href={`/ns/${namespace.id}`}
@@ -21,7 +21,7 @@ export const GroupList = () => {
         >
           <span>{namespace.name}</span>
           <div className={"flex flex-row justify-end items-center gap-4"}>
-            {namespace.isOwner && <Badge>所有</Badge>}
+            {namespace.isOwner && <Badge>所有者</Badge>}
             <Badge>管理者</Badge>
           </div>
         </Link>
