@@ -1,8 +1,8 @@
 "use server";
-import { FC } from "react";
 import { Sidebar, SidebarFooter, SidebarHeader } from "@/components/ui/sidebar";
-import { NamespaceSwitcher } from "./NamespaceSwitcher";
+import { FC } from "react";
 import { AppSidebarContent } from "./AppSidebarContent";
+import { NamespaceSwitcher } from "./NamespaceSwitcher";
 
 export const AppSidebar: FC = async () => {
   return (

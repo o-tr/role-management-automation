@@ -1,16 +1,17 @@
-import TagList from "@/app/ns/[nsId]/settings/tags/TagList";
+"use client";
 import { BreadcrumbUpdater } from "@/app/ns/[nsId]/settings/tags/BreadcrumbUpdater";
-import { GroupId } from "@/types/brandTypes";
+import TagList from "@/app/ns/[nsId]/settings/tags/TagList";
 import { useNamespace } from "@/hooks/use-namespace";
+import { GroupId } from "@/types/brandTypes";
 
-export default async function GroupTagsPage({
+export default function GroupTagsPage({
   params,
 }: {
   params: { nsId: string };
 }) {
   const { namespace, isPending } = useNamespace({ namespaceId: params.nsId });
 
-  if (!isPending || !namespace) {
+  if (isPending || !namespace) {
     return <div>Loading...</div>;
   }
 

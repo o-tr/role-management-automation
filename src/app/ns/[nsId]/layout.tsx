@@ -1,25 +1,19 @@
-import { FC, ReactNode } from "react";
+import { ModeToggle } from "@/components/mode-toggle";
+import { Separator } from "@/components/ui/separator";
 import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
   SidebarInset,
   SidebarProvider,
-  SidebarTrigger,
+  SidebarTrigger
 } from "@/components/ui/sidebar";
+import { ReactNode } from "react";
 import { AppSidebar } from "./components/AppSidebar";
-import { ModeToggle } from "@/components/mode-toggle";
-import { getServerSession } from "next-auth/next";
-import { Separator } from "@/components/ui/separator";
 import { BreadcrumbDisplay, BreadcrumbProvider } from "./components/Breadcrumb";
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: ReactNode;
 }>) {
-  const session = await getServerSession();
   return (
     <SidebarProvider>
       <BreadcrumbProvider>

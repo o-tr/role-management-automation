@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {Namespace, User} from "@prisma/client";
+import {TNamespaceDetail} from "@/types/prisma";
 
 interface GroupDetailsProps {
-  namespace: Namespace& { owner: User; admins: User[] }
-  isOwner: boolean
+  namespace: TNamespaceDetail;
 }
 
-export default function GroupDetails({ namespace, isOwner }: GroupDetailsProps) {
+export default function GroupDetails({ namespace }: GroupDetailsProps) {
   const [newOwnerEmail, setNewOwnerEmail] = useState("")
 
   const handleTransferOwnership = async () => {
@@ -22,7 +22,7 @@ export default function GroupDetails({ namespace, isOwner }: GroupDetailsProps) 
     <div className="space-y-4 mb-6">
       <p><strong>所有者:</strong> {namespace.owner.name}</p>
       <p><strong>管理者:</strong> {namespace.admins.map(admin => admin.name).join(', ')}</p>
-      {isOwner && (
+      {namespace.isOwner && (
         <div>
           <Label htmlFor="newOwner">所有権の譲渡</Label>
           <div className="flex items-center space-x-2">

@@ -1,6 +1,4 @@
 "use client";
-import { BreadcrumbContext } from "./BreadcrumbContext";
-import { Fragment, useContext } from "react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -8,6 +6,9 @@ import {
   BreadcrumbList,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import Link from "next/link";
+import { Fragment, useContext } from "react";
+import { BreadcrumbContext } from "./BreadcrumbContext";
 
 export const BreadcrumbDisplay = () => {
   const { value } = useContext(BreadcrumbContext);
@@ -20,7 +21,7 @@ export const BreadcrumbDisplay = () => {
             <Fragment key={item.path}>
               {index > 0 && <BreadcrumbSeparator className="hidden md:block" />}
               <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink href={item.path}>{item.label}</BreadcrumbLink>
+                <BreadcrumbLink asChild><Link href={item.path}>{item.label}</Link></BreadcrumbLink>
               </BreadcrumbItem>
             </Fragment>
           ))}

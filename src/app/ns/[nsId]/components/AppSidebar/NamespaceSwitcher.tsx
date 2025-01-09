@@ -1,8 +1,16 @@
 "use client";
 
-import * as React from "react";
 import { ChevronsUpDown, Plus } from "lucide-react";
 
+import { CreateNSForm } from "@/app/ns/components/CreateNSForm";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,24 +25,16 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { FC, useLayoutEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import Link from "next/link";
-import { Avatar } from "@radix-ui/react-avatar";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { CreateNSForm } from "@/app/ns/components/CreateNSForm";
+import { useOnNsChange } from "@/events/on-ns-change";
 import { useNamespaces } from "@/hooks/use-namespaces";
 import { TNamespace } from "@/types/prisma";
+import { Avatar } from "@radix-ui/react-avatar";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { FC, useCallback, useLayoutEffect, useState } from "react";
 
 export const NamespaceSwitcher: FC = () => {
-  const { namespaces, isPending } = useNamespaces();
+  const { namespaces, isPending, refetch } = useNamespaces();
   const { nsId } = useParams<{ nsId: string }>();
   const { isMobile } = useSidebar();
   const [activeTeam, setActiveTeam] = useState<TNamespace | undefined>();
@@ -48,6 +48,12 @@ export const NamespaceSwitcher: FC = () => {
       }
     }
   }, [nsId, namespaces]);
+
+  const onNsChange = useCallback(() => {
+    refetch();
+  },[refetch]);
+
+  useOnNsChange(onNsChange);
 
   if (isPending || !namespaces) {
     return <p>Loading...</p>;

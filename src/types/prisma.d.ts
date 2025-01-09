@@ -26,6 +26,7 @@ export type TNamespaceDetail = {
     id: string;
     name: string;
   }[];
+  isOwner: boolean;
 };
 
 export type TTag = {
