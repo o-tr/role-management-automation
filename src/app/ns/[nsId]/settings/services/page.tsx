@@ -6,7 +6,7 @@ const paths = [
   { label: "ネームスペース設定", path: `/ns/[nsId]/settings` },
   {
     label: "外部サービス",
-    path: `/ns/[nsId]/settings/providers`,
+    path: `/ns/[nsId]/settings/services`,
   },
 ]
 
