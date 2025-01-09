@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { validateCredential } from "./validation";
 
 export type CreateExternalServiceAccountResponse =
@@ -21,7 +21,7 @@ export type CreateExternalServiceAccountResponse =
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { nsId: string } }
+  { params }: { params: { nsId: string } },
 ): Promise<NextResponse<CreateExternalServiceAccountResponse>> {
   const session = await getServerSession();
 
@@ -30,7 +30,7 @@ export async function POST(
   if (!email) {
     return NextResponse.json(
       { status: "error", error: "Not authenticated" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
@@ -39,7 +39,7 @@ export async function POST(
   if (!name || !service || !credential) {
     return NextResponse.json(
       { status: "error", error: "Name, service, and credential are required" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -55,21 +55,21 @@ export async function POST(
   if (!namespace) {
     return NextResponse.json(
       { status: "error", error: "Namespace not found" },
-      { status: 404 }
+      { status: 404 },
     );
   }
 
   if (namespace.owner.email !== email) {
     return NextResponse.json(
       { status: "error", error: "Not authorized" },
-      { status: 403 }
+      { status: 403 },
     );
   }
 
-  if (!await validateCredential(service, credential)){
+  if (!(await validateCredential(service, credential))) {
     return NextResponse.json(
       { status: "error", error: "Invalid credential" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 

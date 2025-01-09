@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { MultiSelect } from "@/components/MultiSelect";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Member, Tag } from "@prisma/client";
-import { MultiSelect } from "@/components/MultiSelect";
+import type { Member, Tag } from "@prisma/client";
+import { useState } from "react";
 
 interface MemberListProps {
   members: Member[];
@@ -24,7 +24,7 @@ export default function MemberList({
     setSelectedMembers((prev) =>
       prev.includes(memberId)
         ? prev.filter((id) => id !== memberId)
-        : [...prev, memberId]
+        : [...prev, memberId],
     );
   };
 

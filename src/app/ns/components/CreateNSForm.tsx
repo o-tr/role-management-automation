@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCreateNamespace } from "@/hooks/use-create-namespace";
-import { TNamespace } from "@/types/prisma";
+import type { TNamespace } from "@/types/prisma";
 import { useRouter } from "next/navigation";
-import { FC, useId, useState } from "react";
+import { type FC, useId, useState } from "react";
 
 type Props = {
   onCreated?: (created: TNamespace) => void;
@@ -15,7 +15,7 @@ type Props = {
 export const CreateNSForm: FC<Props> = ({ onCreated }) => {
   const [name, setName] = useState("");
   const router = useRouter();
-  const {createNamespace, isLoading} = useCreateNamespace();
+  const { createNamespace, isLoading } = useCreateNamespace();
 
   const inputId = useId();
 
@@ -29,17 +29,17 @@ export const CreateNSForm: FC<Props> = ({ onCreated }) => {
 
   return (
     <form onSubmit={handleSubmit}>
-    <Label htmlFor={inputId}>ネームスペースを作成</Label>
-    <div className="flex items-center space-x-2">
-      <Input
-        id={inputId}
-        value={name}
-        onChange={(e) => setName(e.target.value)}
-        placeholder="ネームスペース名"
-        disabled={isLoading}
-      />
-      <Button disabled={isLoading}>作成</Button>
-    </div>
+      <Label htmlFor={inputId}>ネームスペースを作成</Label>
+      <div className="flex items-center space-x-2">
+        <Input
+          id={inputId}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="ネームスペース名"
+          disabled={isLoading}
+        />
+        <Button disabled={isLoading}>作成</Button>
+      </div>
     </form>
   );
 };

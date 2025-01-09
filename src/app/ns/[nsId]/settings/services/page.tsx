@@ -3,12 +3,12 @@ import { getServerSession } from "next-auth/next";
 import { redirect } from "next/navigation";
 
 const paths = [
-  { label: "ネームスペース設定", path: `/ns/[nsId]/settings` },
+  { label: "ネームスペース設定", path: "/ns/[nsId]/settings" },
   {
     label: "外部サービス",
-    path: `/ns/[nsId]/settings/services`,
+    path: "/ns/[nsId]/settings/services",
   },
-]
+];
 
 export default async function GroupProvidersPage({
   params,
@@ -25,7 +25,7 @@ export default async function GroupProvidersPage({
     <div>
       <BreadcrumbUpdater paths={paths} />
     </div>
-  )
+  );
   // const groupId = params.groupId;
   // if (!result) {
   //   return <div>Group not found</div>;

@@ -1,36 +1,42 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Member, Tag, ExternalProvider, ExternalAccount, Group } from '@prisma/client'
-import { updateMember } from '../../actions'
-import TagSelector from './TagSelector'
-import ExternalAccountsSection from './ExternalAccountsSection'
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import type {
+  ExternalAccount,
+  ExternalProvider,
+  Group,
+  Member,
+  Tag,
+} from "@prisma/client";
+import { useState } from "react";
+import { updateMember } from "../../actions";
+import ExternalAccountsSection from "./ExternalAccountsSection";
+import TagSelector from "./TagSelector";
 
 type MemberWithRelations = Member & {
-  tags: Tag[]
+  tags: Tag[];
   externalAccounts: (ExternalAccount & {
-    externalProvider: ExternalProvider
-  })[]
+    externalProvider: ExternalProvider;
+  })[];
   group: Group & {
-    tags: Tag[]
-    externalProviders: ExternalProvider[]
-  }
-}
+    tags: Tag[];
+    externalProviders: ExternalProvider[];
+  };
+};
 
 interface MemberFormProps {
-  member: MemberWithRelations
+  member: MemberWithRelations;
 }
 
 export default function MemberForm({ member: initialMember }: MemberFormProps) {
-  const [member, setMember] = useState(initialMember)
+  const [member, setMember] = useState(initialMember);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    await updateMember(member)
-  }
+    e.preventDefault();
+    await updateMember(member);
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -60,15 +66,18 @@ export default function MemberForm({ member: initialMember }: MemberFormProps) {
           />
         </div>
       </div>
-      
-      <ExternalAccountsSection 
+
+      <ExternalAccountsSection
         memberExternalAccounts={member.externalAccounts}
         groupExternalProviders={member.group.externalProviders}
-        onUpdate={(updatedAccounts) => setMember({ ...member, externalAccounts: updatedAccounts })}
+        onUpdate={(updatedAccounts) =>
+          setMember({ ...member, externalAccounts: updatedAccounts })
+        }
       />
 
-      <Button type="submit" className="w-full">保存</Button>
+      <Button type="submit" className="w-full">
+        保存
+      </Button>
     </form>
-  )
+  );
 }
-

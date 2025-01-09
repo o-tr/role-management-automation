@@ -3,8 +3,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { onNsChange } from "@/events/on-ns-change";
 import { useSetNamespaceName } from "@/hooks/use-set-namespace-name";
-import { TNamespaceDetail } from "@/types/prisma";
-import { FC, useId, useState } from "react";
+import type { TNamespaceDetail } from "@/types/prisma";
+import { type FC, useId, useState } from "react";
 
 type Props = {
   namespace: TNamespaceDetail;
@@ -13,17 +13,16 @@ type Props = {
 
 export const EditNSName: FC<Props> = ({ namespace, refetch }) => {
   const [name, setName] = useState(namespace.name);
-  const {setNamespaceName, isLoading} = useSetNamespaceName(namespace.id);
+  const { setNamespaceName, isLoading } = useSetNamespaceName(namespace.id);
 
   const inputId = useId();
 
-  const handleSubmit = async(e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     await setNamespaceName(name);
     onNsChange();
     refetch();
   };
-
 
   return (
     <form onSubmit={handleSubmit}>

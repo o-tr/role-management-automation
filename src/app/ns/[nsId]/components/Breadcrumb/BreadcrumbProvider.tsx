@@ -1,6 +1,6 @@
 "use client";
+import { type FC, type ReactNode, useState } from "react";
 import { BreadcrumbContext } from "./BreadcrumbContext";
-import { FC, ReactNode, useState } from "react";
 
 export const BreadcrumbProvider: FC<{ children: ReactNode }> = ({
   children,

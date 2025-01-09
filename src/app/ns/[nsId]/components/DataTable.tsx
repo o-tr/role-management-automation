@@ -1,15 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ExternalProvider } from "@prisma/client";
-import { removeExternalProvider } from "../../actions";
-import { GroupId } from "@/types/brandTypes";
-import {
-  ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -18,7 +10,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
+import type { GroupId } from "@/types/brandTypes";
+import type { ExternalProvider } from "@prisma/client";
+import {
+  type ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import { removeExternalProvider } from "../../actions";
 
 type TExternalProvider = ExternalProvider & { groupId: GroupId };
 
@@ -29,7 +29,9 @@ interface DataTableProps {
 
 const deleteProviders = async (groupId: GroupId, providerIds: string[]) => {
   await Promise.all(
-    providerIds.map((providerId) => removeExternalProvider(groupId, providerId))
+    providerIds.map((providerId) =>
+      removeExternalProvider(groupId, providerId),
+    ),
   );
 };
 
@@ -60,7 +62,7 @@ export function DataTable({ columns, data }: DataTableProps) {
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   );
@@ -79,7 +81,7 @@ export function DataTable({ columns, data }: DataTableProps) {
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}
@@ -104,7 +106,7 @@ export function DataTable({ columns, data }: DataTableProps) {
           onClick={() =>
             deleteProviders(
               selected.rows[0].original.groupId,
-              selected.rows.map((v) => v.original.id)
+              selected.rows.map((v) => v.original.id),
             )
           }
         >

@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth/next";
+import { type NextRequest, NextResponse } from "next/server";
 
 export type DeleteTagResponse =
   | {
@@ -13,7 +13,7 @@ export type DeleteTagResponse =
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { nsId: string; tagId: string } }
+  { params }: { params: { nsId: string; tagId: string } },
 ): Promise<NextResponse<DeleteTagResponse>> {
   const session = await getServerSession();
 
@@ -22,7 +22,7 @@ export async function DELETE(
   if (!email) {
     return NextResponse.json(
       { status: "error", error: "Not authenticated" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
@@ -35,7 +35,7 @@ export async function DELETE(
   if (!tag) {
     return NextResponse.json(
       { status: "error", error: "Tag not found" },
-      { status: 404 }
+      { status: 404 },
     );
   }
 

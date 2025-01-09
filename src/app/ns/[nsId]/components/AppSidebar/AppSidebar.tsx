@@ -1,6 +1,6 @@
 "use server";
 import { Sidebar, SidebarFooter, SidebarHeader } from "@/components/ui/sidebar";
-import { FC } from "react";
+import type { FC } from "react";
 import { AppSidebarContent } from "./AppSidebarContent";
 import { NamespaceSwitcher } from "./NamespaceSwitcher";
 

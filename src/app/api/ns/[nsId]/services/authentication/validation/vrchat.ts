@@ -2,11 +2,10 @@ import { isValidCredential } from "@/lib/vrchat/isValidCredential";
 import { ZVRChatCredentials } from "@/types/credentials";
 
 export const isValidAccountCredential = async (credential: string) => {
-  try{
+  try {
     const data = ZVRChatCredentials.parse(JSON.parse(credential));
     return await isValidCredential(data.username, data.password, data.totp);
-  }
-  catch (e) {
+  } catch (e) {
     return false;
   }
-}
+};

@@ -1,0 +1,10 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "files": {
+    "ignore": ["./src/components/ui/*"]
+  },
+  "formatter": {
+    "indentStyle": "space",
+    "indentWidth": 2
+  }
+}

@@ -6,9 +6,9 @@ import { BreadcrumbUpdater } from "../components/Breadcrumb/BreadcrumbUpdater";
 import GroupDetails from "../components/GroupDetails";
 
 const paths = [
-  { label: "ネームスペース設定", path: `/ns/[nsId]/settings` },
-  { label: "基本設定", path: `/ns/[nsId]/settings` },
-]
+  { label: "ネームスペース設定", path: "/ns/[nsId]/settings" },
+  { label: "基本設定", path: "/ns/[nsId]/settings" },
+];
 
 type Props = {
   params: {
@@ -17,7 +17,7 @@ type Props = {
 };
 
 export default function GroupSettingsPage({ params: { nsId } }: Props) {
-  const {namespace,isPending,refetch} = useNamespace({namespaceId: nsId});
+  const { namespace, isPending, refetch } = useNamespace({ namespaceId: nsId });
   if (isPending) {
     return <p>Loading...</p>;
   }
@@ -27,9 +27,13 @@ export default function GroupSettingsPage({ params: { nsId } }: Props) {
   }
   return (
     <div>
-      <EditNSName namespace={namespace} refetch={refetch} key={namespace.name} />
+      <EditNSName
+        namespace={namespace}
+        refetch={refetch}
+        key={namespace.name}
+      />
       <GroupDetails namespace={namespace} />
-      <BreadcrumbUpdater paths={paths}/>
+      <BreadcrumbUpdater paths={paths} />
       {/* 
       <GroupDetails namespace={namespace} isOwner={isOwner} />
       {/*<ExternalProviderList groupId={namespace.id} externalProviders={group.externalProviders} />*/}

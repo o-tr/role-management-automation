@@ -13,9 +13,9 @@ export const useSetNamespaceName = (nsId: string) => {
       body: JSON.stringify({ name }),
     });
     setIsLoading(false);
-  }
+  };
   return {
     isLoading,
     setNamespaceName,
-  }
-}
+  };
+};

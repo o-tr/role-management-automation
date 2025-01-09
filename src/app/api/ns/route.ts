@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth/next";
+import { type NextRequest, NextResponse } from "next/server";
 
 export type GetNamespacesResponse =
   | {
@@ -17,7 +17,7 @@ export type GetNamespacesResponse =
     };
 
 export async function GET(
-  req: NextRequest
+  req: NextRequest,
 ): Promise<NextResponse<GetNamespacesResponse>> {
   const session = await getServerSession();
 
@@ -26,7 +26,7 @@ export async function GET(
   if (!email) {
     return NextResponse.json(
       { status: "error", error: "Not authenticated" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
@@ -73,7 +73,7 @@ export type CreateNamespaceResponse =
       error: string;
     };
 export async function POST(
-  req: NextRequest
+  req: NextRequest,
 ): Promise<NextResponse<CreateNamespaceResponse>> {
   const session = await getServerSession();
 
@@ -82,7 +82,7 @@ export async function POST(
   if (!email) {
     return NextResponse.json(
       { status: "error", error: "Not authenticated" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
@@ -91,7 +91,7 @@ export async function POST(
   if (!name) {
     return NextResponse.json(
       { status: "error", error: "Name is required" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 

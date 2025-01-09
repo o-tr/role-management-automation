@@ -1,43 +1,45 @@
-import { useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { PlusCircle } from 'lucide-react'
-import { Role, ExternalProvider, ExternalAccount } from '@prisma/client'
-import ExternalAccountItem from './ExternalAccountItem'
-import ExternalAccountForm from './ExternalAccountForm'
+import { Button } from "@/components/ui/button";
+import type { ExternalAccount, ExternalProvider, Role } from "@prisma/client";
+import { PlusCircle } from "lucide-react";
+import { useState } from "react";
+import ExternalAccountForm from "./ExternalAccountForm";
+import ExternalAccountItem from "./ExternalAccountItem";
 
 interface ExternalAccountsSectionProps {
   userExternalAccounts: (ExternalAccount & {
     externalProvider: ExternalProvider & {
-      roles: Role[]
-    }
-  })[]
+      roles: Role[];
+    };
+  })[];
   groupExternalProviders: (ExternalProvider & {
-    roles: Role[]
-  })[]
-  onUpdate: (updatedAccounts: ExternalAccount[]) => void
+    roles: Role[];
+  })[];
+  onUpdate: (updatedAccounts: ExternalAccount[]) => void;
 }
 
 export default function ExternalAccountsSection({
   userExternalAccounts,
   groupExternalProviders,
-  onUpdate
+  onUpdate,
 }: ExternalAccountsSectionProps) {
-  const [isAdding, setIsAdding] = useState(false)
+  const [isAdding, setIsAdding] = useState(false);
 
   const handleAdd = (newAccount: ExternalAccount) => {
-    onUpdate([...userExternalAccounts, newAccount])
-    setIsAdding(false)
-  }
+    onUpdate([...userExternalAccounts, newAccount]);
+    setIsAdding(false);
+  };
 
   const handleRemove = (accountId: number) => {
-    const updatedAccounts = userExternalAccounts.filter(account => account.id !== accountId)
-    onUpdate(updatedAccounts)
-  }
+    const updatedAccounts = userExternalAccounts.filter(
+      (account) => account.id !== accountId,
+    );
+    onUpdate(updatedAccounts);
+  };
 
   return (
     <div className="space-y-4">
       <h2 className="text-xl font-semibold">外部アカウント</h2>
-      {userExternalAccounts.map(account => (
+      {userExternalAccounts.map((account) => (
         <ExternalAccountItem
           key={account.id}
           account={account}
@@ -58,6 +60,5 @@ export default function ExternalAccountsSection({
         </Button>
       )}
     </div>
-  )
+  );
 }
-

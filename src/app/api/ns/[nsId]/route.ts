@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
-import { TNamespaceDetail } from "@/types/prisma";
+import type { TNamespaceDetail } from "@/types/prisma";
 import { getServerSession } from "next-auth/next";
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 
 export type GetNamespaceDetailResponse =
   | {
@@ -15,7 +15,7 @@ export type GetNamespaceDetailResponse =
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { nsId: string } }
+  { params }: { params: { nsId: string } },
 ): Promise<NextResponse<GetNamespaceDetailResponse>> {
   const session = await getServerSession();
 
@@ -24,7 +24,7 @@ export async function GET(
   if (!email) {
     return NextResponse.json(
       { status: "error", error: "Not authenticated" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
@@ -43,7 +43,7 @@ export async function GET(
   if (!namespace) {
     return NextResponse.json(
       { status: "error", error: "Namespace not found" },
-      { status: 404 }
+      { status: 404 },
     );
   }
 
@@ -82,7 +82,7 @@ export type PatchNamespaceDetailBody = {
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { nsId: string } }
+  { params }: { params: { nsId: string } },
 ): Promise<NextResponse<GetNamespaceDetailResponse>> {
   const session = await getServerSession();
 
@@ -91,7 +91,7 @@ export async function PATCH(
   if (!email) {
     return NextResponse.json(
       { status: "error", error: "Not authenticated" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
@@ -112,14 +112,14 @@ export async function PATCH(
   if (!namespace) {
     return NextResponse.json(
       { status: "error", error: "Namespace not found" },
-      { status: 404 }
+      { status: 404 },
     );
   }
 
   if (namespace.owner.email !== email) {
     return NextResponse.json(
       { status: "error", error: "Not authorized" },
-      { status: 403 }
+      { status: 403 },
     );
   }
 

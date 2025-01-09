@@ -14,9 +14,9 @@ export const useCreateNamespace = () => {
     }).then((res) => res.json());
     setIsLoading(false);
     return data;
-  }
+  };
   return {
     isLoading,
     createNamespace,
-  }
-}
+  };
+};

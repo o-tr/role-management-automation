@@ -2,16 +2,16 @@ import { BreadcrumbUpdater } from "@/app/ns/[nsId]/components/Breadcrumb/Breadcr
 import { AddAuthentication } from "./_components/AddAuthentication";
 
 const paths = [
-  { label: "ネームスペース設定", path: `/ns/[nsId]/settings` },
+  { label: "ネームスペース設定", path: "/ns/[nsId]/settings" },
   {
     label: "外部サービス",
-    path: `/ns/[nsId]/settings/services`,
+    path: "/ns/[nsId]/settings/services",
   },
   {
     label: "認証情報",
-    path: `/ns/[nsId]/settings/services/authentication`,
-  }
-]
+    path: "/ns/[nsId]/settings/services/authentication",
+  },
+];
 
 export default function AuthenticationPage({
   params,
@@ -21,7 +21,7 @@ export default function AuthenticationPage({
   return (
     <div>
       <BreadcrumbUpdater paths={paths} />
-      <AddAuthentication nsId={params.nsId}/>
+      <AddAuthentication nsId={params.nsId} />
     </div>
-  )
+  );
 }

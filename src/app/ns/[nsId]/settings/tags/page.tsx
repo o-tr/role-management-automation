@@ -2,12 +2,12 @@
 import { BreadcrumbUpdater } from "@/app/ns/[nsId]/components/Breadcrumb/BreadcrumbUpdater";
 import TagList from "@/app/ns/[nsId]/settings/tags/TagList";
 import { useNamespace } from "@/hooks/use-namespace";
-import { GroupId } from "@/types/brandTypes";
+import type { GroupId } from "@/types/brandTypes";
 
 const paths = [
-  { label: "ネームスペース設定", path: `/ns/[nsId]/settings` },
-  { label: "タグ管理", path: `/ns/[nsId]/settings/tags` },
-]
+  { label: "ネームスペース設定", path: "/ns/[nsId]/settings" },
+  { label: "タグ管理", path: "/ns/[nsId]/settings/tags" },
+];
 
 export default function GroupTagsPage({
   params,
@@ -23,7 +23,7 @@ export default function GroupTagsPage({
   return (
     <div>
       <TagList namespaceId={namespace.id as GroupId} />
-      <BreadcrumbUpdater paths={paths}/>
+      <BreadcrumbUpdater paths={paths} />
     </div>
   );
 }

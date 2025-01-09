@@ -1,13 +1,26 @@
 "use client";
-import { Alert } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { FormItem } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useCreateServiceAuthentication } from '@/hooks/use-create-service-authentication';
-import { DiscordCredentials, GithubCredentials, VRChatCredentials, ZDiscordCredentials, ZGithubCredentials, ZVRChatCredentials } from '@/types/credentials';
-import { ExternalServiceName } from '@prisma/client';
-import { ChangeEvent, FC, FormEvent, useState } from 'react';
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { FormItem } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useCreateServiceAuthentication } from "@/hooks/use-create-service-authentication";
+import {
+  type DiscordCredentials,
+  type GithubCredentials,
+  type VRChatCredentials,
+  ZDiscordCredentials,
+  ZGithubCredentials,
+  ZVRChatCredentials,
+} from "@/types/credentials";
+import type { ExternalServiceName } from "@prisma/client";
+import { type ChangeEvent, type FC, type FormEvent, useState } from "react";
 
 export type Props = {
   nsId: string;
@@ -25,12 +38,16 @@ export type CredentialInputProps<T> = {
 };
 
 const serviceOptions: ServiceOption[] = [
-  { value: 'DISCORD', label: 'Discord' },
-  { value: 'VRCHAT', label: 'VRChat' },
-  { value: 'GITHUB', label: 'GitHub' },
+  { value: "DISCORD", label: "Discord" },
+  { value: "VRCHAT", label: "VRChat" },
+  { value: "GITHUB", label: "GitHub" },
 ];
 
-const DiscordCredentialsInput: FC<CredentialInputProps<DiscordCredentials>> = ({ credential, handleCredentialChange, disabled }) => (
+const DiscordCredentialsInput: FC<CredentialInputProps<DiscordCredentials>> = ({
+  credential,
+  handleCredentialChange,
+  disabled,
+}) => (
   <FormItem>
     <Input
       type="text"
@@ -44,7 +61,11 @@ const DiscordCredentialsInput: FC<CredentialInputProps<DiscordCredentials>> = ({
   </FormItem>
 );
 
-const VRChatCredentialsInput: FC<CredentialInputProps<VRChatCredentials>> = ({ credential, handleCredentialChange, disabled }) => (
+const VRChatCredentialsInput: FC<CredentialInputProps<VRChatCredentials>> = ({
+  credential,
+  handleCredentialChange,
+  disabled,
+}) => (
   <>
     <FormItem>
       <Input
@@ -82,7 +103,11 @@ const VRChatCredentialsInput: FC<CredentialInputProps<VRChatCredentials>> = ({ c
   </>
 );
 
-const GithubCredentialsInput: FC<CredentialInputProps<GithubCredentials>> = ({ credential, handleCredentialChange, disabled }) => (
+const GithubCredentialsInput: FC<CredentialInputProps<GithubCredentials>> = ({
+  credential,
+  handleCredentialChange,
+  disabled,
+}) => (
   <FormItem>
     <Input
       type="text"
@@ -97,47 +122,58 @@ const GithubCredentialsInput: FC<CredentialInputProps<GithubCredentials>> = ({ c
 );
 
 export const AddAuthentication: FC<Props> = ({ nsId }) => {
-  const [name, setName] = useState('');
-  const [service, setService] = useState<ExternalServiceName>(serviceOptions[0].value);
-  const [credential, setCredential] = useState({ token: '', username: '', password: '', totp: '' });
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
-  const {createServiceAuthentication, loading} = useCreateServiceAuthentication();
+  const [name, setName] = useState("");
+  const [service, setService] = useState<ExternalServiceName>(
+    serviceOptions[0].value,
+  );
+  const [credential, setCredential] = useState({
+    token: "",
+    username: "",
+    password: "",
+    totp: "",
+  });
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const { createServiceAuthentication, loading } =
+    useCreateServiceAuthentication();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    setError('');
-    setSuccess('');
+    setError("");
+    setSuccess("");
 
-    const credentialString = (()=>{
-      switch(service){
-        case 'DISCORD':{
+    const credentialString = (() => {
+      switch (service) {
+        case "DISCORD": {
           const data = ZDiscordCredentials.strip().parse(credential);
           return JSON.stringify(data);
         }
-        case 'VRCHAT':{
+        case "VRCHAT": {
           const data = ZVRChatCredentials.strip().parse(credential);
           return JSON.stringify(data);
         }
-        case 'GITHUB':{
+        case "GITHUB": {
           const data = ZGithubCredentials.strip().parse(credential);
           return JSON.stringify(data);
         }
         default:
-          throw new Error('Invalid service');
+          throw new Error("Invalid service");
       }
     })();
 
-    const result = await createServiceAuthentication(nsId, { name, service, credential: credentialString });
+    const result = await createServiceAuthentication(nsId, {
+      name,
+      service,
+      credential: credentialString,
+    });
 
-
-    if (result.status === 'error') {
+    if (result.status === "error") {
       setError(result.error);
     } else {
-      setSuccess('Service account created successfully');
-      setName('');
+      setSuccess("Service account created successfully");
+      setName("");
       setService(serviceOptions[0].value);
-      setCredential({ token: '', username: '', password: '', totp: '' });
+      setCredential({ token: "", username: "", password: "", totp: "" });
     }
   };
 
@@ -146,7 +182,7 @@ export const AddAuthentication: FC<Props> = ({ nsId }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className='space-y-2'>
+    <form onSubmit={handleSubmit} className="space-y-2">
       <FormItem>
         <Input
           type="text"
@@ -158,7 +194,11 @@ export const AddAuthentication: FC<Props> = ({ nsId }) => {
         />
       </FormItem>
       <FormItem>
-        <Select value={service} onValueChange={(value) => setService(value as ExternalServiceName)} disabled={loading}>
+        <Select
+          value={service}
+          onValueChange={(value) => setService(value as ExternalServiceName)}
+          disabled={loading}
+        >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="サービス" />
           </SelectTrigger>
@@ -171,10 +211,30 @@ export const AddAuthentication: FC<Props> = ({ nsId }) => {
           </SelectContent>
         </Select>
       </FormItem>
-      {service === 'DISCORD' && <DiscordCredentialsInput credential={credential} handleCredentialChange={handleCredentialChange} disabled={loading} />}
-      {service === 'VRCHAT' && <VRChatCredentialsInput credential={credential} handleCredentialChange={handleCredentialChange} disabled={loading} />}
-      {service === 'GITHUB' && <GithubCredentialsInput credential={credential} handleCredentialChange={handleCredentialChange} disabled={loading} />}
-      <Button type="submit" disabled={loading}>認証情報を追加</Button>
+      {service === "DISCORD" && (
+        <DiscordCredentialsInput
+          credential={credential}
+          handleCredentialChange={handleCredentialChange}
+          disabled={loading}
+        />
+      )}
+      {service === "VRCHAT" && (
+        <VRChatCredentialsInput
+          credential={credential}
+          handleCredentialChange={handleCredentialChange}
+          disabled={loading}
+        />
+      )}
+      {service === "GITHUB" && (
+        <GithubCredentialsInput
+          credential={credential}
+          handleCredentialChange={handleCredentialChange}
+          disabled={loading}
+        />
+      )}
+      <Button type="submit" disabled={loading}>
+        認証情報を追加
+      </Button>
       {error && <Alert>{error}</Alert>}
       {success && <Alert>{success}</Alert>}
     </form>

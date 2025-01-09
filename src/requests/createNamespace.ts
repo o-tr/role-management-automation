@@ -1,5 +1,5 @@
 export const createNamespace = async (
-  name: string
+  name: string,
 ): Promise<{ id: string; name: string; isOwner: boolean }> => {
   const response = await fetch("/api/ns", {
     method: "POST",

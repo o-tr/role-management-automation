@@ -1,15 +1,15 @@
-'use server'
+"use server";
 
-import { prisma } from '@/lib/prisma'
-import { User, Tag, ExternalAccount } from '@prisma/client'
+import { prisma } from "@/lib/prisma";
+import type { ExternalAccount, Tag, User } from "@prisma/client";
 
 type UserWithRelations = User & {
-  tags: Tag[]
-  externalAccounts: ExternalAccount[]
-}
+  tags: Tag[];
+  externalAccounts: ExternalAccount[];
+};
 
 export async function updateMember(userData: UserWithRelations) {
-  const { id, name, email, tags, externalAccounts } = userData
+  const { id, name, email, tags, externalAccounts } = userData;
 
   await prisma.user.update({
     where: { id },
@@ -17,15 +17,14 @@ export async function updateMember(userData: UserWithRelations) {
       name,
       email,
       tags: {
-        set: tags.map(tag => ({ id: tag.id }))
+        set: tags.map((tag) => ({ id: tag.id })),
       },
       externalAccounts: {
         deleteMany: {},
-        create: externalAccounts.map(account => ({
-          externalProviderId: account.externalProviderId
-        }))
-      }
+        create: externalAccounts.map((account) => ({
+          externalProviderId: account.externalProviderId,
+        })),
+      },
     },
-  })
+  });
 }
-

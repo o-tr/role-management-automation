@@ -1,8 +1,8 @@
-import { TTag } from "@/types/prisma";
+import type { TTag } from "@/types/prisma";
 
 export const createTag = async (
   namespaceId: string,
-  name: string
+  name: string,
 ): Promise<TTag> => {
   const response = await fetch(`/api/ns/${namespaceId}/tags`, {
     method: "POST",

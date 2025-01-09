@@ -10,4 +10,4 @@ export const setNamespaceName = async (namespaceId: string, name: string) => {
     throw new Error(response.error);
   }
   return response.namespace;
-}
+};

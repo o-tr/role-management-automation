@@ -1,29 +1,33 @@
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Role, ExternalAccount, ExternalProvider } from '@prisma/client'
-import { X } from 'lucide-react'
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import type { ExternalAccount, ExternalProvider, Role } from "@prisma/client";
+import { X } from "lucide-react";
 
 interface ExternalAccountItemProps {
   account: ExternalAccount & {
     externalProvider: ExternalProvider & {
-      roles: Role[]
-    }
-  }
-  onRemove: () => void
+      roles: Role[];
+    };
+  };
+  onRemove: () => void;
 }
 
 export default function ExternalAccountItem({
   account,
-  onRemove
+  onRemove,
 }: ExternalAccountItemProps) {
   return (
     <div className="flex items-center justify-between p-4 border rounded-lg">
       <div>
         <h3 className="font-semibold">{account.externalProvider.provider}</h3>
-        <p className="text-sm text-gray-500">{account.externalProvider.providerId}</p>
+        <p className="text-sm text-gray-500">
+          {account.externalProvider.providerId}
+        </p>
         <div className="mt-2 space-x-2">
-          {account.externalProvider.roles.map(role => (
-            <Badge key={role.id} variant="secondary">{role.name}</Badge>
+          {account.externalProvider.roles.map((role) => (
+            <Badge key={role.id} variant="secondary">
+              {role.name}
+            </Badge>
           ))}
         </div>
       </div>
@@ -33,6 +37,5 @@ export default function ExternalAccountItem({
         </Button>
       </div>
     </div>
-  )
+  );
 }
-

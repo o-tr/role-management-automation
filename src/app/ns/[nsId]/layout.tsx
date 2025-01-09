@@ -3,9 +3,9 @@ import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
   SidebarProvider,
-  SidebarTrigger
+  SidebarTrigger,
 } from "@/components/ui/sidebar";
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import { AppSidebar } from "./components/AppSidebar";
 import { BreadcrumbDisplay, BreadcrumbProvider } from "./components/Breadcrumb";
 

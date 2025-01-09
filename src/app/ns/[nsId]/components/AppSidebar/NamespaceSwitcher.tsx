@@ -27,11 +27,11 @@ import {
 } from "@/components/ui/sidebar";
 import { useOnNsChange } from "@/events/on-ns-change";
 import { useNamespaces } from "@/hooks/use-namespaces";
-import { TNamespace } from "@/types/prisma";
+import type { TNamespace } from "@/types/prisma";
 import { Avatar } from "@radix-ui/react-avatar";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { FC, useCallback, useLayoutEffect, useState } from "react";
+import { type FC, useCallback, useLayoutEffect, useState } from "react";
 
 export const NamespaceSwitcher: FC = () => {
   const { namespaces, isPending, refetch } = useNamespaces();
@@ -51,7 +51,7 @@ export const NamespaceSwitcher: FC = () => {
 
   const onNsChange = useCallback(() => {
     refetch();
-  },[refetch]);
+  }, [refetch]);
 
   useOnNsChange(onNsChange);
 

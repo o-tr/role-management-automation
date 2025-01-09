@@ -21,7 +21,9 @@ export const BreadcrumbDisplay = () => {
             <Fragment key={item.path}>
               {index > 0 && <BreadcrumbSeparator className="hidden md:block" />}
               <BreadcrumbItem className="hidden md:block">
-                <BreadcrumbLink asChild><Link href={item.path}>{item.label}</Link></BreadcrumbLink>
+                <BreadcrumbLink asChild>
+                  <Link href={item.path}>{item.label}</Link>
+                </BreadcrumbLink>
               </BreadcrumbItem>
             </Fragment>
           ))}

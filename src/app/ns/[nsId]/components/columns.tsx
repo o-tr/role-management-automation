@@ -1,10 +1,7 @@
 "use client";
 
+import { EditExternalProviderForm } from "@/app/ns/[nsId]/components/EditExternalProviderForm";
 import { Button } from "@/components/ui/button";
-import { ExternalProvider } from "@prisma/client";
-import { removeExternalProvider } from "../../actions";
-import { GroupId } from "@/types/brandTypes";
-import { ColumnDef } from "@tanstack/react-table";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
@@ -13,7 +10,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { EditExternalProviderForm } from "@/app/ns/[nsId]/components/EditExternalProviderForm";
+import type { GroupId } from "@/types/brandTypes";
+import type { ExternalProvider } from "@prisma/client";
+import type { ColumnDef } from "@tanstack/react-table";
+import { removeExternalProvider } from "../../actions";
 
 type TExternalProvider = ExternalProvider & { groupId: GroupId };
 

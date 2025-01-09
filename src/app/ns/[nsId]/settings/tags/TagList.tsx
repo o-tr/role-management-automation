@@ -1,16 +1,17 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { TTag } from "@/types/prisma";
+import type { TTag } from "@/types/prisma";
 import {
-  ColumnDef,
+  type ColumnDef,
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import { useState } from "react";
 
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -19,7 +20,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useNamespace } from "@/hooks/use-namespace";
 import { createTag } from "@/requests/createTag";
 import { deleteTag } from "@/requests/deleteTag";
@@ -110,7 +110,7 @@ export function DataTable({ columns, data }: DataTableProps) {
                         ? null
                         : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                     </TableHead>
                   );
@@ -129,7 +129,7 @@ export function DataTable({ columns, data }: DataTableProps) {
                     <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}
@@ -154,7 +154,7 @@ export function DataTable({ columns, data }: DataTableProps) {
           onClick={() =>
             deleteTags(
               selected.rows[0].original.namespaceId,
-              selected.rows.map((v) => v.original.id)
+              selected.rows.map((v) => v.original.id),
             )
           }
         >

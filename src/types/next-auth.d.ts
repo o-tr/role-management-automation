@@ -7,6 +7,6 @@ declare module "next-auth" {
       /** The user's Id. */
       id: string;
       email: string;
-    }
+    };
   }
 }

@@ -1,7 +1,7 @@
 "use client";
-import { GetNamespaceDetailResponse } from "@/app/api/ns/[nsId]/route";
-import { TNamespaceDetail } from "@/types/prisma";
-import { useEffect, useState } from "react";
+import type { GetNamespaceDetailResponse } from "@/app/api/ns/[nsId]/route";
+import type { TNamespaceDetail } from "@/types/prisma";
+import { useCallback, useEffect, useState } from "react";
 
 type Props = {
   namespaceId: string;
@@ -11,20 +11,20 @@ export const useNamespace = ({ namespaceId }: Props) => {
   const [namespace, setNamespace] = useState<TNamespaceDetail | undefined>();
   const [isPending, setIsPending] = useState(true);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     const response = (await fetch(`/api/ns/${namespaceId}`).then((res) =>
-      res.json()
+      res.json(),
     )) as GetNamespaceDetailResponse;
     if (response.status === "error") {
       throw new Error(response.error);
     }
     setNamespace(response.namespace);
     setIsPending(false);
-  };
+  }, [namespaceId]);
 
   useEffect(() => {
     void fetchData();
-  }, [namespaceId]);
+  }, [fetchData]);
 
   return { namespace, isPending, refetch: fetchData };
 };

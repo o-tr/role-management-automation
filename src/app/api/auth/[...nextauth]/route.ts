@@ -1,14 +1,15 @@
-import NextAuth from "next-auth/next"
-import DiscordProvider from "next-auth/providers/discord"
-import { PrismaAdapter } from "@next-auth/prisma-adapter"
-import { prisma } from "@/lib/prisma"
+import { DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET } from "@/env";
+import { prisma } from "@/lib/prisma";
+import { PrismaAdapter } from "@next-auth/prisma-adapter";
+import NextAuth from "next-auth/next";
+import DiscordProvider from "next-auth/providers/discord";
 
 const handler = NextAuth({
   adapter: PrismaAdapter(prisma),
   providers: [
     DiscordProvider({
-      clientId: process.env.DISCORD_CLIENT_ID!,
-      clientSecret: process.env.DISCORD_CLIENT_SECRET!,
+      clientId: DISCORD_CLIENT_ID,
+      clientSecret: DISCORD_CLIENT_SECRET,
     }),
   ],
   callbacks: {
@@ -19,10 +20,9 @@ const handler = NextAuth({
       return session;
     },
   },
-  session:{
-    strategy: 'jwt',
-  }
-})
+  session: {
+    strategy: "jwt",
+  },
+});
 
-export { handler as GET, handler as POST }
-
+export { handler as GET, handler as POST };

@@ -1,8 +1,8 @@
-import { DeleteTagResponse } from "@/app/api/ns/[nsId]/tags/[tagId]/route";
+import type { DeleteTagResponse } from "@/app/api/ns/[nsId]/tags/[tagId]/route";
 
 export const deleteTag = async (
   namespaceId: string,
-  tagId: string
+  tagId: string,
 ): Promise<void> => {
   const response = (await fetch(`/api/ns/${namespaceId}/tags/${tagId}`, {
     method: "DELETE",

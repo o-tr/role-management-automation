@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from "zod";
 
 export const ZDiscordApplicaton = z.object({
   id: z.string(),
@@ -7,4 +7,4 @@ export const ZDiscordApplicaton = z.object({
   verify_key: z.string(),
   flags: z.number(),
   redirect_uris: z.array(z.string()),
-})
+});
