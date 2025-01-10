@@ -99,14 +99,16 @@ export const columns: ColumnDef<InternalServiceGroup>[] = [
   {
     id: "actions",
     cell: ({ row }) => {
-      const { deleteServiceGroup, isPending } = useDeleteServiceGroup();
+      const { deleteServiceGroup, isPending } = useDeleteServiceGroup(
+        row.original.namespaceId,
+      );
 
       return (
         <Button
           variant="outline"
           disabled={isPending}
           onClick={() =>
-            void deleteServiceGroup(row.original.namespaceId, row.original.id)
+            void deleteServiceGroup(row.original.account.id, row.original.id)
           }
         >
           削除
@@ -123,7 +125,9 @@ interface DataTableProps {
 }
 
 export function DataTable({ columns, data }: DataTableProps) {
-  const { deleteServiceGroups, isPending } = useDeleteServiceGroup();
+  const { deleteServiceGroups, isPending } = useDeleteServiceGroup(
+    data[0]?.namespaceId,
+  );
   const table = useReactTable({
     data,
     columns,
@@ -194,7 +198,7 @@ export function DataTable({ columns, data }: DataTableProps) {
           disabled={isPending}
           onClick={() =>
             deleteServiceGroups(
-              selected.rows[0].original.namespaceId,
+              selected.rows[0].original.account.id,
               selected.rows.map((v) => v.original.id),
             )
           }
