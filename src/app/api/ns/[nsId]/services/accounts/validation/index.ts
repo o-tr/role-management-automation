@@ -1,17 +1,17 @@
 import type { ExternalServiceName } from "@prisma/client";
 import { isValidBotToken } from "./discord";
-import { isValidAccountCredential } from "./vrchat";
+import { getAccountCredentials } from "./vrchat";
 
 export const validateCredential = async (
   type: ExternalServiceName,
   credential: string,
-) => {
+): Promise<string|undefined> => {
   switch (type) {
     case "DISCORD":
-      return await isValidBotToken(credential);
+      return await isValidBotToken(credential) ? credential : undefined;
     case "VRCHAT":
-      return await isValidAccountCredential(credential);
+      return await getAccountCredentials(credential);
     default:
-      return false;
+      return undefined;
   }
 };

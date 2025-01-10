@@ -11,7 +11,6 @@ export type CreateExternalServiceAccountResponse =
         id: string;
         name: string;
         service: string;
-        credential: string;
         icon?: string;
       };
     }
@@ -139,7 +138,9 @@ export async function POST(
     );
   }
 
-  if (!(await validateCredential(service, credential))) {
+  const validatedCredential = await validateCredential(service, credential);
+
+  if (!validatedCredential) {
     return NextResponse.json(
       { status: "error", error: "Invalid credential" },
       { status: 400 },
@@ -150,7 +151,7 @@ export async function POST(
     data: {
       name,
       service,
-      credential,
+      credential: validatedCredential,
       icon,
       namespace: { connect: { id: params.nsId } },
     },
@@ -162,7 +163,6 @@ export async function POST(
       id: serviceAccount.id,
       name: serviceAccount.name,
       service: serviceAccount.service,
-      credential: serviceAccount.credential,
       icon: serviceAccount.icon || undefined,
     },
   });

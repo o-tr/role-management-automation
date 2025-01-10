@@ -8,6 +8,8 @@ export const ZVRChatCredentials = z.object({
   username: z.string(),
   password: z.string(),
   totp: z.string(),
+  token: z.string().optional(),
+  twoFactorToken: z.string().optional(),
 });
 
 export const ZGithubCredentials = z.object({

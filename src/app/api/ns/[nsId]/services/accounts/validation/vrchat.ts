@@ -1,11 +1,15 @@
-import { isValidCredential } from "@/lib/vrchat/isValidCredential";
+import { getAuthTokens } from "@/lib/vrchat/getAuthCookies";
 import { ZVRChatCredentials } from "@/types/credentials";
 
-export const isValidAccountCredential = async (credential: string) => {
+export const getAccountCredentials = async (credential: string): Promise<string|undefined> => {
   try {
     const data = ZVRChatCredentials.parse(JSON.parse(credential));
-    return await isValidCredential(data.username, data.password, data.totp);
+    const result = await getAuthTokens(data.username, data.password, data.totp);
+    if (result === undefined) {
+      return undefined;
+    }
+    return JSON.stringify({...data,...result});
   } catch (e) {
-    return false;
+    return undefined;
   }
 };
