@@ -1,11 +1,11 @@
-import type { DeleteExternalServiceAccountResponse } from "@/app/api/ns/[nsId]/services/accounts/[accountId]/route";
+import type { DeleteExternalServiceAccountResponse } from "@/app/api/ns/[nsId]/service-accounts/[accountId]/route";
 
 export const deleteServiceAccount = async (
   nsId: string,
   accountId: string,
 ): Promise<DeleteExternalServiceAccountResponse> => {
   const response = await fetch(
-    `/api/ns/${nsId}/services/accounts/${accountId}`,
+    `/api/ns/${nsId}/service-accounts/${accountId}`,
     {
       method: "DELETE",
     },

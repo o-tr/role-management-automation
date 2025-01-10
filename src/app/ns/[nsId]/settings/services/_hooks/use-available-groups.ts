@@ -1,6 +1,5 @@
-import type { GetAvailableGroupsResponse } from "@/app/api/ns/[nsId]/services/accounts/[accountId]/groups/availables/route";
-import type { GetExternalServiceAccountsResponse } from "@/app/api/ns/[nsId]/services/accounts/route";
-import type { TAvailableGroup, TServiceAccounts } from "@/types/prisma";
+import type { GetAvailableGroupsResponse } from "@/app/api/ns/[nsId]/service-accounts/[accountId]/groups/availables/route";
+import type { TAvailableGroup } from "@/types/prisma";
 import { useCallback, useLayoutEffect, useState } from "react";
 
 export const useAvailableGroups = (nsId: string, accountId: string) => {
@@ -15,7 +14,7 @@ export const useAvailableGroups = (nsId: string, accountId: string) => {
     }
     setIsPending(true);
     const response = (await fetch(
-      `/api/ns/${nsId}/services/accounts/${accountId}/groups/availables`,
+      `/api/ns/${nsId}/service-accounts/${accountId}/groups/availables`,
     ).then((res) => res.json())) as GetAvailableGroupsResponse;
     if (response.status === "error") {
       setError(response.error);

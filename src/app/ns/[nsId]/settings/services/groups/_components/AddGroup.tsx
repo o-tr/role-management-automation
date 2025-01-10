@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "@/components/ui/button";
 import { FormItem } from "@/components/ui/form";
 import {
   Select,
@@ -7,8 +8,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState } from "react";
+import { type FormEvent, useState } from "react";
 import { useAvailableGroups } from "../../_hooks/use-available-groups";
+import { useCreateServiceGroup } from "../../_hooks/use-create-service-group";
 import { useServiceAccounts } from "../../_hooks/use-service-accounts";
 
 export const AddGroup = ({ nsId }: { nsId: string }) => {
@@ -19,16 +21,31 @@ export const AddGroup = ({ nsId }: { nsId: string }) => {
     accountId,
   );
   const [groupId, setGroupId] = useState<string>("");
+  const { createServiceGroup, loading } = useCreateServiceGroup(
+    nsId,
+    accountId,
+  );
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!accountId || !groupId) {
+      return;
+    }
+    await createServiceGroup(groupId);
+    setAccountId("");
+    setGroupId("");
+  };
 
   if (isPending) {
     return <div>Loading...</div>;
   }
   return (
-    <form>
+    <form onSubmit={handleSubmit}>
       <FormItem>
         <Select
           value={accountId}
           onValueChange={(value) => setAccountId(value)}
+          disabled={loading}
         >
           <SelectTrigger className="w-[250px]">
             <SelectValue placeholder="アカウント" />
@@ -46,7 +63,7 @@ export const AddGroup = ({ nsId }: { nsId: string }) => {
         <Select
           value={groupId}
           onValueChange={(value) => setGroupId(value)}
-          disabled={!accountId || isGroupsPending}
+          disabled={!accountId || isGroupsPending || loading}
         >
           <SelectTrigger className="w-[250px]">
             <SelectValue placeholder="グループ" />
@@ -75,6 +92,7 @@ export const AddGroup = ({ nsId }: { nsId: string }) => {
           </SelectContent>
         </Select>
       </FormItem>
+      <Button disabled={loading}>追加</Button>
     </form>
   );
 };

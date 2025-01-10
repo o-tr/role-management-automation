@@ -47,3 +47,9 @@ export type TAvailableGroup = {
   href?: string;
   icon?: string;
 };
+
+export type TExternalServiceGroup = {
+  id: string;
+  name: string;
+  icon?: string;
+};
