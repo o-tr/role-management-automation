@@ -1,4 +1,4 @@
-import { EventEmitter } from "node:events";
+import { EventEmitter } from "events";
 import { useLayoutEffect } from "react";
 
 const eventEmitter = new EventEmitter();
