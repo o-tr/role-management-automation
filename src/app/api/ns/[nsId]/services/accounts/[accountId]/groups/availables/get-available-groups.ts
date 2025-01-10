@@ -1,0 +1,29 @@
+import { getBelongGuilds } from "@/lib/discord/requests/getBelongGuilds";
+import { ZDiscordCredentials } from "@/types/credentials";
+import type { ExternalServiceAccount } from "@prisma/client";
+
+export const getAvailableGroups = async (
+  serviceAccount: ExternalServiceAccount,
+) => {
+  switch (serviceAccount.service) {
+    case "DISCORD":
+      return await getDiscordAvailableGroups(serviceAccount);
+    default:
+      throw new Error(`Unsupported service: ${serviceAccount.service}`);
+  }
+};
+
+const getDiscordAvailableGroups = async (
+  serviceAccount: ExternalServiceAccount,
+) => {
+  const data = ZDiscordCredentials.parse(JSON.parse(serviceAccount.credential));
+  const guilds = await getBelongGuilds(data.token);
+  return guilds.map((guild) => ({
+    id: guild.id,
+    name: guild.name,
+    icon: guild.icon
+      ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png`
+      : undefined,
+    href: `https://discord.com/channels/${guild.id}`,
+  }));
+};

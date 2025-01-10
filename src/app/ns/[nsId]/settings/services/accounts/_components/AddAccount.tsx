@@ -1,5 +1,5 @@
 "use client";
-import { useCreateServiceAccount } from "@/app/ns/[nsId]/settings/services/accounts/_hooks/use-create-service-account";
+import { useCreateServiceAccount } from "@/app/ns/[nsId]/settings/services/_hooks/use-create-service-account";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { FormItem } from "@/components/ui/form";
@@ -21,7 +21,7 @@ import {
 } from "@/types/credentials";
 import type { ExternalServiceName } from "@prisma/client";
 import { type ChangeEvent, type FC, type FormEvent, useState } from "react";
-import { onServiceAccountChange } from "../_hooks/on-accounts-change";
+import { onServiceAccountChange } from "../../_hooks/on-accounts-change";
 
 export type Props = {
   nsId: string;

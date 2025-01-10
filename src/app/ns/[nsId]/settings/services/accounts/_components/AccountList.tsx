@@ -1,7 +1,7 @@
 "use client";
-import { useServiceAccounts } from "@/app/ns/[nsId]/settings/services/accounts/_hooks/use-service-accounts";
+import { useServiceAccounts } from "@/app/ns/[nsId]/settings/services/_hooks/use-service-accounts";
 import type { FC } from "react";
-import { useOnServiceAccountChange } from "../_hooks/on-accounts-change";
+import { useOnServiceAccountChange } from "../../_hooks/on-accounts-change";
 
 import { Button } from "@/components/ui/button";
 import type { TServiceAccounts, TTag } from "@/types/prisma";
@@ -12,7 +12,7 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 
-import { useDeleteServiceAccount } from "@/app/ns/[nsId]/settings/services/accounts/_hooks/use-delete-service-accounts";
+import { useDeleteServiceAccount } from "@/app/ns/[nsId]/settings/services/_hooks/use-delete-service-accounts";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,

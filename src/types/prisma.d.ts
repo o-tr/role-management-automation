@@ -40,3 +40,10 @@ export type TServiceAccounts = {
   service: string;
   icon?: string;
 };
+
+export type TAvailableGroup = {
+  id: string;
+  name: string;
+  href?: string;
+  icon?: string;
+};
