@@ -1,10 +1,11 @@
 import { VRCHAT_USER_AGENT } from "../const";
 import { buildCookie } from "../cookie";
 import { type VRCAuth, ZVRCAuth } from "../types/Auth";
+import { VRCToken, VRCTwoFactorAuth } from "../types/brand";
 
 export const getAuth = async (
-  token: string,
-  twoFactorAuth: string,
+  token: VRCToken,
+  twoFactorAuth: VRCTwoFactorAuth,
 ): Promise<VRCAuth> => {
   const request = await fetch("https://api.vrchat.cloud/api/1/auth", {
     headers: {
@@ -19,6 +20,5 @@ export const getAuth = async (
   if (!data.success) {
     throw new Error(`Failed to validate token: ${JSON.stringify(data)}`);
   }
-  console.log(data.data);
   return data.data;
 };

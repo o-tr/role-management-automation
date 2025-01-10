@@ -1,6 +1,5 @@
 import { getTotpCode } from "../totp";
-import { getAuth } from "./requests/getAuth";
-import { getAuthUser } from "./requests/getAuthUser";
+import { getAuthUser, getAuthUserWithAuth } from "./requests/getAuthUser";
 import { postAuthTwoFactorAuthTotp } from "./requests/postAuthTwoFactorAuthTotp";
 
 export const getAuthTokens = async (
@@ -10,13 +9,14 @@ export const getAuthTokens = async (
 ): Promise<{
   token: string;
   twoFactorToken: string;
+  userId: string;
 }| undefined> => {
   try {
-    const { token } = await getAuthUser(username, password);
+    const { token } = await getAuthUserWithAuth(username, password);
     const totp = getTotpCode(totpSecret);
     const { twoFactorToken } = await postAuthTwoFactorAuthTotp(token, totp);
-    const data = await getAuth(token, twoFactorToken);
-    return data.ok ? { token, twoFactorToken } : undefined;
+    const user = await getAuthUser(token, twoFactorToken);
+    return { token, twoFactorToken, userId: user.id };
   } catch (e) {
     console.log(e);
     return undefined;

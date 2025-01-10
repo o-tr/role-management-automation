@@ -1,27 +1,29 @@
-const getAuthToken = (cookies: string[]) => {
+import { VRCToken, VRCTwoFactorAuth } from "./types/brand";
+
+const getAuthToken = (cookies: string[]): VRCToken | undefined => {
   for (const cookie of cookies) {
     const [key, value] = cookie.split(";")[0].split("=");
     if (key === "auth") {
-      return value;
+      return value as VRCToken;
     }
   }
-  return "";
+  return;
 };
 
-const getTwoFactorAuthToken = (cookies: string[]) => {
+const getTwoFactorAuthToken = (cookies: string[]): VRCTwoFactorAuth | undefined => {
   for (const cookie of cookies) {
     const [key, value] = cookie.split(";")[0].split("=");
     if (key === "twoFactorAuth") {
-      return value;
+      return value as VRCTwoFactorAuth;
     }
   }
-  return "";
+  return;
 };
 
 const buildCookie = ({
   token,
   twoFactorAuth,
-}: { token?: string; twoFactorAuth?: string }) => {
+}: { token?: VRCToken; twoFactorAuth?: VRCTwoFactorAuth }) => {
   const result: string[] = [];
   if (token) result.push(`auth=${token}`);
   if (twoFactorAuth) result.push(`twoFactorAuth=${twoFactorAuth}`);
@@ -29,3 +31,4 @@ const buildCookie = ({
 };
 
 export { buildCookie, getAuthToken, getTwoFactorAuthToken };
+

@@ -14,10 +14,9 @@ import {
 import {
   type DiscordCredentials,
   type GithubCredentials,
-  type VRChatCredentials,
   ZDiscordCredentials,
   ZGithubCredentials,
-  ZVRChatCredentials,
+  ZVRChatCredentialsInput
 } from "@/types/credentials";
 import type { ExternalServiceName } from "@prisma/client";
 import { type ChangeEvent, type FC, type FormEvent, useState } from "react";
@@ -62,7 +61,7 @@ const DiscordCredentialsInput: FC<CredentialInputProps<DiscordCredentials>> = ({
   </FormItem>
 );
 
-const VRChatCredentialsInput: FC<CredentialInputProps<VRChatCredentials>> = ({
+const VRChatCredentialsInput: FC<CredentialInputProps<VRChatCredentialsInput>> = ({
   credential,
   handleCredentialChange,
   disabled,
@@ -149,7 +148,7 @@ export const AddAccount: FC<Props> = ({ nsId }) => {
           return JSON.stringify(data);
         }
         case "VRCHAT": {
-          const data = ZVRChatCredentials.strip().parse(credential);
+          const data = ZVRChatCredentialsInput.strip().parse(credential);
           return JSON.stringify(data);
         }
         case "GITHUB": {

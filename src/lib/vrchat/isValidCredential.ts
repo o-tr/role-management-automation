@@ -1,6 +1,6 @@
 import { getTotpCode } from "../totp";
 import { getAuth } from "./requests/getAuth";
-import { getAuthUser } from "./requests/getAuthUser";
+import { getAuthUserWithAuth } from "./requests/getAuthUser";
 import { postAuthTwoFactorAuthTotp } from "./requests/postAuthTwoFactorAuthTotp";
 
 export const isValidCredential = async (
@@ -9,7 +9,7 @@ export const isValidCredential = async (
   totpSecret: string,
 ) => {
   try {
-    const { token } = await getAuthUser(username, password);
+    const { token } = await getAuthUserWithAuth(username, password);
     const totp = getTotpCode(totpSecret);
     const { twoFactorToken } = await postAuthTwoFactorAuthTotp(token, totp);
     const data = await getAuth(token, twoFactorToken);
