@@ -6,7 +6,7 @@ export const getAuth = async (
   token: string,
   twoFactorAuth: string,
 ): Promise<VRCAuth> => {
-  const request = await fetch("https://vrchat.com/api/1/auth", {
+  const request = await fetch("https://api.vrchat.cloud/api/1/auth", {
     headers: {
       "User-Agent": VRCHAT_USER_AGENT,
       Cookie: buildCookie({ token, twoFactorAuth }),

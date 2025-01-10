@@ -33,3 +33,10 @@ export type TTag = {
   id: string;
   name: string;
 };
+
+export type TServiceAccounts = {
+  id: string;
+  name: string;
+  service: string;
+  icon?: string;
+};

@@ -1,4 +1,5 @@
 "use client";
+import { useCreateServiceAccount } from "@/app/ns/[nsId]/settings/services/accounts/_hooks/use-create-service-account";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { FormItem } from "@/components/ui/form";
@@ -10,7 +11,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCreateServiceAuthentication } from "@/hooks/use-create-service-authentication";
 import {
   type DiscordCredentials,
   type GithubCredentials,
@@ -21,6 +21,7 @@ import {
 } from "@/types/credentials";
 import type { ExternalServiceName } from "@prisma/client";
 import { type ChangeEvent, type FC, type FormEvent, useState } from "react";
+import { onServiceAccountChange } from "../_hooks/on-accounts-change";
 
 export type Props = {
   nsId: string;
@@ -121,7 +122,7 @@ const GithubCredentialsInput: FC<CredentialInputProps<GithubCredentials>> = ({
   </FormItem>
 );
 
-export const AddAuthentication: FC<Props> = ({ nsId }) => {
+export const AddAccount: FC<Props> = ({ nsId }) => {
   const [name, setName] = useState("");
   const [service, setService] = useState<ExternalServiceName>(
     serviceOptions[0].value,
@@ -134,8 +135,7 @@ export const AddAuthentication: FC<Props> = ({ nsId }) => {
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const { createServiceAuthentication, loading } =
-    useCreateServiceAuthentication();
+  const { createServiceAccount, loading } = useCreateServiceAccount();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -161,7 +161,7 @@ export const AddAuthentication: FC<Props> = ({ nsId }) => {
       }
     })();
 
-    const result = await createServiceAuthentication(nsId, {
+    const result = await createServiceAccount(nsId, {
       name,
       service,
       credential: credentialString,
@@ -170,6 +170,7 @@ export const AddAuthentication: FC<Props> = ({ nsId }) => {
     if (result.status === "error") {
       setError(result.error);
     } else {
+      onServiceAccountChange();
       setSuccess("Service account created successfully");
       setName("");
       setService(serviceOptions[0].value);

@@ -14,6 +14,7 @@ import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import type { FC, ReactNode } from "react";
 import {
+  TbBuildings,
   TbCloudCode,
   TbKey,
   TbSettings,
@@ -62,15 +63,15 @@ export const AppSidebarContent: FC = () => {
             <SidebarMenuSub>
               <MenuItem
                 sub
-                link={`/ns/${nsId}/settings/services/authentication`}
-                label={"認証情報"}
-                icon={<TbKey />}
-              />
-              <MenuItem
-                sub
                 link={`/ns/${nsId}/settings/services/accounts`}
                 label={"アカウント"}
                 icon={<TbUserCode />}
+              />
+              <MenuItem
+                sub
+                link={`/ns/${nsId}/settings/services/groups`}
+                label={"グループ"}
+                icon={<TbBuildings />}
               />
             </SidebarMenuSub>
           </MenuItem>

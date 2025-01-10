@@ -1,6 +1,7 @@
-import type { CreateExternalServiceAccountResponse } from "@/app/api/ns/[nsId]/services/authentication/route";
+import type { CreateExternalServiceAccountResponse } from "@/app/api/ns/[nsId]/services/accounts/route";
 import type { ExternalServiceName } from "@prisma/client";
 import { useState } from "react";
+import { onServiceAccountChange } from "./on-accounts-change";
 
 type AuthenticationBody = {
   name: string;
@@ -8,15 +9,15 @@ type AuthenticationBody = {
   credential: string;
 };
 
-export const useCreateServiceAuthentication = () => {
+export const useCreateServiceAccount = () => {
   const [loading, setLoading] = useState(false);
 
-  const createServiceAuthentication = async (
+  const createServiceAccount = async (
     nsId: string,
     body: AuthenticationBody,
   ): Promise<CreateExternalServiceAccountResponse> => {
     setLoading(true);
-    const response = await fetch(`/api/ns/${nsId}/services/authentication`, {
+    const response = await fetch(`/api/ns/${nsId}/services/accounts`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -24,11 +25,12 @@ export const useCreateServiceAuthentication = () => {
       body: JSON.stringify(body),
     }).then((res) => res.json());
     setLoading(false);
+    onServiceAccountChange();
     return response;
   };
 
   return {
     loading,
-    createServiceAuthentication,
+    createServiceAccount,
   };
 };
