@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { type NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 
 export type DeleteExternalServiceAccountResponse =
   | {
@@ -25,6 +26,10 @@ export type UpdateExternalServiceAccountResponse =
       status: "error";
       error: string;
     };
+
+const updateAccountSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+});
 
 export async function DELETE(
   req: NextRequest,
@@ -104,14 +109,20 @@ export async function PATCH(
     );
   }
 
-  const { name } = await req.json();
+  const body = await req.json();
+  const result = updateAccountSchema.safeParse(body);
 
-  if (!name) {
+  if (!result.success) {
     return NextResponse.json(
-      { status: "error", error: "Name is required" },
+      {
+        status: "error",
+        error: result.error.errors.map((e) => e.message).join(", "),
+      },
       { status: 400 },
     );
   }
+
+  const { name } = result.data;
 
   const namespace = await prisma.namespace.findUnique({
     where: {

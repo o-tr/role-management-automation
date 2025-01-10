@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { type NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { getGroupDetail } from "./get-group-detail";
 
 export type CreateExternalServiceGroupResponse =
@@ -18,6 +19,10 @@ export type CreateExternalServiceGroupResponse =
       error: string;
     };
 
+const createGroupSchema = z.object({
+  groupId: z.string().min(1, "GroupId is required"),
+});
+
 export async function POST(
   req: NextRequest,
   { params }: { params: { nsId: string; accountId: string } },
@@ -33,14 +38,20 @@ export async function POST(
     );
   }
 
-  const { groupId } = await req.json();
+  const body = await req.json();
+  const result = createGroupSchema.safeParse(body);
 
-  if (!groupId) {
+  if (!result.success) {
     return NextResponse.json(
-      { status: "error", error: "GroupId are required" },
+      {
+        status: "error",
+        error: result.error.errors.map((e) => e.message).join(", "),
+      },
       { status: 400 },
     );
   }
+
+  const { groupId } = result.data;
 
   const namespace = await prisma.namespace.findUnique({
     where: {

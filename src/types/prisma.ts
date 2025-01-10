@@ -1,4 +1,5 @@
 import type { ExternalServiceName } from "@prisma/client";
+import { z } from "zod";
 
 export type TNamespace = {
   id: string;
@@ -68,3 +69,9 @@ export type TExternalServiceGroupDetail = {
     icon?: string;
   };
 };
+
+export const ZExternalServiceName = z.union([
+  z.literal("DISCORD"),
+  z.literal("VRCHAT"),
+  z.literal("GITHUB"),
+]);

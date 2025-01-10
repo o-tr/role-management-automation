@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import type { TExternalServiceGroupDetail } from "@/types/prisma";
 import { getServerSession } from "next-auth/next";
 import { type NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 
 export type GetExternalServiceGroupsResponse =
   | {
@@ -13,9 +14,13 @@ export type GetExternalServiceGroupsResponse =
       error: string;
     };
 
+const getGroupsSchema = z.object({
+  nsId: z.string().uuid(),
+});
+
 export async function GET(
   req: NextRequest,
-  { params }: { params: { nsId: string; accountId: string } },
+  { params }: { params: { nsId: string } },
 ): Promise<NextResponse<GetExternalServiceGroupsResponse>> {
   const session = await getServerSession();
 
@@ -28,9 +33,23 @@ export async function GET(
     );
   }
 
+  const result = getGroupsSchema.safeParse(params);
+
+  if (!result.success) {
+    return NextResponse.json(
+      {
+        status: "error",
+        error: result.error.errors.map((e) => e.message).join(", "),
+      },
+      { status: 400 },
+    );
+  }
+
+  const { nsId } = result.data;
+
   const namespace = await prisma.namespace.findUnique({
     where: {
-      id: params.nsId,
+      id: nsId,
     },
     include: {
       owner: true,
@@ -53,7 +72,7 @@ export async function GET(
 
   const serviceGroups = await prisma.externalServiceGroup.findMany({
     where: {
-      namespaceId: params.nsId,
+      namespaceId: nsId,
     },
     include: {
       account: true,

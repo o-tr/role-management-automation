@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
-import type { TServiceAccounts } from "@/types/prisma";
+import { type TServiceAccounts, ZExternalServiceName } from "@/types/prisma";
 import { getServerSession } from "next-auth/next";
 import { type NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import { validateCredential } from "./validation";
 
 export type CreateExternalServiceAccountResponse =
@@ -28,6 +29,12 @@ export type GetExternalServiceAccountsResponse =
       status: "error";
       error: string;
     };
+
+const createServiceAccountSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  service: ZExternalServiceName,
+  credential: z.string().min(1, "Credential is required"),
+});
 
 export async function GET(
   req: NextRequest,
@@ -106,14 +113,17 @@ export async function POST(
     );
   }
 
-  const { name, service, credential } = await req.json();
+  const body = await req.json();
+  const result = createServiceAccountSchema.safeParse(body);
 
-  if (!name || !service || !credential) {
+  if (!result.success) {
     return NextResponse.json(
-      { status: "error", error: "Name, service, and credential are required" },
+      { status: "error", error: result.error.errors[0].message },
       { status: 400 },
     );
   }
+
+  const { name, service, credential } = result.data;
 
   const namespace = await prisma.namespace.findUnique({
     where: {

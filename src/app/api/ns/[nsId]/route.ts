@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import type { TNamespaceDetail } from "@/types/prisma";
 import { getServerSession } from "next-auth/next";
 import { type NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 
 export type GetNamespaceDetailResponse =
   | {
@@ -80,6 +81,10 @@ export type PatchNamespaceDetailBody = {
   name: string;
 };
 
+const patchNamespaceSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+});
+
 export async function PATCH(
   req: NextRequest,
   { params }: { params: { nsId: string } },
@@ -95,7 +100,17 @@ export async function PATCH(
     );
   }
 
-  const body: PatchNamespaceDetailBody = await req.json();
+  const body = await req.json();
+  const result = patchNamespaceSchema.safeParse(body);
+
+  if (!result.success) {
+    return NextResponse.json(
+      { status: "error", error: result.error.errors[0].message },
+      { status: 400 },
+    );
+  }
+
+  const { name } = result.data;
 
   const namespace = await prisma.namespace.findUnique({
     where: {
@@ -128,7 +143,7 @@ export async function PATCH(
       id: params.nsId,
     },
     data: {
-      name: body.name,
+      name: name,
     },
     include: {
       owner: true,

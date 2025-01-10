@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { type NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 
 export type CreateTagResponse =
   | {
@@ -14,6 +15,10 @@ export type CreateTagResponse =
       status: "error";
       error: string;
     };
+
+const createTagSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+});
 
 export async function POST(
   req: NextRequest,
@@ -30,14 +35,17 @@ export async function POST(
     );
   }
 
-  const { name } = await req.json();
+  const body = await req.json();
+  const result = createTagSchema.safeParse(body);
 
-  if (!name) {
+  if (!result.success) {
     return NextResponse.json(
-      { status: "error", error: "Name is required" },
+      { status: "error", error: result.error.errors[0].message },
       { status: 400 },
     );
   }
+
+  const { name } = result.data;
 
   const tag = await prisma.tag.create({
     data: {

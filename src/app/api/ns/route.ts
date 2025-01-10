@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
 import { type NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 
 export type GetNamespacesResponse =
   | {
@@ -72,6 +73,11 @@ export type CreateNamespaceResponse =
       status: "error";
       error: string;
     };
+
+const createNamespaceSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+});
+
 export async function POST(
   req: NextRequest,
 ): Promise<NextResponse<CreateNamespaceResponse>> {
@@ -86,14 +92,17 @@ export async function POST(
     );
   }
 
-  const { name } = await req.json();
+  const body = await req.json();
+  const result = createNamespaceSchema.safeParse(body);
 
-  if (!name) {
+  if (!result.success) {
     return NextResponse.json(
-      { status: "error", error: "Name is required" },
+      { status: "error", error: result.error.errors[0].message },
       { status: 400 },
     );
   }
+
+  const { name } = result.data;
 
   const namespace = await prisma.namespace.create({
     data: {
