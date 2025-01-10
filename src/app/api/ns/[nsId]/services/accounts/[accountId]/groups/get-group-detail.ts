@@ -30,6 +30,7 @@ const getDiscordGroupDetail = async (
     icon: guild.icon
       ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png`
       : undefined,
+    service: "DISCORD",
   };
 };
 
@@ -43,5 +44,6 @@ const getVRChatGroupDetail = async (
     id: group.id,
     name: group.name,
     icon: group.iconUrl,
+    service: "VRCHAT",
   };
 };

@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { type FormEvent, useState } from "react";
+import { onServiceGroupChange } from "../../_hooks/on-groups-change";
 import { useAvailableGroups } from "../../_hooks/use-available-groups";
 import { useCreateServiceGroup } from "../../_hooks/use-create-service-group";
 import { useServiceAccounts } from "../../_hooks/use-service-accounts";
@@ -32,6 +33,7 @@ export const AddGroup = ({ nsId }: { nsId: string }) => {
       return;
     }
     await createServiceGroup(groupId);
+    onServiceGroupChange();
     setAccountId("");
     setGroupId("");
   };
@@ -40,7 +42,7 @@ export const AddGroup = ({ nsId }: { nsId: string }) => {
     return <div>Loading...</div>;
   }
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="flex flex-row gap-2">
       <FormItem>
         <Select
           value={accountId}

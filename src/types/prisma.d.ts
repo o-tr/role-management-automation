@@ -1,3 +1,5 @@
+import type { ExternalServiceName } from "@prisma/client";
+
 export type TNamespace = {
   id: string;
   name: string;
@@ -51,5 +53,18 @@ export type TAvailableGroup = {
 export type TExternalServiceGroup = {
   id: string;
   name: string;
+  service: ExternalServiceName;
   icon?: string;
+};
+
+export type TExternalServiceGroupDetail = {
+  id: string;
+  name: string;
+  icon?: string;
+  account: {
+    id: string;
+    name: string;
+    service: ExternalServiceName;
+    icon?: string;
+  };
 };

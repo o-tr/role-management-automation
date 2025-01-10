@@ -4,7 +4,7 @@ import type { FC } from "react";
 import { useOnServiceAccountChange } from "../../_hooks/on-accounts-change";
 
 import { Button } from "@/components/ui/button";
-import type { TServiceAccounts, TTag } from "@/types/prisma";
+import type { TServiceAccounts } from "@/types/prisma";
 import {
   type ColumnDef,
   flexRender,

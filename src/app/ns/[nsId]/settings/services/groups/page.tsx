@@ -1,7 +1,6 @@
 import { BreadcrumbUpdater } from "@/app/ns/[nsId]/components/Breadcrumb/BreadcrumbUpdater";
-import { getServerSession } from "next-auth/next";
-import { redirect } from "next/navigation";
 import { AddGroup } from "./_components/AddGroup";
+import { GroupList } from "./_components/GroupList";
 
 const paths = [
   { label: "ネームスペース設定", path: "/ns/[nsId]/settings" },
@@ -21,8 +20,9 @@ export default async function GroupProvidersPage({
   params: { nsId: string };
 }) {
   return (
-    <div>
+    <div className="space-y-2">
       <BreadcrumbUpdater paths={paths} />
+      <GroupList nsId={params.nsId} />
       <AddGroup nsId={params.nsId} />
     </div>
   );

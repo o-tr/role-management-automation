@@ -1,10 +1,8 @@
 "use client";
-import { useServiceAccounts } from "@/app/ns/[nsId]/settings/services/_hooks/use-service-accounts";
 import type { FC } from "react";
-import { useOnServiceAccountChange } from "../../_hooks/on-accounts-change";
 
 import { Button } from "@/components/ui/button";
-import type { TServiceAccounts, TTag } from "@/types/prisma";
+import type { TExternalServiceGroupDetail } from "@/types/prisma";
 import {
   type ColumnDef,
   flexRender,
@@ -12,7 +10,6 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 
-import { useDeleteServiceAccount } from "@/app/ns/[nsId]/settings/services/_hooks/use-delete-service-accounts";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
@@ -22,10 +19,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useOnServiceGroupChange } from "../../_hooks/on-groups-change";
+import { useDeleteServiceGroup } from "../../_hooks/use-delete-service-group";
+import { useServiceGroups } from "../../_hooks/use-service-groups";
 
-type InternalServiceAccount = TServiceAccounts & { namespaceId: string };
+type InternalServiceGroup = TExternalServiceGroupDetail & {
+  namespaceId: string;
+};
 
-export const columns: ColumnDef<InternalServiceAccount>[] = [
+export const columns: ColumnDef<InternalServiceGroup>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -56,23 +58,55 @@ export const columns: ColumnDef<InternalServiceAccount>[] = [
     accessorKey: "name",
     header: "Name",
     size: -1,
+    cell: ({ row }) => {
+      return (
+        <div className={"flex flex-row items-center gap-2"}>
+          <img
+            src={row.original.icon}
+            alt={row.original.name}
+            className={"w-8 h-8 rounded-full"}
+          />
+          <span>{row.original.name}</span>
+        </div>
+      );
+    },
   },
   {
-    accessorKey: "service",
+    id: "account",
+    header: "Account",
+    size: 200,
+    cell: ({ row }) => {
+      return (
+        <div className={"flex flex-row items-center gap-2"}>
+          {row.original.account.icon && (
+            <img
+              src={row.original.account.icon}
+              alt={row.original.account.name}
+              className={"w-8 h-8 rounded-full"}
+            />
+          )}
+          <span>{row.original.account.name}</span>
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "account.service",
     header: "Service",
+    id: "service",
     size: 100,
   },
   {
     id: "actions",
     cell: ({ row }) => {
-      const { deleteServiceAccount, isPending } = useDeleteServiceAccount();
+      const { deleteServiceGroup, isPending } = useDeleteServiceGroup();
 
       return (
         <Button
           variant="outline"
           disabled={isPending}
           onClick={() =>
-            void deleteServiceAccount(row.original.namespaceId, row.original.id)
+            void deleteServiceGroup(row.original.namespaceId, row.original.id)
           }
         >
           削除
@@ -84,12 +118,12 @@ export const columns: ColumnDef<InternalServiceAccount>[] = [
 ];
 
 interface DataTableProps {
-  columns: ColumnDef<InternalServiceAccount>[];
-  data: InternalServiceAccount[];
+  columns: ColumnDef<InternalServiceGroup>[];
+  data: InternalServiceGroup[];
 }
 
 export function DataTable({ columns, data }: DataTableProps) {
-  const { deleteServiceAccounts, isPending } = useDeleteServiceAccount();
+  const { deleteServiceGroups, isPending } = useDeleteServiceGroup();
   const table = useReactTable({
     data,
     columns,
@@ -159,7 +193,7 @@ export function DataTable({ columns, data }: DataTableProps) {
           size={"sm"}
           disabled={isPending}
           onClick={() =>
-            deleteServiceAccounts(
+            deleteServiceGroups(
               selected.rows[0].original.namespaceId,
               selected.rows.map((v) => v.original.id),
             )
@@ -176,9 +210,9 @@ type Props = {
   nsId: string;
 };
 
-export const AccountList: FC<Props> = ({ nsId }) => {
-  const { accounts, isPending, refetch } = useServiceAccounts(nsId);
-  useOnServiceAccountChange(() => {
+export const GroupList: FC<Props> = ({ nsId }) => {
+  const { groups, isPending, refetch } = useServiceGroups(nsId);
+  useOnServiceGroupChange(() => {
     void refetch();
   });
   if (isPending) {
@@ -188,7 +222,7 @@ export const AccountList: FC<Props> = ({ nsId }) => {
     <div>
       <DataTable
         columns={columns}
-        data={accounts.map((v) => ({ ...v, namespaceId: nsId }))}
+        data={groups.map((v) => ({ ...v, namespaceId: nsId }))}
       />
     </div>
   );

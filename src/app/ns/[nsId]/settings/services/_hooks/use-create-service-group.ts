@@ -1,4 +1,4 @@
-import type { CreateExternalServiceGroupResponse } from "@/app/api/ns/[nsId]/service-accounts/[accountId]/groups/route";
+import type { CreateExternalServiceGroupResponse } from "@/app/api/ns/[nsId]/services/accounts/[accountId]/groups/route";
 import { useCallback, useState } from "react";
 import { onServiceAccountChange } from "./on-accounts-change";
 
@@ -9,7 +9,7 @@ export const useCreateServiceGroup = (nsId: string, accountId: string) => {
     async (groupId: string): Promise<CreateExternalServiceGroupResponse> => {
       setLoading(true);
       const response = await fetch(
-        `/api/ns/${nsId}/service-accounts/${accountId}/groups/`,
+        `/api/ns/${nsId}/services/accounts/${accountId}/groups/`,
         {
           method: "POST",
           headers: {

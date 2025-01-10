@@ -1,6 +1,7 @@
 import { getTotpCode } from "../totp";
 import { getAuthUser, getAuthUserWithAuth } from "./requests/getAuthUser";
 import { postAuthTwoFactorAuthTotp } from "./requests/postAuthTwoFactorAuthTotp";
+import type { VRCToken, VRCTwoFactorAuth, VRCUserId } from "./types/brand";
 
 export const getAuthTokens = async (
   username: string,
@@ -8,9 +9,9 @@ export const getAuthTokens = async (
   totpSecret: string,
 ): Promise<
   | {
-      token: string;
-      twoFactorToken: string;
-      userId: string;
+      token: VRCToken;
+      twoFactorToken: VRCTwoFactorAuth;
+      userId: VRCUserId;
     }
   | undefined
 > => {

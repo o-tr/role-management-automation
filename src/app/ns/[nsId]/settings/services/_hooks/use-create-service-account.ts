@@ -1,4 +1,4 @@
-import type { CreateExternalServiceAccountResponse } from "@/app/api/ns/[nsId]/service-accounts/route";
+import type { CreateExternalServiceAccountResponse } from "@/app/api/ns/[nsId]/services/accounts/route";
 import type { ExternalServiceName } from "@prisma/client";
 import { useState } from "react";
 import { onServiceAccountChange } from "./on-accounts-change";
@@ -17,7 +17,7 @@ export const useCreateServiceAccount = () => {
     body: AuthenticationBody,
   ): Promise<CreateExternalServiceAccountResponse> => {
     setLoading(true);
-    const response = await fetch(`/api/ns/${nsId}/service-accounts`, {
+    const response = await fetch(`/api/ns/${nsId}/services/accounts`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
