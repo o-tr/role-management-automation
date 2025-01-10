@@ -1,9 +1,16 @@
 import { VRCHAT_USER_AGENT } from "../const";
 import { buildCookie, getAuthToken } from "../cookie";
-import { VRCAuthUserWithAuth, ZVRCAuthUser, ZVRCAuthUserWithAuth } from "../types/AuthUser";
-import { VRCToken, VRCTwoFactorAuth } from "../types/brand";
+import {
+  type VRCAuthUserWithAuth,
+  ZVRCAuthUser,
+  ZVRCAuthUserWithAuth,
+} from "../types/AuthUser";
+import type { VRCToken, VRCTwoFactorAuth } from "../types/brand";
 
-export const getAuthUserWithAuth = async (username: string, password: string): Promise<{
+export const getAuthUserWithAuth = async (
+  username: string,
+  password: string,
+): Promise<{
   data: VRCAuthUserWithAuth;
   token: VRCToken;
 }> => {
@@ -19,7 +26,9 @@ export const getAuthUserWithAuth = async (username: string, password: string): P
   }
   const authToken = getAuthToken(response.headers.getSetCookie());
   if (!authToken) {
-    throw new Error(`Failed to get auth token: ${response.headers.getSetCookie()}`);
+    throw new Error(
+      `Failed to get auth token: ${response.headers.getSetCookie()}`,
+    );
   }
   const data = ZVRCAuthUserWithAuth.safeParse(await response.json());
   if (!data.success) {
@@ -36,11 +45,14 @@ export const getAuthUserWithAuth = async (username: string, password: string): P
   };
 };
 
-export const getAuthUser = async (token: VRCToken, twoFactorAuth: VRCTwoFactorAuth) => {
+export const getAuthUser = async (
+  token: VRCToken,
+  twoFactorAuth: VRCTwoFactorAuth,
+) => {
   const response = await fetch("https://api.vrchat.cloud/api/1/auth/user", {
     method: "GET",
     headers: {
-      "Cookie": buildCookie({ token, twoFactorAuth }),
+      Cookie: buildCookie({ token, twoFactorAuth }),
       "User-Agent": VRCHAT_USER_AGENT,
     },
   });
@@ -52,4 +64,4 @@ export const getAuthUser = async (token: VRCToken, twoFactorAuth: VRCTwoFactorAu
     throw new Error(`Failed to parse user: ${JSON.stringify(data.error)}`);
   }
   return data.data;
-}
+};

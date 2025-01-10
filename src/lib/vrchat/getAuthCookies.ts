@@ -6,11 +6,14 @@ export const getAuthTokens = async (
   username: string,
   password: string,
   totpSecret: string,
-): Promise<{
-  token: string;
-  twoFactorToken: string;
-  userId: string;
-}| undefined> => {
+): Promise<
+  | {
+      token: string;
+      twoFactorToken: string;
+      userId: string;
+    }
+  | undefined
+> => {
   try {
     const { token } = await getAuthUserWithAuth(username, password);
     const totp = getTotpCode(totpSecret);
@@ -21,4 +24,4 @@ export const getAuthTokens = async (
     console.log(e);
     return undefined;
   }
-}
+};

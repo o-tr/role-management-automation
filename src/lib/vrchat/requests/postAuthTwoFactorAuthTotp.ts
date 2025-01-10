@@ -1,7 +1,10 @@
 import { VRCHAT_USER_AGENT } from "../const";
 import { buildCookie, getTwoFactorAuthToken } from "../cookie";
-import { VRCAuthTwoFactorAuthTotp, ZVRCAuthTwoFactorAuthTotp } from "../types/AuthTwoFactorAuthTotp";
-import { VRCToken, VRCTwoFactorAuth } from "../types/brand";
+import {
+  type VRCAuthTwoFactorAuthTotp,
+  ZVRCAuthTwoFactorAuthTotp,
+} from "../types/AuthTwoFactorAuthTotp";
+import type { VRCToken, VRCTwoFactorAuth } from "../types/brand";
 
 export const postAuthTwoFactorAuthTotp = async (
   token: VRCToken,
@@ -27,7 +30,9 @@ export const postAuthTwoFactorAuthTotp = async (
   }
   const totpToken = getTwoFactorAuthToken(response.headers.getSetCookie());
   if (!totpToken) {
-    throw new Error(`Failed to get totp token: ${response.headers.getSetCookie()}`);
+    throw new Error(
+      `Failed to get totp token: ${response.headers.getSetCookie()}`,
+    );
   }
   const data = ZVRCAuthTwoFactorAuthTotp.safeParse(await response.json());
   if (!data.success) {

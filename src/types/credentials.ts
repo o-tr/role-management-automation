@@ -1,4 +1,8 @@
-import { ZVRCToken, ZVRCTwoFactorAuth, ZVRCUserId } from "@/lib/vrchat/types/brand";
+import {
+  ZVRCToken,
+  ZVRCTwoFactorAuth,
+  ZVRCUserId,
+} from "@/lib/vrchat/types/brand";
 import { z } from "zod";
 
 export const ZDiscordCredentials = z.object({
@@ -27,4 +31,3 @@ export const ZGithubCredentials = z.object({
   token: z.string(),
 });
 export type GithubCredentials = z.infer<typeof ZGithubCredentials>;
-

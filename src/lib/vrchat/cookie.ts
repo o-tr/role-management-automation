@@ -1,4 +1,4 @@
-import { VRCToken, VRCTwoFactorAuth } from "./types/brand";
+import type { VRCToken, VRCTwoFactorAuth } from "./types/brand";
 
 const getAuthToken = (cookies: string[]): VRCToken | undefined => {
   for (const cookie of cookies) {
@@ -10,7 +10,9 @@ const getAuthToken = (cookies: string[]): VRCToken | undefined => {
   return;
 };
 
-const getTwoFactorAuthToken = (cookies: string[]): VRCTwoFactorAuth | undefined => {
+const getTwoFactorAuthToken = (
+  cookies: string[],
+): VRCTwoFactorAuth | undefined => {
   for (const cookie of cookies) {
     const [key, value] = cookie.split(";")[0].split("=");
     if (key === "twoFactorAuth") {
@@ -31,4 +33,3 @@ const buildCookie = ({
 };
 
 export { buildCookie, getAuthToken, getTwoFactorAuthToken };
-

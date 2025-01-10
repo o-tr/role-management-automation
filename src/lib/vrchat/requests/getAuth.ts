@@ -1,7 +1,7 @@
 import { VRCHAT_USER_AGENT } from "../const";
 import { buildCookie } from "../cookie";
 import { type VRCAuth, ZVRCAuth } from "../types/Auth";
-import { VRCToken, VRCTwoFactorAuth } from "../types/brand";
+import type { VRCToken, VRCTwoFactorAuth } from "../types/brand";
 
 export const getAuth = async (
   token: VRCToken,
