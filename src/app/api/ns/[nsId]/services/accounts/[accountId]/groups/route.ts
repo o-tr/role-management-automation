@@ -78,6 +78,20 @@ export async function POST(
       { status: 404 },
     );
   }
+  const groupExists = await prisma.externalServiceGroup.findFirst({
+    where: {
+      namespaceId: params.nsId,
+      accountId: params.accountId,
+      groupId,
+    },
+  });
+
+  if (groupExists) {
+    return NextResponse.json(
+      { status: "error", error: "Group already exists" },
+      { status: 400 },
+    );
+  }
 
   const data = await getGroupDetail(serviceAccount, groupId);
 

@@ -1,4 +1,5 @@
 "use client";
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { FormItem } from "@/components/ui/form";
 import {
@@ -26,13 +27,18 @@ export const AddGroup = ({ nsId }: { nsId: string }) => {
     nsId,
     accountId,
   );
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!accountId || !groupId) {
       return;
     }
-    await createServiceGroup(groupId);
+    const result = await createServiceGroup(groupId);
+    if (result.status === "error") {
+      setError(result.error);
+      return;
+    }
     onServiceGroupChange();
     setAccountId("");
     setGroupId("");
@@ -42,59 +48,79 @@ export const AddGroup = ({ nsId }: { nsId: string }) => {
     return <div>Loading...</div>;
   }
   return (
-    <form onSubmit={handleSubmit} className="flex flex-row gap-2">
-      <FormItem>
-        <Select
-          value={accountId}
-          onValueChange={(value) => setAccountId(value)}
-          disabled={loading}
-        >
-          <SelectTrigger className="w-[250px]">
-            <SelectValue placeholder="アカウント" />
-          </SelectTrigger>
-          <SelectContent>
-            {accounts.map((account) => (
-              <SelectItem key={account.id} value={account.id}>
-                <span>{`${account.name} (${account.service})`}</span>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </FormItem>
-      <FormItem>
-        <Select
-          value={groupId}
-          onValueChange={(value) => setGroupId(value)}
-          disabled={!accountId || isGroupsPending || loading}
-        >
-          <SelectTrigger className="w-[250px]">
-            <SelectValue placeholder="グループ" />
-          </SelectTrigger>
-          <SelectContent>
-            {isGroupsPending ? (
-              <SelectItem value="tmp" disabled>
-                Loading...
-              </SelectItem>
-            ) : (
-              availableGroups.map((group) => (
-                <SelectItem key={group.id} value={group.id}>
+    <div className="flex flex-col gap-2">
+      <form onSubmit={handleSubmit} className="flex flex-row gap-2">
+        <FormItem>
+          <Select
+            value={accountId}
+            onValueChange={(value) => setAccountId(value)}
+            disabled={loading}
+          >
+            <SelectTrigger className="w-[250px]">
+              <SelectValue placeholder="アカウント" />
+            </SelectTrigger>
+            <SelectContent>
+              {accounts.map((account) => (
+                <SelectItem key={account.id} value={account.id}>
                   <div className="flex flex-row items-center">
-                    {group.icon && (
+                    {account.icon && (
                       <img
-                        src={group.icon}
-                        alt={group.name}
-                        className="w-6 h-6 mr-2"
+                        src={account.icon}
+                        alt={account.name}
+                        className="w-6 h-6 mr-2 rounded-full"
                       />
                     )}
-                    <span className="truncate">{group.name}</span>
+                    <span className="truncate">{`${account.name} (${account.service})`}</span>
                   </div>
                 </SelectItem>
-              ))
-            )}
-          </SelectContent>
-        </Select>
-      </FormItem>
-      <Button disabled={loading}>追加</Button>
-    </form>
+              ))}
+            </SelectContent>
+          </Select>
+        </FormItem>
+        <FormItem>
+          <Select
+            value={groupId}
+            onValueChange={(value) => setGroupId(value)}
+            disabled={!accountId || isGroupsPending || loading}
+          >
+            <SelectTrigger className="w-[250px]">
+              <SelectValue placeholder="グループ" />
+            </SelectTrigger>
+            <SelectContent>
+              {isGroupsPending ? (
+                <SelectItem value="tmp" disabled>
+                  Loading...
+                </SelectItem>
+              ) : (
+                availableGroups.map((group) => (
+                  <SelectItem key={group.id} value={group.id}>
+                    <div className="flex flex-row items-center">
+                      {group.icon && (
+                        <img
+                          src={group.icon}
+                          alt={group.name}
+                          className="w-6 h-6 mr-2 rounded-full"
+                        />
+                      )}
+                      <span className="truncate">{group.name}</span>
+                    </div>
+                  </SelectItem>
+                ))
+              )}
+            </SelectContent>
+          </Select>
+        </FormItem>
+        <Button disabled={loading}>追加</Button>
+      </form>
+      {error && (
+        <Alert
+          variant={"destructive"}
+          className="flex flex-row justify-between items-center"
+        >
+          <span>{error}</span>
+          <Button onClick={() => setError(null)}>OK</Button>
+        </Alert>
+      )}
+    </div>
   );
 };
