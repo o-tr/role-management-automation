@@ -7,6 +7,7 @@ export const ZDiscordApplicaton = z.object({
   verify_key: z.string(),
   flags: z.number(),
   redirect_uris: z.array(z.string()),
+  icon: z.string().nullable(),
 });
 
 export const ZDiscordGuild = z.object({

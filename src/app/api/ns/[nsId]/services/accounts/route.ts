@@ -106,7 +106,7 @@ export async function POST(
     );
   }
 
-  const { name, service, credential, icon } = await req.json();
+  const { name, service, credential } = await req.json();
 
   if (!name || !service || !credential) {
     return NextResponse.json(
@@ -151,8 +151,8 @@ export async function POST(
     data: {
       name,
       service,
-      credential: validatedCredential,
-      icon,
+      credential: validatedCredential.credential,
+      icon: validatedCredential.icon || undefined,
       namespace: { connect: { id: params.nsId } },
     },
   });

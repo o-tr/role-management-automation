@@ -56,10 +56,25 @@ export const columns: ColumnDef<InternalServiceAccount>[] = [
     accessorKey: "name",
     header: "Name",
     size: -1,
+    cell: ({ row }) => {
+      return (
+        <div className={"flex flex-row items-center gap-2"}>
+          {row.original.icon && (
+            <img
+              src={row.original.icon}
+              alt="icon"
+              className={"w-8 h-8 rounded-full"}
+            />
+          )}
+          {row.original.name}
+        </div>
+      );
+    },
   },
   {
     accessorKey: "service",
     header: "Service",
+    id: "service",
     size: 100,
   },
   {
