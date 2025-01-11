@@ -16,11 +16,12 @@ import type { FC, ReactNode } from "react";
 import {
   TbBuildings,
   TbCloudCode,
-  TbKey,
+  TbPlugConnected,
   TbSettings,
   TbTags,
   TbTool,
   TbUserCode,
+  TbUserHexagon,
   TbUsersGroup,
 } from "react-icons/tb";
 
@@ -41,10 +42,25 @@ export const AppSidebarContent: FC = () => {
             </SidebarMenuSub>
           </MenuItem>
           <MenuItem
-            link={`/ns/${nsId}/tags`}
-            label={"タグ管理"}
-            icon={<TbTags />}
-          />
+            link={`/ns/${nsId}/roles`}
+            label={"ロール管理"}
+            icon={<TbUserHexagon />}
+          >
+            <SidebarMenuSub>
+              <MenuItem
+                sub
+                link={`/ns/${nsId}/roles/mappings`}
+                label={"割り当て"}
+                icon={<TbPlugConnected />}
+              />
+              <MenuItem
+                sub
+                link={`/ns/${nsId}/roles/tags`}
+                label={"タグ管理"}
+                icon={<TbTags />}
+              />
+            </SidebarMenuSub>
+          </MenuItem>
         </SidebarMenu>
       </SidebarGroup>
       <SidebarGroup>

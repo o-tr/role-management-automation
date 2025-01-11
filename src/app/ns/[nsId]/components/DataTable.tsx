@@ -1,7 +1,4 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -10,32 +7,25 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import type { GroupId } from "@/types/brandTypes";
-import type { ExternalProvider } from "@prisma/client";
 import {
   type ColumnDef,
+  type RowModel,
   flexRender,
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { removeExternalProvider } from "../../actions";
 
-type TExternalProvider = ExternalProvider & { groupId: GroupId };
-
-interface DataTableProps {
-  columns: ColumnDef<TExternalProvider>[];
-  data: TExternalProvider[];
+interface DataTableProps<T> {
+  columns: ColumnDef<T>[];
+  data: T[];
+  deleteSelected?: (selected: RowModel<T>) => void;
 }
 
-const deleteProviders = async (groupId: GroupId, providerIds: string[]) => {
-  await Promise.all(
-    providerIds.map((providerId) =>
-      removeExternalProvider(groupId, providerId),
-    ),
-  );
-};
-
-export function DataTable({ columns, data }: DataTableProps) {
+export function DataTable<T>({
+  columns,
+  data,
+  deleteSelected,
+}: DataTableProps<T>) {
   const table = useReactTable({
     data,
     columns,
@@ -101,15 +91,7 @@ export function DataTable({ columns, data }: DataTableProps) {
         </Table>
       </div>
       {selected.rows.length > 0 && (
-        <Button
-          size={"sm"}
-          onClick={() =>
-            deleteProviders(
-              selected.rows[0].original.groupId,
-              selected.rows.map((v) => v.original.id),
-            )
-          }
-        >
+        <Button size={"sm"} onClick={() => deleteSelected?.(selected)}>
           選択済み {selected.rows.length} 件を削除
         </Button>
       )}
