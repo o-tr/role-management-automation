@@ -40,6 +40,11 @@ export const AppSidebarContent: FC = () => {
               <MenuItem sub link={`/ns/${nsId}/members/add`} label={"追加"} />
             </SidebarMenuSub>
           </MenuItem>
+          <MenuItem
+            link={`/ns/${nsId}/tags`}
+            label={"タグ管理"}
+            icon={<TbTags />}
+          />
         </SidebarMenu>
       </SidebarGroup>
       <SidebarGroup>
@@ -49,11 +54,6 @@ export const AppSidebarContent: FC = () => {
             link={`/ns/${nsId}/settings`}
             label={"基本設定"}
             icon={<TbSettings />}
-          />
-          <MenuItem
-            link={`/ns/${nsId}/settings/tags`}
-            label={"タグ管理"}
-            icon={<TbTags />}
           />
           <MenuItem
             link={`/ns/${nsId}/settings/services`}
