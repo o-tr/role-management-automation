@@ -1,9 +1,9 @@
 import type { GetExternalServiceAccountsResponse } from "@/app/api/ns/[nsId]/services/accounts/route";
-import type { TServiceAccounts } from "@/types/prisma";
+import type { TServiceAccount } from "@/types/prisma";
 import { useCallback, useLayoutEffect, useState } from "react";
 
 export const useServiceAccounts = (nsId: string) => {
-  const [accounts, setAccounts] = useState<TServiceAccounts[]>([]);
+  const [accounts, setAccounts] = useState<TServiceAccount[]>([]);
   const [isPending, setIsPending] = useState(true);
 
   const fetchData = useCallback(async () => {

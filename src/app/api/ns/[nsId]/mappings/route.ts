@@ -5,17 +5,15 @@ import type { TSerializedMapping } from "@/types/prisma";
 import { getServerSession } from "next-auth/next";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { getGroupRoles } from "../services/accounts/[accountId]/groups/[groupId]/roles/get-group-roles";
 
 export type CreateMappingResponse =
   | {
       status: "success";
       mapping: {
         id: string;
-        name: string;
         conditions: TMappingCondition;
         actions: TMappingAction;
-        groupId: string;
-        accountId: string;
       };
     }
   | {
@@ -34,12 +32,10 @@ export type GeTSerializedMappingsResponse =
     };
 
 const createMappingSchema = z.object({
-  name: z.string().min(1, "Name is required"),
   conditions: ZMappingCondition,
   actions: z.array(ZMappingAction),
-  groupId: z.string().min(1, "Group ID is required"),
-  accountId: z.string().min(1, "Account ID is required"),
 });
+export type CreateMappingBody = z.infer<typeof createMappingSchema>;
 
 export async function POST(
   req: NextRequest,
@@ -68,7 +64,7 @@ export async function POST(
     );
   }
 
-  const { name, conditions, actions, groupId, accountId } = result.data;
+  const { conditions, actions } = result.data;
 
   const namespace = await prisma.namespace.findUnique({
     where: { id: params.nsId },
@@ -89,41 +85,65 @@ export async function POST(
     );
   }
 
-  const account = await prisma.externalServiceAccount.findUnique({
-    where: {
-      id: accountId,
-      namespaceId: params.nsId,
-    },
-  });
+  const tagIds = extractTags(conditions);
 
-  if (!account) {
+  const tags = await Promise.all(
+    tagIds.map(async (tagId) => {
+      return (
+        (await prisma.tag.findUnique({
+          where: {
+            id: tagId,
+            namespaceId: params.nsId,
+          },
+        })) || undefined
+      );
+    }),
+  );
+
+  if (tags.some((tag) => !tag)) {
     return NextResponse.json(
-      { status: "error", error: "Service account not found" },
-      { status: 404 },
+      { status: "error", error: "Invalid tag" },
+      { status: 400 },
     );
   }
 
-  const group = await prisma.externalServiceGroup.findUnique({
-    where: {
-      id: groupId,
-      namespaceId: params.nsId,
-    },
-  });
+  const { roles } = extractServiceGroups(actions);
 
-  if (!group) {
+  const validate = await Promise.all(
+    roles.map(async (item) => {
+      const group = await prisma.externalServiceGroup.findUnique({
+        where: {
+          id: item.groupId,
+          accountId: item.accountId,
+          namespaceId: params.nsId,
+        },
+        include: {
+          account: true,
+        },
+      });
+
+      if (!group) {
+        return undefined;
+      }
+
+      const roles = await getGroupRoles(group.account, group);
+      return item.roleIds.every((roleId) =>
+        roles.find((role) => role.id === roleId),
+      );
+    }),
+  );
+
+  if (validate.some((v) => !v)) {
     return NextResponse.json(
-      { status: "error", error: "Group not found" },
-      { status: 404 },
+      { status: "error", error: "Invalid group or role" },
+      { status: 400 },
     );
   }
 
   const mapping = await prisma.externalServiceGroupRoleMapping.create({
     data: {
-      name,
       conditions: JSON.stringify(conditions),
       actions: JSON.stringify(actions),
-      group: { connect: { id: groupId } },
-      account: { connect: { id: accountId } },
       namespace: { connect: { id: params.nsId } },
     },
   });
@@ -132,14 +152,48 @@ export async function POST(
     status: "success",
     mapping: {
       id: mapping.id,
-      name: mapping.name,
       conditions: JSON.parse(mapping.conditions),
       actions: JSON.parse(mapping.actions),
-      groupId: mapping.groupId,
-      accountId: mapping.accountId,
     },
   });
 }
+
+const extractTags = (
+  actions: TMappingCondition,
+  tags: string[] = [],
+): string[] => {
+  if (actions.type === "comparator") {
+    if (!tags.includes(actions.value)) tags.push(actions.value);
+    return tags;
+  }
+  if (actions.type === "not") {
+    return extractTags(actions.condition, tags);
+  }
+  return actions.conditions.reduce((acc, cond) => extractTags(cond, acc), tags);
+};
+
+const extractServiceGroups = (actions: TMappingAction[]) => {
+  const roles: { accountId: string; groupId: string; roleIds: string[] }[] = [];
+
+  for (const action of actions) {
+    const role = roles.find(
+      (r) =>
+        r.accountId === action.targetServiceAccountId &&
+        r.groupId === action.targetServiceGroupId,
+    );
+    if (role) {
+      role.roleIds.push(action.targetServiceRoleId);
+    } else {
+      roles.push({
+        accountId: action.targetServiceAccountId,
+        groupId: action.targetServiceGroupId,
+        roleIds: [action.targetServiceRoleId],
+      });
+    }
+  }
+
+  return { roles };
+};
 
 export async function GET(
   req: NextRequest,
@@ -178,45 +232,14 @@ export async function GET(
     where: {
       namespaceId: params.nsId,
     },
-    include: {
-      group: {
-        select: {
-          id: true,
-          name: true,
-          icon: true,
-        },
-      },
-      account: {
-        select: {
-          id: true,
-          name: true,
-          service: true,
-          icon: true,
-        },
-      },
-    },
   });
 
   return NextResponse.json({
     status: "success",
     mappings: mappings.map((mapping) => ({
       id: mapping.id,
-      name: mapping.name,
       conditions: mapping.conditions,
       actions: mapping.actions,
-      groupId: mapping.groupId,
-      accountId: mapping.accountId,
-      group: {
-        id: mapping.group.id,
-        name: mapping.group.name,
-        icon: mapping.group.icon || undefined,
-      },
-      account: {
-        id: mapping.account.id,
-        name: mapping.account.name,
-        service: mapping.account.service,
-        icon: mapping.account.icon || undefined,
-      },
     })),
   });
 }

@@ -39,7 +39,7 @@ export type TTag = {
   name: string;
 };
 
-export type TServiceAccounts = {
+export type TServiceAccount = {
   id: string;
   name: string;
   service: string;
@@ -72,24 +72,17 @@ export type TExternalServiceGroupDetail = {
   };
 };
 
-export type TSerializedMapping = {
+export type TExternalServiceGroupRole = {
   id: string;
   name: string;
+  color?: string;
+  icon?: string;
+};
+
+export type TSerializedMapping = {
+  id: string;
   conditions: string;
   actions: string;
-  groupId: string;
-  accountId: string;
-  group: {
-    id: string;
-    name: string;
-    icon?: string;
-  };
-  account: {
-    id: string;
-    name: string;
-    service: ExternalServiceName;
-    icon?: string;
-  };
 };
 
 export type TMapping = {
@@ -121,3 +114,4 @@ export const ZExternalServiceName = z.union([
 export const ZTagId = z.string().uuid().brand("TagId");
 export type TTagId = z.infer<typeof ZTagId>;
 export const ZServiceRoleId = z.string().brand("ServiceRoleId");
+export type TServiceRoleId = z.infer<typeof ZServiceRoleId>;

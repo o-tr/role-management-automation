@@ -1,30 +1,17 @@
 import type { GetExternalServiceGroupsResponse } from "@/app/api/ns/[nsId]/services/groups/route";
-import type { TExternalServiceGroupDetail } from "@/types/prisma";
-import { useCallback, useLayoutEffect, useState } from "react";
+import useSWR from "swr";
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export const useServiceGroups = (nsId: string) => {
-  const [groups, setGroups] = useState<TExternalServiceGroupDetail[]>([]);
-  const [isPending, setIsPending] = useState(true);
-
-  const fetchData = useCallback(async () => {
-    const response = (await fetch(`/api/ns/${nsId}/services/groups/`).then(
-      (res) => res.json(),
-    )) as GetExternalServiceGroupsResponse;
-    if (response.status === "error") {
-      throw new Error(response.error);
-    }
-
-    setGroups(response.serviceGroups);
-    setIsPending(false);
-  }, [nsId]);
-
-  useLayoutEffect(() => {
-    void fetchData();
-  }, [fetchData]);
+  const { data, error, mutate } = useSWR<GetExternalServiceGroupsResponse>(
+    `/api/ns/${nsId}/services/groups/`,
+    fetcher,
+  );
 
   return {
-    groups,
-    isPending,
-    refetch: fetchData,
+    groups: data && data.status === "success" ? data.serviceGroups : undefined,
+    isPending: !error && !data,
+    refetch: mutate,
   };
 };

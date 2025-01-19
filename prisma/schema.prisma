@@ -70,7 +70,6 @@ model ExternalServiceAccount {
   icon       String?
 
   groups ExternalServiceGroup[]
-  mappings ExternalServiceGroupRoleMapping[]
 
   @@unique([name, namespaceId])
 }
@@ -86,8 +85,6 @@ model ExternalServiceGroup {
   name    String
   groupId String
   icon    String?
-  
-  mappings ExternalServiceGroupRoleMapping[]
 
   @@unique([name, namespaceId])
 }
@@ -97,16 +94,8 @@ model ExternalServiceGroupRoleMapping {
   namespace  Namespace @relation(fields: [namespaceId], references: [id])
   namespaceId String
 
-  account   ExternalServiceAccount @relation(fields: [accountId], references: [id])
-  accountId String
-
-  group    ExternalServiceGroup @relation(fields: [groupId], references: [id])
-  groupId  String
-
-  name    String
-
-  conditions String
-  actions    String
+  conditions String @db.Text
+  actions    String @db.Text
 }
 
 // ------- nextauth-prisma schema -------

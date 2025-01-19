@@ -1,13 +1,7 @@
 "use client";
 import { BreadcrumbUpdater } from "@/app/ns/[nsId]/components/Breadcrumb/BreadcrumbUpdater";
 import { useNamespace } from "@/hooks/use-namespace";
-import type {
-  TMappingCondition,
-  TMappingConditionId,
-} from "@/types/conditions";
-import type { TTagId } from "@/types/prisma";
-import { useState } from "react";
-import { ConditionsEditor } from "./ConditionsEditor";
+import { AddMapping } from "./AddMapping";
 import { MappingList } from "./MappingList";
 
 const paths = [
@@ -22,14 +16,6 @@ export default function GroupTagsPage({
 }) {
   const { namespace, isPending } = useNamespace({ namespaceId: params.nsId });
 
-  const [conditions, setConditions] = useState<TMappingCondition>({
-    type: "comparator",
-    key: "some-tag",
-    comparator: "equals",
-    value: "some-value" as TTagId,
-    id: crypto.randomUUID() as TMappingConditionId,
-  });
-
   if (isPending || !namespace) {
     return <div>Loading...</div>;
   }
@@ -37,11 +23,7 @@ export default function GroupTagsPage({
   return (
     <div>
       <MappingList namespaceId={namespace.id} />
-      <ConditionsEditor
-        conditions={conditions}
-        onChange={(v) => setConditions(v)}
-        nsId={params.nsId}
-      />
+      <AddMapping nsId={namespace.id} />
       <BreadcrumbUpdater paths={paths} />
     </div>
   );

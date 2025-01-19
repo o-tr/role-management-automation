@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { type TServiceAccounts, ZExternalServiceName } from "@/types/prisma";
+import { type TServiceAccount, ZExternalServiceName } from "@/types/prisma";
 import { getServerSession } from "next-auth/next";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -23,7 +23,7 @@ export type CreateExternalServiceAccountResponse =
 export type GetExternalServiceAccountsResponse =
   | {
       status: "success";
-      serviceAccounts: TServiceAccounts[];
+      serviceAccounts: TServiceAccount[];
     }
   | {
       status: "error";

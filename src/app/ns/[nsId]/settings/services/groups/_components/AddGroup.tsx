@@ -1,14 +1,9 @@
 "use client";
+import { ServiceAccountPicker } from "@/app/ns/[nsId]/components/ServiceAccountPicker";
+import { ServiceGroupPicker } from "@/app/ns/[nsId]/components/ServiceGroupPicker";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { FormItem } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { type FormEvent, useState } from "react";
 import { onServiceGroupChange } from "../../_hooks/on-groups-change";
 import { useAvailableGroups } from "../../_hooks/use-available-groups";
@@ -51,64 +46,20 @@ export const AddGroup = ({ nsId }: { nsId: string }) => {
     <div className="flex flex-col gap-2">
       <form onSubmit={handleSubmit} className="flex flex-row gap-2">
         <FormItem>
-          <Select
-            value={accountId}
-            onValueChange={(value) => setAccountId(value)}
+          <ServiceAccountPicker
+            accounts={accounts}
+            onChange={setAccountId}
             disabled={loading}
-          >
-            <SelectTrigger className="w-[250px]">
-              <SelectValue placeholder="アカウント" />
-            </SelectTrigger>
-            <SelectContent>
-              {accounts.map((account) => (
-                <SelectItem key={account.id} value={account.id}>
-                  <div className="flex flex-row items-center">
-                    {account.icon && (
-                      <img
-                        src={account.icon}
-                        alt={account.name}
-                        className="w-6 h-6 mr-2 rounded-full"
-                      />
-                    )}
-                    <span className="truncate">{`${account.name} (${account.service})`}</span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            value={accountId}
+          />
         </FormItem>
         <FormItem>
-          <Select
-            value={groupId}
-            onValueChange={(value) => setGroupId(value)}
+          <ServiceGroupPicker
+            groups={availableGroups}
             disabled={!accountId || isGroupsPending || loading}
-          >
-            <SelectTrigger className="w-[250px]">
-              <SelectValue placeholder="グループ" />
-            </SelectTrigger>
-            <SelectContent>
-              {isGroupsPending ? (
-                <SelectItem value="tmp" disabled>
-                  Loading...
-                </SelectItem>
-              ) : (
-                availableGroups.map((group) => (
-                  <SelectItem key={group.id} value={group.id}>
-                    <div className="flex flex-row items-center">
-                      {group.icon && (
-                        <img
-                          src={group.icon}
-                          alt={group.name}
-                          className="w-6 h-6 mr-2 rounded-full"
-                        />
-                      )}
-                      <span className="truncate">{group.name}</span>
-                    </div>
-                  </SelectItem>
-                ))
-              )}
-            </SelectContent>
-          </Select>
+            value={groupId}
+            onChange={setGroupId}
+          />
         </FormItem>
         <Button disabled={loading}>追加</Button>
       </form>

@@ -11,5 +11,14 @@ export const ZVRCTwoFactorAuth = z
   .brand<"VRCTwoFactorAuth">("VRCTwoFactorAuth");
 export type VRCTwoFactorAuth = z.infer<typeof ZVRCTwoFactorAuth>;
 
-export const ZVRCGroupId = z.string().brand<"VRCGroupId">("VRCGroupId");
+export const ZVRCGroupId = z
+  .string()
+  .startsWith("grp_")
+  .brand<"VRCGroupId">("VRCGroupId");
 export type VRCGroupId = z.infer<typeof ZVRCGroupId>;
+
+export const ZVRCGroupRoleId = z
+  .string()
+  .startsWith("grol_")
+  .brand("VRCGroupRoleId");
+export type VRCGroupRoleId = z.infer<typeof ZVRCGroupRoleId>;

@@ -125,6 +125,7 @@ export const ConditionsEditorOr: FC<Props<TMappingConditionOr>> = ({
             nsId={nsId}
           />
           <Button
+            type="button"
             onClick={() =>
               onChange({
                 ...conditions,
@@ -139,6 +140,7 @@ export const ConditionsEditorOr: FC<Props<TMappingConditionOr>> = ({
       ))}
       <div>
         <Button
+          type="button"
           onClick={() =>
             onChange({
               ...conditions,
@@ -187,6 +189,7 @@ export const ConditionsEditorAnd: FC<Props<TMappingConditionAnd>> = ({
             nsId={nsId}
           />
           <Button
+            type="button"
             onClick={() =>
               onChange({
                 ...conditions,
@@ -201,6 +204,7 @@ export const ConditionsEditorAnd: FC<Props<TMappingConditionAnd>> = ({
       ))}
       <div>
         <Button
+          type="button"
           onClick={() =>
             onChange({
               ...conditions,

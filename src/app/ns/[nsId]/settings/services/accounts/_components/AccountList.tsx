@@ -4,27 +4,14 @@ import type { FC } from "react";
 import { useOnServiceAccountChange } from "../../_hooks/on-accounts-change";
 
 import { Button } from "@/components/ui/button";
-import type { TServiceAccounts } from "@/types/prisma";
-import {
-  type ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import type { TServiceAccount } from "@/types/prisma";
+import type { ColumnDef } from "@tanstack/react-table";
 
 import { DataTable } from "@/app/ns/[nsId]/components/DataTable";
 import { useDeleteServiceAccount } from "@/app/ns/[nsId]/settings/services/_hooks/use-delete-service-accounts";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 
-type InternalServiceAccount = TServiceAccounts & { namespaceId: string };
+type InternalServiceAccount = TServiceAccount & { namespaceId: string };
 
 export const columns: ColumnDef<InternalServiceAccount>[] = [
   {
