@@ -6,11 +6,9 @@ export const ZMappingActionType = z.union([
   z.literal("remove"),
 ]);
 
-export const ZMappingAction = z.array(
-  z.object({
-    type: ZMappingActionType,
-    target: ZServiceRoleId,
-  }),
-);
+export const ZMappingAction = z.object({
+  type: ZMappingActionType,
+  target: ZServiceRoleId,
+});
 
 export type TMappingAction = z.infer<typeof ZMappingAction>;

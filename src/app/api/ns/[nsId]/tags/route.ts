@@ -16,6 +16,19 @@ export type CreateTagResponse =
       error: string;
     };
 
+export type GetTagsResponse =
+  | {
+      status: "success";
+      tags: {
+        id: string;
+        name: string;
+      }[];
+    }
+  | {
+      status: "error";
+      error: string;
+    };
+
 const createTagSchema = z.object({
   name: z.string().min(1, "Name is required"),
 });
@@ -60,5 +73,58 @@ export async function POST(
       id: tag.id,
       name: tag.name,
     },
+  });
+}
+
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { nsId: string } },
+): Promise<NextResponse<GetTagsResponse>> {
+  const session = await getServerSession();
+
+  const email = session?.user?.email;
+
+  if (!email) {
+    return NextResponse.json(
+      { status: "error", error: "Not authenticated" },
+      { status: 401 },
+    );
+  }
+
+  const namespace = await prisma.namespace.findUnique({
+    where: {
+      id: params.nsId,
+    },
+    include: {
+      owner: true,
+    },
+  });
+
+  if (!namespace) {
+    return NextResponse.json(
+      { status: "error", error: "Namespace not found" },
+      { status: 404 },
+    );
+  }
+
+  if (namespace.owner.email !== email) {
+    return NextResponse.json(
+      { status: "error", error: "Not authorized" },
+      { status: 403 },
+    );
+  }
+
+  const tags = await prisma.tag.findMany({
+    where: {
+      namespaceId: params.nsId,
+    },
+  });
+
+  return NextResponse.json({
+    status: "success",
+    tags: tags.map((tag) => ({
+      id: tag.id,
+      name: tag.name,
+    })),
   });
 }

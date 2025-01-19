@@ -121,7 +121,7 @@ const GithubCredentialsInput: FC<CredentialInputProps<GithubCredentials>> = ({
   </FormItem>
 );
 
-export const AddAccount: FC<Props> = ({ nsId }) => {
+export const AddMapping: FC<Props> = ({ nsId }) => {
   const [name, setName] = useState("");
   const [service, setService] = useState<ExternalServiceName>(
     serviceOptions[0].value,

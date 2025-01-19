@@ -5,7 +5,6 @@ import type { TSerializedMapping } from "@/types/prisma";
 import { getServerSession } from "next-auth/next";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { zu } from "zod_utilz";
 
 export type CreateMappingResponse =
   | {
@@ -37,7 +36,7 @@ export type GeTSerializedMappingsResponse =
 const createMappingSchema = z.object({
   name: z.string().min(1, "Name is required"),
   conditions: ZMappingCondition,
-  actions: ZMappingAction,
+  actions: z.array(ZMappingAction),
   groupId: z.string().min(1, "Group ID is required"),
   accountId: z.string().min(1, "Account ID is required"),
 });

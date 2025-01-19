@@ -119,4 +119,5 @@ export const ZExternalServiceName = z.union([
 ]);
 
 export const ZTagId = z.string().uuid().brand("TagId");
+export type TTagId = z.infer<typeof ZTagId>;
 export const ZServiceRoleId = z.string().brand("ServiceRoleId");
