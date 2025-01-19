@@ -1,33 +1,18 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import type { TTag } from "@/types/prisma";
-import {
-  type ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import { useState } from "react";
+import type { TMapping, TTag } from "@/types/prisma";
+import type { ColumnDef } from "@tanstack/react-table";
 
 import { DataTable } from "@/app/ns/[nsId]/components/DataTable";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { useNamespace } from "@/hooks/use-namespace";
-import { createTag } from "@/requests/createTag";
+import { useMappings } from "@/hooks/use-mappings";
+import { deleteMapping } from "@/requests/deleteMapping";
 import { deleteTag } from "@/requests/deleteTag";
 
-type InternalTag = TTag & { namespaceId: string };
+type InternalMapping = TMapping & { namespaceId: string };
 
-export const columns: ColumnDef<InternalTag>[] = [
+export const columns: ColumnDef<InternalMapping>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -65,7 +50,12 @@ export const columns: ColumnDef<InternalTag>[] = [
       <Button
         variant="outline"
         onClick={() =>
-          void deleteTag(row.original.namespaceId, row.original.id)
+          void deleteMapping(
+            row.original.namespaceId,
+            row.original.accountId,
+            row.original.groupId,
+            row.original.id,
+          )
         }
       >
         削除
@@ -84,35 +74,17 @@ type TagListProps = {
 };
 
 export function MappingList({ namespaceId }: TagListProps) {
-  const { namespace, isPending, refetch } = useNamespace({ namespaceId });
-  const [newTagName, setNewTagName] = useState("");
+  const { mappings, isPending, refetch } = useMappings(namespaceId);
 
-  const handleAddTag = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!namespace) return;
-    createTag(namespace.id, newTagName);
-    void refetch();
-    setNewTagName("");
-  };
-
-  if (isPending || !namespace) return <div>Loading...</div>;
+  if (isPending || !mappings) return <div>Loading...</div>;
 
   return (
     <div className="mt-6">
-      <h2 className="text-xl font-semibold mb-3">タグ</h2>
+      <h2 className="text-xl font-semibold mb-3">割り当て</h2>
       <DataTable
         columns={columns}
-        data={namespace.tags.map((v) => ({ ...v, namespaceId }))}
+        data={mappings.map((v) => ({ ...v, namespaceId }))}
       />
-      <form onSubmit={handleAddTag} className="mt-4 flex space-x-2">
-        <Input
-          value={newTagName}
-          onChange={(e) => setNewTagName(e.target.value)}
-          placeholder="新しいタグ名"
-          required
-        />
-        <Button type="submit">追加</Button>
-      </form>
     </div>
   );
 }

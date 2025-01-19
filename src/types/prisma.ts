@@ -1,5 +1,7 @@
 import type { ExternalServiceName } from "@prisma/client";
 import { z } from "zod";
+import type { TMappingAction } from "./actions";
+import type { TMappingCondition } from "./conditions";
 
 export type TNamespace = {
   id: string;
@@ -70,8 +72,51 @@ export type TExternalServiceGroupDetail = {
   };
 };
 
+export type TSerializedMapping = {
+  id: string;
+  name: string;
+  conditions: string;
+  actions: string;
+  groupId: string;
+  accountId: string;
+  group: {
+    id: string;
+    name: string;
+    icon?: string;
+  };
+  account: {
+    id: string;
+    name: string;
+    service: ExternalServiceName;
+    icon?: string;
+  };
+};
+
+export type TMapping = {
+  id: string;
+  name: string;
+  conditions: TMappingCondition;
+  actions: TMappingAction;
+  groupId: string;
+  accountId: string;
+  group: {
+    id: string;
+    name: string;
+    icon?: string;
+  };
+  account: {
+    id: string;
+    name: string;
+    service: ExternalServiceName;
+    icon?: string;
+  };
+};
+
 export const ZExternalServiceName = z.union([
   z.literal("DISCORD"),
   z.literal("VRCHAT"),
   z.literal("GITHUB"),
 ]);
+
+export const ZTagId = z.string().uuid().brand("TagId");
+export const ZServiceRoleId = z.string().brand("ServiceRoleId");
