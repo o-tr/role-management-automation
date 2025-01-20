@@ -15,7 +15,6 @@ export const useGroupRoles = (
       revalidateIfStale: false,
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
-      revalidateOnMount: false,
     },
   );
 

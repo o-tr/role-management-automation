@@ -3,26 +3,13 @@ import type { FC } from "react";
 
 import { Button } from "@/components/ui/button";
 import type { TExternalServiceGroupDetail } from "@/types/prisma";
-import {
-  type ColumnDef,
-  flexRender,
-  getCoreRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import type { ColumnDef } from "@tanstack/react-table";
 
 import { DataTable } from "@/app/ns/[nsId]/components/DataTable";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { useServiceGroups } from "../../../../_hooks/use-service-groups";
 import { useOnServiceGroupChange } from "../../_hooks/on-groups-change";
 import { useDeleteServiceGroup } from "../../_hooks/use-delete-service-group";
-import { useServiceGroups } from "../../_hooks/use-service-groups";
 
 type InternalServiceGroup = TExternalServiceGroupDetail & {
   namespaceId: string;
@@ -137,7 +124,7 @@ export const GroupList: FC<Props> = ({ nsId }) => {
     <div>
       <DataTable
         columns={columns}
-        data={groups.map((v) => ({ ...v, namespaceId: nsId }))}
+        data={groups?.map((v) => ({ ...v, namespaceId: nsId })) || []}
         deleteSelected={(selected) => {
           deleteServiceGroups(
             nsId,

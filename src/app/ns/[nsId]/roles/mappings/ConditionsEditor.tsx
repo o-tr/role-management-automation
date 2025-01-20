@@ -289,11 +289,11 @@ export const ConditionsEditorComparator: FC<
         >
           <SelectTrigger>
             <SelectValue>
-              {tags.find((tag) => tag.id === conditions.value)?.name}
+              {tags?.find((tag) => tag.id === conditions.value)?.name}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            {tags.map((tag) => (
+            {tags?.map((tag) => (
               <SelectItem key={tag.id} value={tag.id}>
                 {tag.name}
               </SelectItem>

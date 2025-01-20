@@ -5,10 +5,10 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { FormItem } from "@/components/ui/form";
 import { type FormEvent, useState } from "react";
+import { useServiceAccounts } from "../../../../_hooks/use-service-accounts";
 import { onServiceGroupChange } from "../../_hooks/on-groups-change";
 import { useAvailableGroups } from "../../_hooks/use-available-groups";
 import { useCreateServiceGroup } from "../../_hooks/use-create-service-group";
-import { useServiceAccounts } from "../../_hooks/use-service-accounts";
 
 export const AddGroup = ({ nsId }: { nsId: string }) => {
   const { accounts, isPending } = useServiceAccounts(nsId);
@@ -47,7 +47,7 @@ export const AddGroup = ({ nsId }: { nsId: string }) => {
       <form onSubmit={handleSubmit} className="flex flex-row gap-2">
         <FormItem>
           <ServiceAccountPicker
-            accounts={accounts}
+            accounts={accounts || []}
             onChange={setAccountId}
             disabled={loading}
             value={accountId}

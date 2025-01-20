@@ -1,49 +1,42 @@
-"use client";
-
 import { Button } from "@/components/ui/button";
-import { type TMappingAction, createNewMappingAction } from "@/types/actions";
-import {
-  type TMappingCondition,
-  createNewMappingCondition,
-} from "@/types/conditions";
+import type { TMappingAction } from "@/types/actions";
+import type { TMappingCondition } from "@/types/conditions";
+import type { TMapping } from "@/types/prisma";
 import { type FC, type FormEvent, useState } from "react";
 import { onServiceGroupMappingChange } from "../_hooks/on-mappings-change";
-import { useCreateServiceMapping } from "../_hooks/use-create-service-mapping";
+import { useUpdateServiceMapping } from "../_hooks/use-update-service-mapping";
 import { ActionsEditor } from "./ActionsEditor";
 import { ConditionsEditor } from "./ConditionsEditor";
 
 type Props = {
   nsId: string;
+  mapping: TMapping;
 };
 
-export const AddMapping: FC<Props> = ({ nsId }) => {
+export const EditMapping: FC<Props> = ({ nsId, mapping }) => {
   const [conditions, setConditions] = useState<TMappingCondition>(
-    createNewMappingCondition("comparator"),
+    mapping.conditions,
   );
-  const [actions, setActions] = useState<TMappingAction[]>([
-    createNewMappingAction("add"),
-  ]);
-  const { createServiceMapping, loading } = useCreateServiceMapping(nsId);
+  const [actions, setActions] = useState<TMappingAction[]>(mapping.actions);
+  const { updateServiceMapping } = useUpdateServiceMapping(nsId, mapping.id);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    await createServiceMapping({ conditions, actions });
+    await updateServiceMapping({ conditions, actions });
     onServiceGroupMappingChange();
   };
 
   return (
-    <form onSubmit={onSubmit} className="space-y-2">
+    <form onSubmit={onSubmit}>
       <span>以下の条件に一致するとき、</span>
       <ConditionsEditor
         conditions={conditions}
-        onChange={(v) => setConditions(v)}
+        onChange={setConditions}
         nsId={nsId}
       />
       <span>以下のアクションを実行する</span>
       <ActionsEditor actions={actions} onChange={setActions} nsId={nsId} />
-      <Button disabled={loading} type="submit">
-        作成
-      </Button>
+      <Button type="submit">更新</Button>
     </form>
   );
 };

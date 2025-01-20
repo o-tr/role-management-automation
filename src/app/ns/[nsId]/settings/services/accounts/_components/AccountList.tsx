@@ -1,5 +1,5 @@
 "use client";
-import { useServiceAccounts } from "@/app/ns/[nsId]/settings/services/_hooks/use-service-accounts";
+import { useServiceAccounts } from "@/app/ns/[nsId]/_hooks/use-service-accounts";
 import type { FC } from "react";
 import { useOnServiceAccountChange } from "../../_hooks/on-accounts-change";
 
@@ -103,7 +103,7 @@ export const AccountList: FC<Props> = ({ nsId }) => {
     <div>
       <DataTable
         columns={columns}
-        data={accounts.map((v) => ({ ...v, namespaceId: nsId }))}
+        data={accounts?.map((v) => ({ ...v, namespaceId: nsId })) || []}
         deleteSelected={(selected) => {
           deleteServiceAccounts(
             selected.rows[0].original.namespaceId,

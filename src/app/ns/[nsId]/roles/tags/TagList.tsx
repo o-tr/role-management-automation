@@ -77,8 +77,8 @@ export function TagList({ namespaceId }: TagListProps) {
   const handleAddTag = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!namespace) return;
-    createTag(namespace.id, newTagName);
-    void refetch();
+    await createTag(namespace.id, newTagName);
+    await refetch();
     setNewTagName("");
   };
 
@@ -103,8 +103,11 @@ export function TagList({ namespaceId }: TagListProps) {
           onChange={(e) => setNewTagName(e.target.value)}
           placeholder="新しいタグ名"
           required
+          disabled={isPending}
         />
-        <Button type="submit">追加</Button>
+        <Button type="submit" disabled={isPending}>
+          追加
+        </Button>
       </form>
     </div>
   );

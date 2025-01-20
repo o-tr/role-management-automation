@@ -87,22 +87,8 @@ export type TSerializedMapping = {
 
 export type TMapping = {
   id: string;
-  name: string;
   conditions: TMappingCondition;
   actions: TMappingAction[];
-  groupId: string;
-  accountId: string;
-  group: {
-    id: string;
-    name: string;
-    icon?: string;
-  };
-  account: {
-    id: string;
-    name: string;
-    service: ExternalServiceName;
-    icon?: string;
-  };
 };
 
 export const ZExternalServiceName = z.union([

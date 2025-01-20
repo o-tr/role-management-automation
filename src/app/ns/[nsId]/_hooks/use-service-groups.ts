@@ -11,7 +11,6 @@ export const useServiceGroups = (nsId: string) => {
       revalidateIfStale: false,
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
-      revalidateOnMount: false,
     },
   );
 

@@ -16,10 +16,11 @@ import {
 } from "@/types/actions";
 import type { TServiceRoleId } from "@/types/prisma";
 import type { Dispatch, FC, SetStateAction } from "react";
+import { useServiceAccounts } from "../../_hooks/use-service-accounts";
+import { useServiceGroups } from "../../_hooks/use-service-groups";
 import { ServiceAccountPicker } from "../../components/ServiceAccountPicker";
 import { ServiceGroupPicker } from "../../components/ServiceGroupPicker";
-import { useServiceAccounts } from "../../settings/services/_hooks/use-service-accounts";
-import { useServiceGroups } from "../../settings/services/_hooks/use-service-groups";
+import { ServiceGroupRoleDisplay } from "../../components/ServiceGroupRoleDisplay";
 import { useGroupRoles } from "../_hooks/use-group-roles";
 
 type Props = {
@@ -81,17 +82,24 @@ type ActionsItemProps = {
 
 const ActionsItem: FC<ActionsItemProps> = ({ action, onChange, nsId }) => {
   const { accounts } = useServiceAccounts(nsId);
-  const { groups, isPending: isGroupsPending } = useServiceGroups(nsId);
+  const { groups: tmpGroups, isPending: isGroupsPending } =
+    useServiceGroups(nsId);
+  const groups =
+    tmpGroups?.filter((g) => g.account.id === action.targetServiceAccountId) ??
+    [];
   const { roles } = useGroupRoles(
     nsId,
     action.targetServiceAccountId,
     action.targetServiceGroupId,
   );
+  const selectedRole = roles?.find(
+    (role) => role.id === action.targetServiceRoleId,
+  );
   return (
     <Card className="flex flex-row gap-2 items-center p-2">
       <FormItem>
         <ServiceAccountPicker
-          accounts={accounts}
+          accounts={accounts ?? []}
           onChange={(value) =>
             onChange({ ...action, targetServiceAccountId: value })
           }
@@ -100,12 +108,8 @@ const ActionsItem: FC<ActionsItemProps> = ({ action, onChange, nsId }) => {
       </FormItem>
       <FormItem>
         <ServiceGroupPicker
-          disabled={isGroupsPending}
-          groups={
-            groups?.filter(
-              (g) => g.account.id === action.targetServiceAccountId,
-            ) ?? []
-          }
+          disabled={isGroupsPending || groups.length === 0}
+          groups={groups ?? []}
           onChange={(value) =>
             onChange({ ...action, targetServiceGroupId: value })
           }
@@ -116,6 +120,7 @@ const ActionsItem: FC<ActionsItemProps> = ({ action, onChange, nsId }) => {
       <FormItem>
         <Select
           value={action.targetServiceRoleId}
+          disabled={!roles}
           onValueChange={(value) =>
             onChange({
               ...action,
@@ -132,13 +137,7 @@ const ActionsItem: FC<ActionsItemProps> = ({ action, onChange, nsId }) => {
           <SelectContent>
             {roles?.map((role) => (
               <SelectItem key={role.id} value={role.id}>
-                <span
-                  style={{
-                    color: role.color,
-                  }}
-                >
-                  {role.name}
-                </span>
+                <ServiceGroupRoleDisplay role={role} />
               </SelectItem>
             ))}
           </SelectContent>

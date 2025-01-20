@@ -1,30 +1,17 @@
 import type { GetTagsResponse } from "@/app/api/ns/[nsId]/tags/route";
-import type { TTag } from "@/types/prisma";
-import { useCallback, useLayoutEffect, useState } from "react";
+import useSWR from "swr";
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export const useTags = (nsId: string) => {
-  const [tags, setTags] = useState<TTag[]>([]);
-  const [isPending, setIsPending] = useState(true);
-
-  const fetchData = useCallback(async () => {
-    const response = (await fetch(`/api/ns/${nsId}/tags/`).then((res) =>
-      res.json(),
-    )) as GetTagsResponse;
-    if (response.status === "error") {
-      throw new Error(response.error);
-    }
-
-    setTags(response.tags);
-    setIsPending(false);
-  }, [nsId]);
-
-  useLayoutEffect(() => {
-    void fetchData();
-  }, [fetchData]);
+  const { data, error, mutate } = useSWR<GetTagsResponse>(
+    `/api/ns/${nsId}/tags/`,
+    fetcher,
+  );
 
   return {
-    tags,
-    isPending,
-    refetch: fetchData,
+    tags: data && data.status === "success" ? data.tags : undefined,
+    isPending: !error && !data,
+    refetch: mutate,
   };
 };
