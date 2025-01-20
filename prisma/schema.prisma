@@ -32,6 +32,7 @@ model Namespace {
   id               String                     @id @default(uuid())
   name             String
   members          Member[]
+  memberExternalAccounts MemberExternalServiceAccount[]
   tags             Tag[]
   owner            User                       @relation("GroupOwner", fields: [ownerId], references: [id])
   ownerId          String
@@ -47,15 +48,31 @@ model Namespace {
 model Member {
   id          String    @id @default(uuid())
   name        String
-  email       String
   namespace   Namespace @relation(fields: [namespaceId], references: [id])
   namespaceId String
   tags        Tag[]
+  externalAccounts MemberExternalServiceAccount[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model MemberExternalServiceAccount {
+  id          String    @id @default(uuid())
+
+  namespace   Namespace @relation(fields: [namespaceId], references: [id])
+  namespaceId String
+  member      Member    @relation(fields: [memberId], references: [id])
+  memberId    String
+
+  service    ExternalServiceName
+  name       String
+  serviceId  String
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([email, namespaceId])
+  @@unique([service, serviceId, namespaceId])
 }
 
 model Tag {

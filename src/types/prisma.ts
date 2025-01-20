@@ -25,7 +25,6 @@ export type TNamespaceDetail = {
   members: {
     id: string;
     name: string;
-    email: string;
   }[];
   tags: {
     id: string;

@@ -5,7 +5,7 @@ import type {
   TMappingKey,
 } from "@/types/conditions";
 import type { FC } from "react";
-import { useTags } from "../_hooks/use-tags";
+import { useTags } from "../../_hooks/use-tags";
 
 type Props = {
   conditions: TMappingCondition;
@@ -22,7 +22,7 @@ const comparatorsLabel: { [key in TMappingComparator]: string } = {
 };
 
 export const ConditionsDisplay: FC<Props> = ({ conditions, nsId }) => {
-  const { tags } = useTags(nsId);
+  const { tags, isPending } = useTags(nsId);
   if (conditions.type === "comparator") {
     const tag = tags?.find((t) => t.id === conditions.value);
 
@@ -31,6 +31,8 @@ export const ConditionsDisplay: FC<Props> = ({ conditions, nsId }) => {
         <span>{keysLabel[conditions.key]}</span>
         {tag ? (
           <span>{tag.name}</span>
+        ) : isPending ? (
+          <span>loading...</span>
         ) : (
           <span className="text-red-600">[削除されたタグ]</span>
         )}

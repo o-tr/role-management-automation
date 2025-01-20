@@ -11,7 +11,7 @@ import { deleteMapping } from "@/requests/deleteMapping";
 import {
   onServiceGroupMappingChange,
   useOnServiceGroupMappingChange,
-} from "../_hooks/on-mappings-change";
+} from "../../_hooks/on-mappings-change";
 import { ActionsDisplay } from "./ActionsDisplay";
 import { ConditionsDisplay } from "./ConditionsDisplay";
 

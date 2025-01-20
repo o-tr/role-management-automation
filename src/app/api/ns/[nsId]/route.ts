@@ -171,7 +171,6 @@ export async function PATCH(
       members: updatedNamespace.members.map((member) => ({
         id: member.id,
         name: member.name,
-        email: member.email,
       })),
       tags: updatedNamespace.tags.map((tag) => ({
         id: tag.id,

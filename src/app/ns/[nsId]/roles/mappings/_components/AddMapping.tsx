@@ -7,8 +7,8 @@ import {
   createNewMappingCondition,
 } from "@/types/conditions";
 import { type FC, type FormEvent, useState } from "react";
-import { onServiceGroupMappingChange } from "../_hooks/on-mappings-change";
-import { useCreateServiceMapping } from "../_hooks/use-create-service-mapping";
+import { onServiceGroupMappingChange } from "../../_hooks/on-mappings-change";
+import { useCreateServiceMapping } from "../../_hooks/use-create-service-mapping";
 import { ActionsEditor } from "./ActionsEditor";
 import { ConditionsEditor } from "./ConditionsEditor";
 

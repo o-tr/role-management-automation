@@ -12,8 +12,8 @@ import {
 import { useNamespace } from "@/hooks/use-namespace";
 import { useState } from "react";
 import { useOnServiceGroupMappingChange } from "../_hooks/on-mappings-change";
-import { AddMapping } from "./AddMapping";
-import { MappingList } from "./MappingList";
+import { AddMapping } from "./_components/AddMapping";
+import { MappingList } from "./_components/MappingList";
 
 const paths = [
   { label: "ロール管理", path: "/ns/[nsId]/roles" },
