@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { ZExternalServiceName } from "@/types/prisma";
 import { getServerSession } from "next-auth/next";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -8,7 +9,6 @@ export type AddMembersResponse =
       status: "success";
       members: {
         id: string;
-        name: string;
       }[];
     }
   | {
@@ -17,16 +17,16 @@ export type AddMembersResponse =
     };
 
 const memberSchema = z.object({
-  name: z.string(),
-  email: z.string().email(),
+  services: z.array(
+    z.object({
+      service: ZExternalServiceName,
+      serviceId: z.string(),
+      name: z.string(),
+      icon: z.string().optional(),
+    }),
+  ),
 });
-
-const addMembersSchema = z.array(
-  z.object({
-    name: z.string(),
-    email: z.string().email(),
-  }),
-);
+const requetsBodySchema = z.array(memberSchema);
 
 export async function POST(
   req: NextRequest,
@@ -65,14 +65,22 @@ export async function POST(
     );
   }
 
-  const body = addMembersSchema.parse(await req.json());
+  const body = requetsBodySchema.parse(await req.json());
 
   const members = await prisma.$transaction(
     body.map((member) =>
       prisma.member.create({
         data: {
-          name: member.name,
           namespaceId: params.nsId,
+          externalAccounts: {
+            create: member.services.map((service) => ({
+              namespaceId: params.nsId,
+              service: service.service,
+              serviceId: service.serviceId,
+              name: service.name,
+              icon: service.icon,
+            })),
+          },
         },
       }),
     ),
