@@ -7,6 +7,11 @@ export const useTags = (nsId: string) => {
   const { data, error, mutate } = useSWR<GetTagsResponse>(
     `/api/ns/${nsId}/tags/`,
     fetcher,
+    {
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    },
   );
 
   return {

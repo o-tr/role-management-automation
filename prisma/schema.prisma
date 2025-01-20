@@ -23,6 +23,9 @@ model User {
   sessions        Session[]
   namespaces      Namespace[]
   ownedNamespaces Namespace[] @relation("GroupOwner")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Namespace {
@@ -36,6 +39,9 @@ model Namespace {
   externalAccounts ExternalServiceAccount[]
   externalGroups   ExternalServiceGroup[]
   externalMappings ExternalServiceGroupRoleMapping[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Member {
@@ -46,6 +52,9 @@ model Member {
   namespaceId String
   tags        Tag[]
 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@unique([email, namespaceId])
 }
 
@@ -55,6 +64,9 @@ model Tag {
   namespace   Namespace @relation(fields: [namespaceId], references: [id])
   namespaceId String
   members     Member[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([name, namespaceId])
 }
@@ -71,6 +83,9 @@ model ExternalServiceAccount {
 
   groups ExternalServiceGroup[]
 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@unique([name, namespaceId])
 }
 
@@ -86,6 +101,9 @@ model ExternalServiceGroup {
   groupId String
   icon    String?
 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   @@unique([name, namespaceId])
 }
 
@@ -96,6 +114,9 @@ model ExternalServiceGroupRoleMapping {
 
   conditions String @db.Text
   actions    String @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // ------- nextauth-prisma schema -------

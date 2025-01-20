@@ -1,5 +1,5 @@
 "use client";
-import type { GeTSerializedMappingsResponse } from "@/app/api/ns/[nsId]/mappings/route";
+import type { GetSerializedMappingsResponse } from "@/app/api/ns/[nsId]/mappings/route";
 import type { TMapping } from "@/types/prisma";
 import { useCallback, useEffect, useState } from "react";
 
@@ -12,7 +12,7 @@ export const useMappings = (nsId: string) => {
     setIsPending(true);
     setError(undefined);
     const res = await fetch(`/api/ns/${nsId}/mappings`);
-    const data = (await res.json()) as GeTSerializedMappingsResponse;
+    const data = (await res.json()) as GetSerializedMappingsResponse;
     if (data.status === "error") {
       setError(data.error);
       setIsPending(false);

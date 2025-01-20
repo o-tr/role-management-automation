@@ -85,14 +85,12 @@ export const columns: ColumnDef<InternalMapping>[] = [
       const [isModalOpen, setIsModalOpen] = useState(false);
 
       return (
-        <>
+        <div className="flex flex-col gap-2">
           <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-            <div className="flex flex-row justify-end">
-              <DialogTrigger asChild>
-                <Button variant="outline">編集</Button>
-              </DialogTrigger>
-            </div>
-            <DialogContent className="max-w-7xl">
+            <DialogTrigger asChild>
+              <Button variant="outline">編集</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-7xl max-h-full overflow-y-scroll">
               <DialogHeader>
                 <DialogTitle>割り当てを編集</DialogTitle>
                 <DialogDescription>
@@ -112,7 +110,7 @@ export const columns: ColumnDef<InternalMapping>[] = [
           >
             削除
           </Button>
-        </>
+        </div>
       );
     },
     size: 100,

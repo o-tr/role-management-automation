@@ -45,6 +45,9 @@ export async function GET(
         name: true,
         owner: true,
       },
+      orderBy: {
+        createdAt: "asc",
+      },
     })
   ).map((ns) => {
     return {

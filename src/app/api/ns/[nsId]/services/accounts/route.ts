@@ -85,6 +85,9 @@ export async function GET(
         service: true,
         icon: true,
       },
+      orderBy: {
+        createdAt: "asc",
+      },
     })
   ).map((serviceAccount) => ({
     ...serviceAccount,

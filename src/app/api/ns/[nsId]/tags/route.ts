@@ -118,6 +118,9 @@ export async function GET(
     where: {
       namespaceId: params.nsId,
     },
+    orderBy: {
+      createdAt: "asc",
+    },
   });
 
   return NextResponse.json({

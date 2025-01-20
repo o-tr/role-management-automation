@@ -21,7 +21,7 @@ export type CreateMappingResponse =
       error: string;
     };
 
-export type GeTSerializedMappingsResponse =
+export type GetSerializedMappingsResponse =
   | {
       status: "success";
       mappings: TSerializedMapping[];
@@ -198,7 +198,7 @@ const extractServiceGroups = (actions: TMappingAction[]) => {
 export async function GET(
   req: NextRequest,
   { params }: { params: { nsId: string } },
-): Promise<NextResponse<GeTSerializedMappingsResponse>> {
+): Promise<NextResponse<GetSerializedMappingsResponse>> {
   const session = await getServerSession();
   const email = session?.user?.email;
 
@@ -231,6 +231,9 @@ export async function GET(
   const mappings = await prisma.externalServiceGroupRoleMapping.findMany({
     where: {
       namespaceId: params.nsId,
+    },
+    orderBy: {
+      createdAt: "asc",
     },
   });
 

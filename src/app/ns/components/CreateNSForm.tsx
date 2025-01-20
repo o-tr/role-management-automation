@@ -22,9 +22,10 @@ export const CreateNSForm: FC<Props> = ({ onCreated }) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const namespace = await createNamespace(name);
+    if (namespace.status === "error") return;
     setName("");
-    onCreated?.(namespace);
-    router.push(`/ns/${namespace.id}`);
+    onCreated?.(namespace.namespace);
+    router.push(`/ns/${namespace.namespace.id}`);
   };
 
   return (

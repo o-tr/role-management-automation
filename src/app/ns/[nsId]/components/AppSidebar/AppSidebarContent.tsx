@@ -42,7 +42,7 @@ export const AppSidebarContent: FC = () => {
             </SidebarMenuSub>
           </MenuItem>
           <MenuItem
-            link={`/ns/${nsId}/roles`}
+            link={`/ns/${nsId}/roles/mappings`}
             label={"ロール管理"}
             icon={<TbUserHexagon />}
           >
@@ -72,7 +72,7 @@ export const AppSidebarContent: FC = () => {
             icon={<TbSettings />}
           />
           <MenuItem
-            link={`/ns/${nsId}/settings/services`}
+            link={`/ns/${nsId}/settings/services/accounts`}
             label={"外部サービス"}
             icon={<TbCloudCode />}
           >

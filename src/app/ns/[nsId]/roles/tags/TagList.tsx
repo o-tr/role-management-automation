@@ -8,9 +8,10 @@ import { useState } from "react";
 
 import { DataTable } from "@/app/ns/[nsId]/components/DataTable";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useNamespace } from "@/hooks/use-namespace";
 import { createTag } from "@/requests/createTag";
 import { deleteTag } from "@/requests/deleteTag";
+import { onTagsChange } from "../_hooks/on-tags-change";
+import { useTags } from "../_hooks/use-tags";
 
 type InternalTag = TTag & { namespaceId: string };
 
@@ -51,9 +52,10 @@ export const columns: ColumnDef<InternalTag>[] = [
     cell: ({ row }) => (
       <Button
         variant="outline"
-        onClick={() =>
-          void deleteTag(row.original.namespaceId, row.original.id)
-        }
+        onClick={async () => {
+          await deleteTag(row.original.namespaceId, row.original.id);
+          onTagsChange();
+        }}
       >
         削除
       </Button>
@@ -64,6 +66,7 @@ export const columns: ColumnDef<InternalTag>[] = [
 
 const deleteTags = async (groupId: string, tagIds: string[]) => {
   await Promise.all(tagIds.map((tagId) => deleteTag(groupId, tagId)));
+  onTagsChange();
 };
 
 type TagListProps = {
@@ -71,28 +74,29 @@ type TagListProps = {
 };
 
 export function TagList({ namespaceId }: TagListProps) {
-  const { namespace, isPending, refetch } = useNamespace({ namespaceId });
+  const { tags, refetch, isPending } = useTags(namespaceId);
   const [newTagName, setNewTagName] = useState("");
 
   const handleAddTag = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!namespace) return;
-    await createTag(namespace.id, newTagName);
+    await createTag(namespaceId, newTagName);
     await refetch();
     setNewTagName("");
   };
 
-  if (isPending || !namespace) return <div>Loading...</div>;
+  if (isPending) {
+    return <div>loading...</div>;
+  }
 
   return (
     <div className="mt-6">
       <h2 className="text-xl font-semibold mb-3">タグ</h2>
       <DataTable
         columns={columns}
-        data={namespace.tags.map((v) => ({ ...v, namespaceId }))}
+        data={tags?.map((v) => ({ ...v, namespaceId })) || []}
         deleteSelected={(selected) => {
           deleteTags(
-            namespace.id,
+            namespaceId,
             selected.rows.map((v) => v.original.id),
           );
         }}

@@ -77,6 +77,9 @@ export async function GET(
     include: {
       account: true,
     },
+    orderBy: {
+      createdAt: "asc",
+    },
   });
 
   return NextResponse.json({
