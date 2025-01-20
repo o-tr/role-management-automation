@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/select";
 import type { TAvailableGroup } from "@/types/prisma";
 import type { FC } from "react";
+import { ServiceGroupDisplay } from "./ServiceGroupDisplay";
 
 type Props = {
   groups: TAvailableGroup[];
@@ -34,16 +35,7 @@ export const ServiceGroupPicker: FC<Props> = ({
         ) : (
           groups.map((group) => (
             <SelectItem key={group.id} value={group.id}>
-              <div className="flex flex-row items-center">
-                {group.icon && (
-                  <img
-                    src={group.icon}
-                    alt={group.name}
-                    className="w-6 h-6 mr-2 rounded-full"
-                  />
-                )}
-                <span className="truncate">{group.name}</span>
-              </div>
+              <ServiceGroupDisplay group={group} />
             </SelectItem>
           ))
         )}

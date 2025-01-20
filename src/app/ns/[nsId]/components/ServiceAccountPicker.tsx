@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/select";
 import type { TServiceAccount } from "@/types/prisma";
 import type { FC } from "react";
+import { ServiceAccountDisplay } from "./ServiceAccountDisplay";
 
 type Props = {
   accounts: TServiceAccount[];
@@ -29,16 +30,7 @@ export const ServiceAccountPicker: FC<Props> = ({
       <SelectContent>
         {accounts.map((account) => (
           <SelectItem key={account.id} value={account.id}>
-            <div className="flex flex-row items-center">
-              {account.icon && (
-                <img
-                  src={account.icon}
-                  alt={account.name}
-                  className="w-6 h-6 mr-2 rounded-full"
-                />
-              )}
-              <span className="truncate">{`${account.name} (${account.service})`}</span>
-            </div>
+            <ServiceAccountDisplay account={account} />
           </SelectItem>
         ))}
       </SelectContent>

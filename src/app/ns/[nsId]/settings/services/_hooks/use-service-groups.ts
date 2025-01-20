@@ -7,6 +7,12 @@ export const useServiceGroups = (nsId: string) => {
   const { data, error, mutate } = useSWR<GetExternalServiceGroupsResponse>(
     `/api/ns/${nsId}/services/groups/`,
     fetcher,
+    {
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      revalidateOnMount: false,
+    },
   );
 
   return {

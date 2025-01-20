@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import type { TMapping, TTag } from "@/types/prisma";
+import type { TMapping } from "@/types/prisma";
 import type { ColumnDef } from "@tanstack/react-table";
 
 import { DataTable } from "@/app/ns/[nsId]/components/DataTable";
@@ -9,6 +9,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useMappings } from "@/hooks/use-mappings";
 import { deleteMapping } from "@/requests/deleteMapping";
 import { deleteTag } from "@/requests/deleteTag";
+import { ActionsDisplay } from "./ActionsDisplay";
+import { ConditionsDisplay } from "./ConditionsDisplay";
 
 type InternalMapping = TMapping & { namespaceId: string };
 
@@ -40,9 +42,29 @@ export const columns: ColumnDef<InternalMapping>[] = [
     maxSize: 50,
   },
   {
-    accessorKey: "name",
-    header: "Name",
-    size: -1,
+    id: "condition",
+    header: "条件",
+    cell: ({ row }) => (
+      <div className="flex flex-col">
+        <ConditionsDisplay
+          conditions={row.original.conditions}
+          nsId={row.original.namespaceId}
+        />
+      </div>
+    ),
+  },
+  {
+    id: "actions",
+    header: "アクション",
+    cell: ({ row }) => (
+      <div className="flex flex-col">
+        <div>{JSON.stringify(row.original.actions)}</div>
+        <ActionsDisplay
+          actions={row.original.actions}
+          nsId={row.original.namespaceId}
+        />
+      </div>
+    ),
   },
   {
     id: "actions",

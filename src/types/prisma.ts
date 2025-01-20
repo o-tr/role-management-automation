@@ -89,7 +89,7 @@ export type TMapping = {
   id: string;
   name: string;
   conditions: TMappingCondition;
-  actions: TMappingAction;
+  actions: TMappingAction[];
   groupId: string;
   accountId: string;
   group: {
