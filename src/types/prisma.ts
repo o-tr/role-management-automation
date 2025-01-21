@@ -36,6 +36,7 @@ export type TNamespaceDetail = {
 export type TTag = {
   id: string;
   name: string;
+  namespaceId: string;
 };
 
 export type TServiceAccount = {
@@ -88,6 +89,21 @@ export type TMapping = {
   id: string;
   conditions: TMappingCondition;
   actions: TMappingAction[];
+};
+
+export type TMember = {
+  id: string;
+  tags: TTag[];
+  externalAccounts: TMemberExternalServiceAccount[];
+  namespaceId: string;
+};
+
+export type TMemberExternalServiceAccount = {
+  service: ExternalServiceName;
+  serviceId: string;
+  name: string;
+  icon: string | null;
+  namespaceId: string;
 };
 
 export const ZExternalServiceName = z.union([

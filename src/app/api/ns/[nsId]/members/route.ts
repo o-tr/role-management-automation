@@ -1,5 +1,9 @@
 import { prisma } from "@/lib/prisma";
-import { ZExternalServiceName } from "@/types/prisma";
+import {
+  type TMemberExternalServiceAccount,
+  type TTag,
+  ZExternalServiceName,
+} from "@/types/prisma";
 import { getServerSession } from "next-auth/next";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -9,6 +13,21 @@ export type AddMembersResponse =
       status: "success";
       members: {
         id: string;
+      }[];
+    }
+  | {
+      status: "error";
+      error: string;
+    };
+
+export type GetMembersResponse =
+  | {
+      status: "success";
+      members: {
+        id: string;
+        tags: TTag[];
+        externalAccounts: TMemberExternalServiceAccount[];
+        namespaceId: string;
       }[];
     }
   | {
@@ -85,6 +104,62 @@ export async function POST(
       }),
     ),
   );
+
+  return NextResponse.json({
+    status: "success",
+    members,
+  });
+}
+
+export async function GET(
+  req: NextRequest,
+  { params }: { params: { nsId: string } },
+): Promise<NextResponse<GetMembersResponse>> {
+  const session = await getServerSession();
+  const email = session?.user?.email;
+
+  if (!email) {
+    return NextResponse.json(
+      { status: "error", error: "Not authenticated" },
+      { status: 401 },
+    );
+  }
+
+  const namespace = await prisma.namespace.findUnique({
+    where: {
+      id: params.nsId,
+    },
+    include: {
+      owner: true,
+    },
+  });
+
+  if (!namespace) {
+    return NextResponse.json(
+      { status: "error", error: "Namespace not found" },
+      { status: 404 },
+    );
+  }
+
+  if (namespace.owner.email !== email) {
+    return NextResponse.json(
+      { status: "error", error: "Not authorized" },
+      { status: 403 },
+    );
+  }
+
+  const members = await prisma.member.findMany({
+    where: {
+      namespaceId: params.nsId,
+    },
+    include: {
+      tags: true,
+      externalAccounts: true,
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+  });
 
   return NextResponse.json({
     status: "success",

@@ -25,7 +25,7 @@ import {
   createNewMappingCondition,
 } from "@/types/conditions";
 import type { FC } from "react";
-import { useTags } from "../_hooks/use-tags";
+import { useTags } from "../../_hooks/use-tags";
 
 type Props<T extends TMappingCondition> = {
   nsId: string;

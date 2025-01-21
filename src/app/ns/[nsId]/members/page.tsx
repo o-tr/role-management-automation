@@ -1,9 +1,10 @@
 "use client";
 import { BreadcrumbUpdater } from "@/app/ns/[nsId]/components/Breadcrumb/BreadcrumbUpdater";
-import { TagList } from "@/app/ns/[nsId]/roles/tags/TagList";
 import { useNamespace } from "@/hooks/use-namespace";
+import { AddMembers } from "./_components/AddMembers";
+import { MemberList } from "./_components/MemberList";
 
-const paths = [{ label: "ロール管理", path: "/ns/[nsId]/roles" }];
+const paths = [{ label: "メンバー管理", path: "/ns/[nsId]/members" }];
 
 export default function GroupTagsPage({
   params,
@@ -18,7 +19,8 @@ export default function GroupTagsPage({
 
   return (
     <div>
-      <TagList namespaceId={namespace.id} />
+      <MemberList namespaceId={params.nsId} />
+      <AddMembers nsId={params.nsId} />
       <BreadcrumbUpdater paths={paths} />
     </div>
   );
