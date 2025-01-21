@@ -16,12 +16,12 @@ import {
 } from "@/types/actions";
 import type { TServiceRoleId } from "@/types/prisma";
 import type { Dispatch, FC, SetStateAction } from "react";
-import { useServiceAccounts } from "../../_hooks/use-service-accounts";
-import { useServiceGroups } from "../../_hooks/use-service-groups";
-import { ServiceAccountPicker } from "../../components/ServiceAccountPicker";
-import { ServiceGroupPicker } from "../../components/ServiceGroupPicker";
-import { ServiceGroupRoleDisplay } from "../../components/ServiceGroupRoleDisplay";
-import { useGroupRoles } from "../_hooks/use-group-roles";
+import { useServiceAccounts } from "../../../_hooks/use-service-accounts";
+import { useServiceGroups } from "../../../_hooks/use-service-groups";
+import { ServiceAccountPicker } from "../../../components/ServiceAccountPicker";
+import { ServiceGroupPicker } from "../../../components/ServiceGroupPicker";
+import { ServiceGroupRoleDisplay } from "../../../components/ServiceGroupRoleDisplay";
+import { useGroupRoles } from "../../_hooks/use-group-roles";
 
 type Props = {
   nsId: string;
