@@ -5,5 +5,5 @@ export const ZVRCUser = z.object({
   currentAvatarThumbnailImageUrl: z.string(),
   profilePicOverride: z.string(),
   profilePicOverrideThumbnail: z.string(),
-  name: z.string(),
+  displayName: z.string(),
 });

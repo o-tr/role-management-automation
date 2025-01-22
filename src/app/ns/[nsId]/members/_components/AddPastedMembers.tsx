@@ -11,6 +11,7 @@ import { DialogDescription } from "@radix-ui/react-dialog";
 import { type FC, useState } from "react";
 import { useOnPaste } from "../_hooks/on-paste";
 import { parseClipboard } from "../_utils/parseClipboard";
+import { MemberPreviewTable } from "./MemberPreviewTable";
 import { OverwriteConfirm } from "./OverwriteConfirm";
 import { PastedTable } from "./PastedTable";
 
@@ -85,12 +86,17 @@ export const AddPastedMembers: FC<Props> = ({ nsId }) => {
         <DialogTrigger asChild>
           <Button>確認</Button>
         </DialogTrigger>
-        <DialogContent>
+        <DialogContent className="max-w-7xl max-h-full overflow-y-scroll">
           <DialogHeader>
             <DialogTitle>確認</DialogTitle>
             <DialogDescription>
-              <Button>OK</Button>
-              <Button>Cancel</Button>
+              <MemberPreviewTable
+                data={members}
+                keys={keys}
+                setData={setMembers}
+                setKeys={setKeys}
+                nsId={nsId}
+              />
             </DialogDescription>
           </DialogHeader>
         </DialogContent>

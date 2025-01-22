@@ -21,8 +21,10 @@ export const getUserById = async (
   if (!response.ok) {
     throw new Error(`Failed to fetch user groups: ${response.statusText}`);
   }
-  const data = ZVRCUser.safeParse(await response.json());
+  const json = await response.json();
+  const data = ZVRCUser.safeParse(json);
   if (!data.success) {
+    console.error(data.error, json);
     throw new Error(
       `Failed to parse user groups: ${JSON.stringify(data.error)}`,
     );

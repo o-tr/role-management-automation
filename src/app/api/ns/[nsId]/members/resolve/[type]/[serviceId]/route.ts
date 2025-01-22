@@ -4,7 +4,6 @@ import { prisma } from "@/lib/prisma";
 import { getUserById } from "@/lib/vrchat/requests/getUserById";
 import type { VRCUserId } from "@/lib/vrchat/types/brand";
 import { ZDiscordCredentials, ZVRChatCredentials } from "@/types/credentials";
-import { ZExternalServiceName } from "@/types/prisma";
 import type {
   ExternalServiceAccount,
   ExternalServiceName,
@@ -21,11 +20,6 @@ export const ZResolveRequestType = z.union([
   z.literal("GitHubUsername"),
 ]);
 export type TResolveRequestType = z.infer<typeof ZResolveRequestType>;
-
-const resolveRequestItem = z.object({
-  type: ZResolveRequestType,
-  serviceId: z.string(),
-});
 
 type ResolveResponseItem = {
   service: ExternalServiceName;
@@ -44,10 +38,11 @@ export type ResolveResponse =
       error: string;
     };
 
-export async function POST(
+export async function GET(
   req: NextRequest,
-  { params }: { params: { nsId: string } },
+  { params }: { params: { nsId: string; type: string; serviceId: string } },
 ): Promise<NextResponse<ResolveResponse>> {
+  const type = ZResolveRequestType.parse(params.type);
   const session = await getServerSession();
   const email = session?.user?.email;
 
@@ -81,14 +76,13 @@ export async function POST(
     );
   }
 
-  const body = resolveRequestItem.parse(await req.json());
-  const item = await resolve(body.type, body.serviceId, params.nsId);
+  const item = await resolve(type, params.serviceId, params.nsId);
 
   return NextResponse.json({
     status: "success",
     item: {
-      ...body,
       ...item,
+      serviceId: params.serviceId,
     },
   });
 }
@@ -132,7 +126,7 @@ const resolveVRCUserId = async (
   );
 
   return {
-    name: user.name,
+    name: user.displayName,
     icon:
       user.profilePicOverrideThumbnail || user.currentAvatarThumbnailImageUrl,
     service: "VRCHAT" as ExternalServiceName,
@@ -167,8 +161,8 @@ const resolveDiscordUserName = async (
   for (const guild of guilds) {
     const members = await getSearchGuildMembers(
       data.token,
+      guild.groupId,
       serviceId,
-      guild.id,
     );
     if (!members?.[0]) continue;
     const { user } = members[0];

@@ -1,42 +1,75 @@
 import type { TResolveRequestType } from "@/app/api/ns/[nsId]/members/resolve/[type]/[serviceId]/route";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { ZVRCUserId } from "@/lib/vrchat/types/brand";
 import type { ColumnDef } from "@tanstack/react-table";
 import { type Dispatch, type FC, type SetStateAction, useMemo } from "react";
 import { DataTable } from "../../components/DataTable";
+import { MemberAccountResolveDisplay } from "../../components/MemberAccountResolveDisplay";
 
 type TKeys = TResolveRequestType | "unknown";
 
-const Keys = [
-  "DiscordUserId",
-  "DiscordUsername",
-  "VRCUserId",
-  "GitHubUserId",
-  "GitHubUsername",
-  "unknown",
-];
+const KeyServiceMap = {
+  DiscordUserId: "Discord",
+  DiscordUsername: "Discord",
+  VRCUserId: "VRChat",
+  GitHubUserId: "GitHub",
+  GitHubUsername: "GitHub",
+  unknown: "unknown",
+};
 
-type RowObject = {
+type InputRowObject = {
   id: string;
   data: string[];
 };
 
+type RowObject = {
+  id: string;
+  data: (
+    | string
+    | {
+        error: string;
+        value: string;
+      }
+  )[];
+};
+
 type Props = {
-  data: RowObject[];
+  nsId: string;
+  data: InputRowObject[];
   keys: TKeys[];
-  setData: Dispatch<SetStateAction<RowObject[]>>;
+  setData: Dispatch<SetStateAction<InputRowObject[]>>;
   setKeys: Dispatch<SetStateAction<TKeys[]>>;
 };
 
-export const PastedTable: FC<Props> = ({ data, keys, setData, setKeys }) => {
+export const MemberPreviewTable: FC<Props> = ({
+  nsId,
+  data: data_,
+  keys,
+  setData,
+  setKeys,
+}) => {
+  const data = useMemo(() => {
+    return data_.map((row) => {
+      return {
+        ...row,
+        data: row.data.map((val, i) => {
+          if (keys[i] === "VRCUserId") {
+            const parsed = ZVRCUserId.safeParse(val);
+            if (parsed.success) {
+              return parsed.data;
+            }
+            return {
+              error: JSON.stringify(parsed.error),
+              value: val,
+            };
+          }
+          return val;
+        }),
+      };
+    });
+  }, [data_, keys]);
+
   const columns = useMemo<ColumnDef<RowObject>[]>(() => {
     return [
       {
@@ -70,43 +103,21 @@ export const PastedTable: FC<Props> = ({ data, keys, setData, setKeys }) => {
       ...keys.map<ColumnDef<RowObject>>((_, index) => {
         return {
           accessorKey: index.toString(),
-          header: () => (
-            <Select
-              value={keys[index]}
-              onValueChange={(val) =>
-                setKeys((pv) => {
-                  const nv = [...pv];
-                  nv[index] = val as TKeys;
-                  return nv;
-                })
-              }
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="" />
-              </SelectTrigger>
-              <SelectContent>
-                {Keys.map((value) => (
-                  <SelectItem key={value} value={value}>
-                    {value}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          ),
-          cell: ({ row }) => (
-            <Input
-              value={row.original.data[index]}
-              onChange={(e) =>
-                setData((pv) => {
-                  const nv = [...pv];
-                  const item = nv.find((r) => r.id === row.original.id);
-                  if (!item) return pv;
-                  item.data[index] = e.target.value;
-                  return nv;
-                })
-              }
-            />
-          ),
+          header: () => KeyServiceMap[keys[index]],
+          cell: ({ row }) =>
+            keys[index] === "unknown" ? (
+              row.original.data[index]
+            ) : typeof row.original.data[index] === "object" ? (
+              <div className="text-red-500 truncate overflow-hidden">
+                {row.original.data[index].value}
+              </div>
+            ) : (
+              <MemberAccountResolveDisplay
+                nsId={nsId}
+                type={keys[index]}
+                serviceId={row.original.data[index]}
+              />
+            ),
           size: -1,
         };
       }),
@@ -125,7 +136,7 @@ export const PastedTable: FC<Props> = ({ data, keys, setData, setKeys }) => {
         size: 100,
       },
     ];
-  }, [keys, setData, setKeys]);
+  }, [keys, setData, nsId]);
   return (
     <DataTable
       columns={columns}

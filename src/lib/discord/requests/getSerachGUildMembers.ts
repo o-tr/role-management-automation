@@ -15,6 +15,7 @@ export const getSearchGuildMembers = async (
     },
   );
   if (!response.ok) {
+    console.error(await response.text());
     throw new Error(`Failed to get guild: ${response.statusText}`);
   }
   const data = z.array(ZDiscordGuildMember).safeParse(await response.json());
