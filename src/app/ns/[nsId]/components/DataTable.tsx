@@ -91,7 +91,13 @@ export function DataTable<T>({
         </Table>
       </div>
       {selected.rows.length > 0 && (
-        <Button size={"sm"} onClick={() => deleteSelected?.(selected)}>
+        <Button
+          size={"sm"}
+          onClick={() => {
+            deleteSelected?.(selected);
+            table.resetRowSelection();
+          }}
+        >
           選択済み {selected.rows.length} 件を削除
         </Button>
       )}
