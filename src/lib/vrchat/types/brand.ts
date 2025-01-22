@@ -1,6 +1,12 @@
 import { z } from "zod";
 
-export const ZVRCUserId = z.string().brand<"VRCUserId">("VRCUserId");
+export const ZVRCUserId = z
+  .string()
+  .regex(
+    /^(?:https?:\/\/vrchat\.com\/home\/user\/)?usr_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+  )
+  .transform((val) => val.replace(/https?:\/\/vrchat\.com\/home\/user\//, ""))
+  .brand<"VRCUserId">("VRCUserId");
 export type VRCUserId = z.infer<typeof ZVRCUserId>;
 
 export const ZVRCToken = z.string().brand<"VRCToken">("VRCToken");

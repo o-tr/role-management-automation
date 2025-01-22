@@ -14,3 +14,11 @@ export const ZDiscordGuildRole = z.object({
   icon: z.string().nullable(),
 });
 export type DiscordGuildRole = z.infer<typeof ZDiscordGuildRole>;
+
+export const ZDiscordGuildMember = z.object({
+  user: z.object({
+    id: z.string(),
+    username: z.string(),
+    avatar: z.string().nullable(),
+  }),
+});
