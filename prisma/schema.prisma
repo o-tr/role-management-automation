@@ -67,6 +67,7 @@ model MemberExternalServiceAccount {
   service    ExternalServiceName
   name       String
   serviceId  String
+  serviceUsername String?
   icon       String?
 
   createdAt DateTime @default(now())

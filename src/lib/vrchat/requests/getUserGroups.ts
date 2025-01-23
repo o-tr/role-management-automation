@@ -1,13 +1,17 @@
+import { ZVRChatCredentials } from "@/types/credentials";
+import type { ExternalServiceAccount } from "@prisma/client";
 import { VRCHAT_USER_AGENT } from "../const";
 import { buildCookie } from "../cookie";
+import { UnauthorizedError, retry } from "../retry";
 import { ZVRCUserGroups } from "../types/UserGroups";
-import type { VRCToken, VRCTwoFactorAuth, VRCUserId } from "../types/brand";
 
-export const getUserGroups = async (
-  token: VRCToken,
-  twoFactorAuth: VRCTwoFactorAuth,
-  userId: VRCUserId,
-) => {
+export const getUserGroups = retry(async (account: ExternalServiceAccount) => {
+  const { credential } = account;
+  const {
+    token,
+    twoFactorToken: twoFactorAuth,
+    userId,
+  } = ZVRChatCredentials.parse(JSON.parse(credential));
   const response = await fetch(
     `https://api.vrchat.cloud/api/1/users/${userId}/groups`,
     {
@@ -19,7 +23,9 @@ export const getUserGroups = async (
     },
   );
   if (!response.ok) {
-    throw new Error(`Failed to fetch user groups: ${response.statusText}`);
+    throw new UnauthorizedError(
+      `Failed to fetch user groups: ${response.statusText}`,
+    );
   }
   const data = ZVRCUserGroups.safeParse(await response.json());
   if (!data.success) {
@@ -28,4 +34,4 @@ export const getUserGroups = async (
     );
   }
   return data.data;
-};
+});

@@ -91,7 +91,11 @@ const resolve = async (
   type: TResolveRequestType,
   serviceId: string,
   nsId: string,
-) => {
+): Promise<{
+  name: string;
+  icon?: string;
+  service: ExternalServiceName;
+}> => {
   const service = requestType2Service(type);
   const serviceAccount = await prisma.externalServiceAccount.findFirst({
     where: {
@@ -117,13 +121,26 @@ const resolve = async (
 const resolveVRCUserId = async (
   serviceId: string,
   serviceAccount: ExternalServiceAccount,
-) => {
-  const data = ZVRChatCredentials.parse(JSON.parse(serviceAccount.credential));
-  const user = await getUserById(
-    data.token,
-    data.twoFactorToken,
-    serviceId as VRCUserId,
-  );
+): Promise<{
+  name: string;
+  icon?: string;
+  service: ExternalServiceName;
+}> => {
+  const member = await prisma.memberExternalServiceAccount.findFirst({
+    where: {
+      service: "VRCHAT",
+      serviceId: serviceId,
+      namespaceId: serviceAccount.namespaceId,
+    },
+  });
+  if (member) {
+    return {
+      name: member.name,
+      icon: member.icon || undefined,
+      service: "VRCHAT" as ExternalServiceName,
+    };
+  }
+  const user = await getUserById(serviceAccount, serviceId as VRCUserId);
 
   return {
     name: user.displayName,
@@ -136,7 +153,25 @@ const resolveVRCUserId = async (
 const resolveDiscordUserId = async (
   serviceId: string,
   serviceAccount: ExternalServiceAccount,
-) => {
+): Promise<{
+  name: string;
+  icon?: string;
+  service: ExternalServiceName;
+}> => {
+  const member = await prisma.memberExternalServiceAccount.findFirst({
+    where: {
+      service: "DISCORD",
+      serviceId: serviceId,
+      namespaceId: serviceAccount.namespaceId,
+    },
+  });
+  if (member) {
+    return {
+      name: member.serviceUsername || member.name,
+      icon: member.icon || undefined,
+      service: "DISCORD" as ExternalServiceName,
+    };
+  }
   const data = ZDiscordCredentials.parse(JSON.parse(serviceAccount.credential));
   const user = await getUser(data.token, serviceId);
   return {
@@ -152,6 +187,20 @@ const resolveDiscordUserName = async (
   serviceId: string,
   serviceAccount: ExternalServiceAccount,
 ) => {
+  const member = await prisma.memberExternalServiceAccount.findFirst({
+    where: {
+      service: "DISCORD",
+      serviceUsername: serviceId,
+      namespaceId: serviceAccount.namespaceId,
+    },
+  });
+  if (member) {
+    return {
+      name: member.serviceUsername || member.name,
+      icon: member.icon || undefined,
+      service: "DISCORD" as ExternalServiceName,
+    };
+  }
   const data = ZDiscordCredentials.parse(JSON.parse(serviceAccount.credential));
   const guilds = await prisma.externalServiceGroup.findMany({
     where: {

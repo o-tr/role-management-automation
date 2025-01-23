@@ -38,8 +38,7 @@ const getVRChatGroupDetail = async (
   serviceAccount: ExternalServiceAccount,
   groupId: string,
 ): Promise<TExternalServiceGroup> => {
-  const data = ZVRChatCredentials.parse(JSON.parse(serviceAccount.credential));
-  const group = await getGroup(data.token, data.twoFactorToken, groupId);
+  const group = await getGroup(serviceAccount, groupId);
   return {
     id: group.id,
     name: group.name,

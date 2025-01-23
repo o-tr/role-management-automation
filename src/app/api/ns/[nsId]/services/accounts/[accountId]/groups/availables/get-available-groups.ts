@@ -34,12 +34,7 @@ const getDiscordAvailableGroups = async (
 const getVRChatAvailableGroups = async (
   serviceAccount: ExternalServiceAccount,
 ) => {
-  const data = ZVRChatCredentials.parse(JSON.parse(serviceAccount.credential));
-  const groups = await getUserGroups(
-    data.token,
-    data.twoFactorToken,
-    data.userId,
-  );
+  const groups = await getUserGroups(serviceAccount);
   return groups.map((group) => ({
     id: group.groupId,
     name: group.name,
