@@ -13,6 +13,7 @@ export const ServiceAccountDisplay: FC<Props> = ({ account }) => {
           src={account.icon}
           alt={account.name}
           className="w-6 h-6 mr-2 rounded-full"
+          referrerPolicy="no-referrer"
         />
       )}
       <span className="truncate">{`${account.name} (${account.service})`}</span>

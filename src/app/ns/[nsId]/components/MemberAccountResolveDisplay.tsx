@@ -35,6 +35,7 @@ export const MemberAccountResolveDisplay: FC<Props> = ({
           src={data.item.icon}
           alt={data.item.name}
           className="w-6 h-6 mr-2 rounded-full"
+          referrerPolicy="no-referrer"
         />
       )}
       <span className="truncate">{data.item.name}</span>

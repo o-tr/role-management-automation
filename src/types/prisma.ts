@@ -99,6 +99,7 @@ export type TMember = {
 };
 
 export type TMemberExternalServiceAccount = {
+  id: string;
   service: ExternalServiceName;
   serviceId: string;
   name: string;

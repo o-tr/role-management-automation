@@ -6,6 +6,13 @@ import type { ColumnDef } from "@tanstack/react-table";
 
 import { DataTable } from "@/app/ns/[nsId]/components/DataTable";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { deleteMember } from "@/requests/deleteMember";
 import { MemberExternalAccountDisplay } from "../../components/MemberExternalAccountDisplay";
 import {
@@ -13,6 +20,7 @@ import {
   useOnMembersChange,
 } from "../_hooks/on-members-change";
 import { useMembers } from "../_hooks/use-tags";
+import { EditMember } from "./EditMember";
 
 export const columns: ColumnDef<TMember>[] = [
   {
@@ -96,7 +104,17 @@ export const columns: ColumnDef<TMember>[] = [
     id: "actions",
     cell: ({ row }) => (
       <div className="flex flex-row space-x-2">
-        <Button variant={"outline"}>編集</Button>
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="outline">編集</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>編集</DialogTitle>
+            </DialogHeader>
+            <EditMember member={row.original} />
+          </DialogContent>
+        </Dialog>
         <Button
           variant="outline"
           onClick={async () => {

@@ -13,6 +13,7 @@ export const MemberExternalAccountDisplay: FC<Props> = ({ data }) => {
           src={data.icon}
           alt={data.name}
           className="w-6 h-6 mr-2 rounded-full"
+          referrerPolicy="no-referrer"
         />
       )}
       <span className="truncate">{data.name}</span>

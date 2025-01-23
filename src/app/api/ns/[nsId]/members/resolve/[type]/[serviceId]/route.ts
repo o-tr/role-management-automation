@@ -20,6 +20,13 @@ export const ZResolveRequestType = z.union([
   z.literal("GitHubUsername"),
 ]);
 export type TResolveRequestType = z.infer<typeof ZResolveRequestType>;
+const ResolveRequestTypes = [
+  "DiscordUserId",
+  "DiscordUsername",
+  "VRCUserId",
+  "GitHubUserId",
+  "GitHubUsername",
+];
 
 export type ResolveResponse =
   | {

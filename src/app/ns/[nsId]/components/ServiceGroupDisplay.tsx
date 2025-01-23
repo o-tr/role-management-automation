@@ -13,6 +13,7 @@ export const ServiceGroupDisplay: FC<Props> = ({ group }) => {
           src={group.icon}
           alt={group.name}
           className="w-6 h-6 mr-2 rounded-full"
+          referrerPolicy="no-referrer"
         />
       )}
       <span className="truncate">{group.name}</span>
