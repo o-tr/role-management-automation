@@ -19,6 +19,7 @@ export const ZDiscordGuildMember = z.object({
   user: z.object({
     id: z.string(),
     username: z.string(),
+    global_name: z.string(),
     avatar: z.string().nullable(),
   }),
 });

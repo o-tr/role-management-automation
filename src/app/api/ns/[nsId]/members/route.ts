@@ -40,12 +40,14 @@ const memberSchema = z.object({
     z.object({
       service: ZExternalServiceName,
       serviceId: z.string(),
+      serviceUsername: z.string().optional(),
       name: z.string(),
       icon: z.string().optional(),
     }),
   ),
 });
 const requetsBodySchema = z.array(memberSchema);
+export type AddMembersBody = z.infer<typeof requetsBodySchema>;
 
 export async function POST(
   req: NextRequest,
@@ -96,6 +98,7 @@ export async function POST(
               namespaceId: params.nsId,
               service: service.service,
               serviceId: service.serviceId,
+              serviceUsername: service.serviceUsername,
               name: service.name,
               icon: service.icon,
             })),

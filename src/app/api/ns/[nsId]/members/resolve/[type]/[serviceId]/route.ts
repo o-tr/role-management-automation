@@ -21,17 +21,10 @@ export const ZResolveRequestType = z.union([
 ]);
 export type TResolveRequestType = z.infer<typeof ZResolveRequestType>;
 
-type ResolveResponseItem = {
-  service: ExternalServiceName;
-  serviceId: string;
-  name: string;
-  icon?: string;
-};
-
 export type ResolveResponse =
   | {
       status: "success";
-      item: ResolveResponseItem;
+      item: ResolveResult;
     }
   | {
       status: "error";
@@ -80,22 +73,23 @@ export async function GET(
 
   return NextResponse.json({
     status: "success",
-    item: {
-      ...item,
-      serviceId: params.serviceId,
-    },
+    item,
   });
 }
+
+export type ResolveResult = {
+  name: string;
+  icon?: string;
+  service: ExternalServiceName;
+  serviceId: string;
+  serviceUsername?: string;
+};
 
 const resolve = async (
   type: TResolveRequestType,
   serviceId: string,
   nsId: string,
-): Promise<{
-  name: string;
-  icon?: string;
-  service: ExternalServiceName;
-}> => {
+): Promise<ResolveResult> => {
   const service = requestType2Service(type);
   const serviceAccount = await prisma.externalServiceAccount.findFirst({
     where: {
@@ -121,11 +115,7 @@ const resolve = async (
 const resolveVRCUserId = async (
   serviceId: string,
   serviceAccount: ExternalServiceAccount,
-): Promise<{
-  name: string;
-  icon?: string;
-  service: ExternalServiceName;
-}> => {
+): Promise<ResolveResult> => {
   const member = await prisma.memberExternalServiceAccount.findFirst({
     where: {
       service: "VRCHAT",
@@ -137,6 +127,7 @@ const resolveVRCUserId = async (
     return {
       name: member.name,
       icon: member.icon || undefined,
+      serviceId: member.serviceId,
       service: "VRCHAT" as ExternalServiceName,
     };
   }
@@ -144,6 +135,7 @@ const resolveVRCUserId = async (
 
   return {
     name: user.displayName,
+    serviceId: serviceId,
     icon:
       user.profilePicOverrideThumbnail || user.currentAvatarThumbnailImageUrl,
     service: "VRCHAT" as ExternalServiceName,
@@ -153,11 +145,7 @@ const resolveVRCUserId = async (
 const resolveDiscordUserId = async (
   serviceId: string,
   serviceAccount: ExternalServiceAccount,
-): Promise<{
-  name: string;
-  icon?: string;
-  service: ExternalServiceName;
-}> => {
+): Promise<ResolveResult> => {
   const member = await prisma.memberExternalServiceAccount.findFirst({
     where: {
       service: "DISCORD",
@@ -167,7 +155,9 @@ const resolveDiscordUserId = async (
   });
   if (member) {
     return {
-      name: member.serviceUsername || member.name,
+      name: member.name,
+      serviceUsername: member.serviceUsername || undefined,
+      serviceId: member.serviceId,
       icon: member.icon || undefined,
       service: "DISCORD" as ExternalServiceName,
     };
@@ -175,7 +165,9 @@ const resolveDiscordUserId = async (
   const data = ZDiscordCredentials.parse(JSON.parse(serviceAccount.credential));
   const user = await getUser(data.token, serviceId);
   return {
-    name: user.username,
+    name: user.global_name,
+    serviceId: user.id,
+    serviceUsername: user.username,
     icon: user.avatar
       ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
       : undefined,
@@ -186,7 +178,7 @@ const resolveDiscordUserId = async (
 const resolveDiscordUserName = async (
   serviceId: string,
   serviceAccount: ExternalServiceAccount,
-) => {
+): Promise<ResolveResult> => {
   const member = await prisma.memberExternalServiceAccount.findFirst({
     where: {
       service: "DISCORD",
@@ -196,7 +188,9 @@ const resolveDiscordUserName = async (
   });
   if (member) {
     return {
-      name: member.serviceUsername || member.name,
+      name: member.name,
+      serviceUsername: member.serviceUsername || undefined,
+      serviceId: member.serviceId,
       icon: member.icon || undefined,
       service: "DISCORD" as ExternalServiceName,
     };
@@ -216,7 +210,9 @@ const resolveDiscordUserName = async (
     if (!members?.[0]) continue;
     const { user } = members[0];
     return {
-      name: user.username,
+      name: user.global_name,
+      serviceUsername: user.username,
+      serviceId: user.id,
       icon: user.avatar
         ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png`
         : undefined,

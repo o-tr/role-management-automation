@@ -3,11 +3,11 @@ import { useLayoutEffect } from "react";
 
 const eventEmitter = new EventEmitter();
 
-export const onMemberChange = () => {
+export const onMembersChange = () => {
   eventEmitter.emit("membersChange");
 };
 
-export const useOnMemberChange = (callback: () => void) => {
+export const useOnMembersChange = (callback: () => void) => {
   useLayoutEffect(() => {
     eventEmitter.on("membersChange", callback);
 

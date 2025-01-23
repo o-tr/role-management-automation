@@ -1,7 +1,13 @@
+import {
+  ResolveResponse,
+  type ResolveResult,
+} from "@/app/api/ns/[nsId]/members/resolve/[type]/[serviceId]/route";
+import type { AddMembersBody } from "@/app/api/ns/[nsId]/members/route";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -9,7 +15,12 @@ import {
 import { ZVRCUserId } from "@/lib/vrchat/types/brand";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import { type FC, useState } from "react";
+import {
+  onMembersChange,
+  useOnMembersChange,
+} from "../_hooks/on-members-change";
 import { useOnPaste } from "../_hooks/on-paste";
+import { useCreateMembers } from "../_hooks/use-create-members";
 import { parseClipboard } from "../_utils/parseClipboard";
 import { MemberPreviewTable } from "./MemberPreviewTable";
 import { OverwriteConfirm } from "./OverwriteConfirm";
@@ -36,9 +47,13 @@ const Keys = [
   "unknown",
 ];
 
-type RowObject = {
+export type RowObject = {
   id: string;
-  data: string[];
+  data: {
+    value: string;
+    error?: string;
+    data?: ResolveResult;
+  }[];
 };
 
 export const AddPastedMembers: FC<Props> = ({ nsId }) => {
@@ -46,6 +61,8 @@ export const AddPastedMembers: FC<Props> = ({ nsId }) => {
   const [tmpPasted, setTmpPasted] = useState<RowObject[] | undefined>();
   const [tmpPastedKeys, setTmpPastedKeys] = useState<TKeys[]>([]);
   const [keys, setKeys] = useState<TKeys[]>([]);
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const { createMembers, loading } = useCreateMembers(nsId);
   useOnPaste((e) => {
     const pasted = parseClipboard(e);
     if (!pasted) return;
@@ -57,16 +74,52 @@ export const AddPastedMembers: FC<Props> = ({ nsId }) => {
       return "unknown";
     });
     if (members.length !== 0) {
-      setTmpPasted(pasted.map((data) => ({ id: crypto.randomUUID(), data })));
+      setTmpPasted(
+        pasted.map((data) => ({
+          id: crypto.randomUUID(),
+          data: data.map((val) => ({ value: val })),
+        })),
+      );
       setTmpPastedKeys(keys);
       return;
     }
-    setMembers(pasted.map((data) => ({ id: crypto.randomUUID(), data })));
+    setMembers(
+      pasted.map((data) => ({
+        id: crypto.randomUUID(),
+        data: data.map((val) => ({ value: val })),
+      })),
+    );
     setKeys(keys);
   });
+  useOnMembersChange(() => {
+    setMembers([]);
+    setKeys([]);
+    setConfirmModalOpen(false);
+  });
+
+  const register = async () => {
+    const data: AddMembersBody = members.map((row) => {
+      const services = row.data
+        .map((val) => ("data" in val ? val.data : undefined))
+        .filter((v) => !!v)
+        .map((val) => {
+          return {
+            name: val.name,
+            service: val.service,
+            serviceId: val.serviceId,
+            serviceUsername: val.serviceUsername,
+            icon: val.icon,
+          };
+        });
+      return { services };
+    });
+
+    await createMembers(data);
+    onMembersChange();
+  };
 
   return (
-    <>
+    <div className="flex flex-col space-y-2 items-start">
       <PastedTable
         data={members}
         keys={keys}
@@ -82,25 +135,27 @@ export const AddPastedMembers: FC<Props> = ({ nsId }) => {
           setTmpPasted(undefined);
         }}
       />
-      <Dialog>
+      <Dialog open={confirmModalOpen} onOpenChange={setConfirmModalOpen}>
         <DialogTrigger asChild>
-          <Button>確認</Button>
+          <Button disabled={loading}>確認</Button>
         </DialogTrigger>
         <DialogContent className="max-w-7xl max-h-full overflow-y-scroll">
           <DialogHeader>
             <DialogTitle>確認</DialogTitle>
-            <DialogDescription>
-              <MemberPreviewTable
-                data={members}
-                keys={keys}
-                setData={setMembers}
-                setKeys={setKeys}
-                nsId={nsId}
-              />
-            </DialogDescription>
           </DialogHeader>
+          <MemberPreviewTable
+            data={members}
+            keys={keys}
+            setData={setMembers}
+            nsId={nsId}
+          />
+          <DialogFooter>
+            <Button disabled={loading} onClick={register}>
+              登録
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 };

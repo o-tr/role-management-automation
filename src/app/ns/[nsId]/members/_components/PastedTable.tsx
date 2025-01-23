@@ -12,6 +12,7 @@ import {
 import type { ColumnDef } from "@tanstack/react-table";
 import { type Dispatch, type FC, type SetStateAction, useMemo } from "react";
 import { DataTable } from "../../components/DataTable";
+import type { RowObject } from "./AddPastedMembers";
 
 type TKeys = TResolveRequestType | "unknown";
 
@@ -23,11 +24,6 @@ const Keys = [
   "GitHubUsername",
   "unknown",
 ];
-
-type RowObject = {
-  id: string;
-  data: string[];
-};
 
 type Props = {
   data: RowObject[];
@@ -95,13 +91,13 @@ export const PastedTable: FC<Props> = ({ data, keys, setData, setKeys }) => {
           ),
           cell: ({ row }) => (
             <Input
-              value={row.original.data[index]}
+              value={row.original.data[index].value}
               onChange={(e) =>
                 setData((pv) => {
                   const nv = [...pv];
                   const item = nv.find((r) => r.id === row.original.id);
                   if (!item) return pv;
-                  item.data[index] = e.target.value;
+                  item.data[index] = { value: e.target.value };
                   return nv;
                 })
               }

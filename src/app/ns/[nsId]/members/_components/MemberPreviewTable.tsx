@@ -6,6 +6,7 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { type Dispatch, type FC, type SetStateAction, useMemo } from "react";
 import { DataTable } from "../../components/DataTable";
 import { MemberAccountResolveDisplay } from "../../components/MemberAccountResolveDisplay";
+import type { RowObject } from "./AddPastedMembers";
 
 type TKeys = TResolveRequestType | "unknown";
 
@@ -18,28 +19,12 @@ const KeyServiceMap = {
   unknown: "unknown",
 };
 
-type InputRowObject = {
-  id: string;
-  data: string[];
-};
-
-type RowObject = {
-  id: string;
-  data: (
-    | string
-    | {
-        error: string;
-        value: string;
-      }
-  )[];
-};
-
 type Props = {
   nsId: string;
-  data: InputRowObject[];
+  data: RowObject[];
   keys: TKeys[];
-  setData: Dispatch<SetStateAction<InputRowObject[]>>;
-  setKeys: Dispatch<SetStateAction<TKeys[]>>;
+  disabled?: boolean;
+  setData: Dispatch<SetStateAction<RowObject[]>>;
 };
 
 export const MemberPreviewTable: FC<Props> = ({
@@ -47,7 +32,7 @@ export const MemberPreviewTable: FC<Props> = ({
   data: data_,
   keys,
   setData,
-  setKeys,
+  disabled,
 }) => {
   const data = useMemo(() => {
     return data_.map((row) => {
@@ -55,13 +40,15 @@ export const MemberPreviewTable: FC<Props> = ({
         ...row,
         data: row.data.map((val, i) => {
           if (keys[i] === "VRCUserId") {
-            const parsed = ZVRCUserId.safeParse(val);
+            const parsed = ZVRCUserId.safeParse(val.value);
             if (parsed.success) {
-              return parsed.data;
+              return {
+                value: parsed.data,
+              };
             }
             return {
               error: JSON.stringify(parsed.error),
-              value: val,
+              value: val.value,
             };
           }
           return val;
@@ -85,6 +72,7 @@ export const MemberPreviewTable: FC<Props> = ({
                 table.toggleAllPageRowsSelected(!!value)
               }
               aria-label="Select all"
+              disabled={disabled}
             />
           </div>
         ),
@@ -94,6 +82,7 @@ export const MemberPreviewTable: FC<Props> = ({
               checked={row.getIsSelected()}
               onCheckedChange={(value) => row.toggleSelected(!!value)}
               aria-label="Select row"
+              disabled={disabled}
             />
           </div>
         ),
@@ -104,20 +93,32 @@ export const MemberPreviewTable: FC<Props> = ({
         return {
           accessorKey: index.toString(),
           header: () => KeyServiceMap[keys[index]],
-          cell: ({ row }) =>
-            keys[index] === "unknown" ? (
-              row.original.data[index]
-            ) : typeof row.original.data[index] === "object" ? (
-              <div className="text-red-500 truncate overflow-hidden">
-                {row.original.data[index].value}
-              </div>
-            ) : (
+          cell: ({ row }) => {
+            if (keys[index] === "unknown") {
+              return <div>{row.original.data[index].value}</div>;
+            }
+            if ("error" in row.original.data[index]) {
+              return (
+                <div className="text-red-500 truncate overflow-hidden">
+                  {row.original.data[index].value}
+                </div>
+              );
+            }
+            return (
               <MemberAccountResolveDisplay
                 nsId={nsId}
                 type={keys[index]}
-                serviceId={row.original.data[index]}
+                serviceId={row.original.data[index].value}
+                onResolve={(data) =>
+                  setData((pv) => {
+                    const nv = [...pv];
+                    nv[row.index].data[index].data = data;
+                    return nv;
+                  })
+                }
               />
-            ),
+            );
+          },
           size: -1,
         };
       }),
@@ -129,6 +130,7 @@ export const MemberPreviewTable: FC<Props> = ({
             onClick={() => {
               setData((pv) => pv.filter((_, i) => i !== row.index));
             }}
+            disabled={disabled}
           >
             削除
           </Button>
@@ -136,7 +138,7 @@ export const MemberPreviewTable: FC<Props> = ({
         size: 100,
       },
     ];
-  }, [keys, setData, nsId]);
+  }, [keys, setData, nsId, disabled]);
   return (
     <DataTable
       columns={columns}

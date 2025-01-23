@@ -10,6 +10,7 @@ import { DataTable } from "@/app/ns/[nsId]/components/DataTable";
 import { Checkbox } from "@/components/ui/checkbox";
 import { createTag } from "@/requests/createTag";
 import { deleteTag } from "@/requests/deleteTag";
+import { useOnMembersChange } from "../_hooks/on-members-change";
 import { useMembers } from "../_hooks/use-tags";
 
 export const columns: ColumnDef<TMember>[] = [
@@ -72,12 +73,7 @@ export function MemberList({ namespaceId }: MemberListProps) {
   const { members, isPending, refetch } = useMembers(namespaceId);
   const [newTagName, setNewTagName] = useState("");
 
-  const handleAddTag = async (e: React.FormEvent) => {
-    e.preventDefault();
-    await createTag(namespaceId, newTagName);
-    await refetch();
-    setNewTagName("");
-  };
+  useOnMembersChange(refetch);
 
   if (isPending) {
     return <div>loading...</div>;
@@ -86,18 +82,6 @@ export function MemberList({ namespaceId }: MemberListProps) {
   return (
     <div className="mt-6">
       <DataTable columns={columns} data={members || []} />
-      <form onSubmit={handleAddTag} className="mt-4 flex space-x-2">
-        <Input
-          value={newTagName}
-          onChange={(e) => setNewTagName(e.target.value)}
-          placeholder="新しいタグ名"
-          required
-          disabled={isPending}
-        />
-        <Button type="submit" disabled={isPending}>
-          追加
-        </Button>
-      </form>
     </div>
   );
 }
