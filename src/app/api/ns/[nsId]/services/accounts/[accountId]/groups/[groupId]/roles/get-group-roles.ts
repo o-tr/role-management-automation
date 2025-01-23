@@ -46,8 +46,7 @@ const getVRChatGroupRoles = async (
   serviceAccount: ExternalServiceAccount,
   serviceGroup: ExternalServiceGroup,
 ): Promise<TExternalServiceGroupRole[]> => {
-  const data = ZVRChatCredentials.parse(JSON.parse(serviceAccount.credential));
-  const roles = await getVRCGroupRoles(data, serviceGroup.groupId);
+  const roles = await getVRCGroupRoles(serviceAccount, serviceGroup.groupId);
   return roles.map((role) => ({
     id: role.id,
     name: role.name,

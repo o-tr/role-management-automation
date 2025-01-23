@@ -1,3 +1,4 @@
+import { sleep } from "@/lib/sleep";
 import { ZVRChatCredentials } from "@/types/credentials";
 import type { ExternalServiceAccount } from "@prisma/client";
 import { VRCHAT_USER_AGENT } from "../const";
@@ -8,6 +9,7 @@ import type { VRCUserId } from "../types/brand";
 
 export const getUserById = retry(
   async (account: ExternalServiceAccount, userId: VRCUserId) => {
+    await sleep(250);
     const { credential } = account;
     const { token, twoFactorToken } = ZVRChatCredentials.parse(
       JSON.parse(credential),

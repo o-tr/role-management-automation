@@ -4,8 +4,8 @@ import { prisma } from "../prisma";
 import { getAuthTokens } from "./getAuthCookies";
 
 type ArgsType<T> = T extends (
-  ...args: infer U extends [ExternalServiceAccount, ...unknown[]]
-) => any // biome-ignore lint/suspicious/noExplicitAny: tmp;
+  ...args: infer U extends [ExternalServiceAccount, ...unknown[]] // biome-ignore lint/suspicious/noExplicitAny: tmp;
+) => any
   ? U
   : never;
 // biome-ignore lint/suspicious/noExplicitAny: tmp;

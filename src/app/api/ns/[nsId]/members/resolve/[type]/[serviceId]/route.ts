@@ -1,4 +1,4 @@
-import { getSearchGuildMembers } from "@/lib/discord/requests/getSerachGUildMembers";
+import { getSearchGuildMembers } from "@/lib/discord/requests/getSerachGuildMembers";
 import { getUser } from "@/lib/discord/requests/getUser";
 import { prisma } from "@/lib/prisma";
 import { getUserById } from "@/lib/vrchat/requests/getUserById";
@@ -210,7 +210,7 @@ const resolveDiscordUserName = async (
     if (!members?.[0]) continue;
     const { user } = members[0];
     return {
-      name: user.global_name,
+      name: user.global_name || user.username,
       serviceUsername: user.username,
       serviceId: user.id,
       icon: user.avatar

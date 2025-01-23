@@ -1,9 +1,18 @@
-import type { TResolveRequestType } from "@/app/api/ns/[nsId]/members/resolve/[type]/[serviceId]/route";
+import type {
+  ResolveResult,
+  TResolveRequestType,
+} from "@/app/api/ns/[nsId]/members/resolve/[type]/[serviceId]/route";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ZVRCUserId } from "@/lib/vrchat/types/brand";
 import type { ColumnDef } from "@tanstack/react-table";
-import { type Dispatch, type FC, type SetStateAction, useMemo } from "react";
+import {
+  type Dispatch,
+  type FC,
+  type SetStateAction,
+  useCallback,
+  useMemo,
+} from "react";
 import { DataTable } from "../../components/DataTable";
 import { MemberAccountResolveDisplay } from "../../components/MemberAccountResolveDisplay";
 import type { RowObject } from "./AddPastedMembers";
@@ -94,6 +103,16 @@ export const MemberPreviewTable: FC<Props> = ({
           accessorKey: index.toString(),
           header: () => KeyServiceMap[keys[index]],
           cell: ({ row }) => {
+            const onResolve = useCallback(
+              (data: ResolveResult) => {
+                setData((pv) => {
+                  const nv = [...pv];
+                  nv[row.index].data[index].data = data;
+                  return nv;
+                });
+              },
+              [setData, row.index, index],
+            );
             if (keys[index] === "unknown") {
               return <div>{row.original.data[index].value}</div>;
             }
@@ -109,13 +128,7 @@ export const MemberPreviewTable: FC<Props> = ({
                 nsId={nsId}
                 type={keys[index]}
                 serviceId={row.original.data[index].value}
-                onResolve={(data) =>
-                  setData((pv) => {
-                    const nv = [...pv];
-                    nv[row.index].data[index].data = data;
-                    return nv;
-                  })
-                }
+                onResolve={onResolve}
               />
             );
           },
