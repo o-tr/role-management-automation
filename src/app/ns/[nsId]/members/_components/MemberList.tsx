@@ -20,7 +20,7 @@ import {
   useOnMembersChange,
 } from "../_hooks/on-members-change";
 import { useMembers } from "../_hooks/use-tags";
-import { EditMember } from "./EditMember";
+import { EditMember } from "./EditMember/EditMember";
 
 export const columns: ColumnDef<TMember>[] = [
   {
