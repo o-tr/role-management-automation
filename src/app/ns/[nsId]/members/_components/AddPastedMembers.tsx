@@ -1,7 +1,4 @@
-import {
-  ResolveResponse,
-  type ResolveResult,
-} from "@/app/api/ns/[nsId]/members/resolve/[type]/[serviceId]/route";
+import type { ResolveResult } from "@/app/api/ns/[nsId]/members/resolve/[type]/[serviceId]/route";
 import type { AddMembersBody } from "@/app/api/ns/[nsId]/members/route";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,8 +10,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ZVRCUserId } from "@/lib/vrchat/types/brand";
-import { DialogDescription } from "@radix-ui/react-dialog";
 import { type FC, useState } from "react";
+import { MultipleTagPicker } from "../../components/MultipleTagPicker";
 import {
   onMembersChange,
   useOnMembersChange,
@@ -62,6 +59,7 @@ export const AddPastedMembers: FC<Props> = ({ nsId }) => {
   const [tmpPastedKeys, setTmpPastedKeys] = useState<TKeys[]>([]);
   const [keys, setKeys] = useState<TKeys[]>([]);
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const { createMembers, loading } = useCreateMembers(nsId);
   useOnPaste((e) => {
     const pasted = parseClipboard(e);
@@ -98,6 +96,7 @@ export const AddPastedMembers: FC<Props> = ({ nsId }) => {
   });
 
   const register = async () => {
+    const tags = selectedTags.map((tagId) => tagId);
     const data: AddMembersBody = members.map((row) => {
       const services = row.data
         .map((val) => ("data" in val ? val.data : undefined))
@@ -111,7 +110,7 @@ export const AddPastedMembers: FC<Props> = ({ nsId }) => {
             icon: val.icon,
           };
         });
-      return { services };
+      return { services, tags };
     });
 
     await createMembers(data);
@@ -149,6 +148,7 @@ export const AddPastedMembers: FC<Props> = ({ nsId }) => {
             setData={setMembers}
             nsId={nsId}
           />
+          <MultipleTagPicker namespacedId={nsId} onChange={setSelectedTags} />
           <DialogFooter>
             <Button disabled={loading} onClick={register}>
               登録

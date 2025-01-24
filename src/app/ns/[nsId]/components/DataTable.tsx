@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -14,17 +13,18 @@ import {
   getCoreRowModel,
   useReactTable,
 } from "@tanstack/react-table";
+import type { FC } from "react";
 
 interface DataTableProps<T> {
   columns: ColumnDef<T>[];
   data: T[];
-  deleteSelected?: (selected: RowModel<T>) => void;
+  selected?: FC<{ selected: RowModel<T> }>;
 }
 
 export function DataTable<T>({
   columns,
   data,
-  deleteSelected,
+  selected: Selected,
 }: DataTableProps<T>) {
   const table = useReactTable({
     data,
@@ -90,17 +90,7 @@ export function DataTable<T>({
           </TableBody>
         </Table>
       </div>
-      {selected.rows.length > 0 && (
-        <Button
-          size={"sm"}
-          onClick={() => {
-            deleteSelected?.(selected);
-            table.resetRowSelection();
-          }}
-        >
-          選択済み {selected.rows.length} 件を削除
-        </Button>
-      )}
+      {selected.rows.length > 0 && Selected && <Selected selected={selected} />}
     </div>
   );
 }

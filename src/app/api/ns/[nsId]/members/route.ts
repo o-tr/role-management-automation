@@ -45,6 +45,7 @@ const memberSchema = z.object({
       icon: z.string().optional(),
     }),
   ),
+  tags: z.array(z.string()).optional(),
 });
 const requetsBodySchema = z.array(memberSchema);
 export type AddMembersBody = z.infer<typeof requetsBodySchema>;
@@ -88,11 +89,32 @@ export async function POST(
 
   const body = requetsBodySchema.parse(await req.json());
 
+  const serviceAccounts = await prisma.memberExternalServiceAccount.findMany({
+    where: {
+      namespaceId: params.nsId,
+      AND: {
+        serviceId: {
+          in: body.flatMap((member) =>
+            member.services.map((service) => service.serviceId),
+          ),
+        },
+      },
+    },
+  });
+
+  console.log(serviceAccounts);
+  //todo: 重複するアカウントがある場合は統合する
+
   const members = await prisma.$transaction(
     body.map((member) =>
       prisma.member.create({
         data: {
           namespaceId: params.nsId,
+          tags: member.tags
+            ? {
+                connect: member.tags.map((tagId) => ({ id: tagId })),
+              }
+            : undefined,
           externalAccounts: {
             create: member.services.map((service) => ({
               namespaceId: params.nsId,

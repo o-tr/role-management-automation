@@ -126,10 +126,21 @@ export const PastedTable: FC<Props> = ({ data, keys, setData, setKeys }) => {
     <DataTable
       columns={columns}
       data={data}
-      deleteSelected={(selected) => {
-        const selectedIndexes = selected.rows.map((row) => row.index);
-        setData((pv) => pv.filter((_, i) => !selectedIndexes.includes(i)));
-      }}
+      selected={({ selected }) => (
+        <div>
+          <Button
+            variant="outline"
+            onClick={() => {
+              const selectedIndexes = selected.rows.map((row) => row.index);
+              setData((pv) =>
+                pv.filter((_, i) => !selectedIndexes.includes(i)),
+              );
+            }}
+          >
+            選択した {selected.rows.length} 件を削除
+          </Button>
+        </div>
+      )}
     />
   );
 };

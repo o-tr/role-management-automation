@@ -139,12 +139,21 @@ export function MappingList({ namespaceId }: TagListProps) {
       <DataTable
         columns={columns}
         data={mappings.map((v) => ({ ...v, namespaceId }))}
-        deleteSelected={(ids) =>
-          deleteMappings(
-            namespaceId,
-            ids.rows.map((v) => v.original.id),
-          )
-        }
+        selected={({ selected }) => (
+          <div>
+            <Button
+              variant="outline"
+              onClick={() => {
+                deleteMappings(
+                  namespaceId,
+                  selected.rows.map((v) => v.original.id),
+                );
+              }}
+            >
+              選択した {selected.rows.length} 件を削除
+            </Button>
+          </div>
+        )}
       />
     </div>
   );

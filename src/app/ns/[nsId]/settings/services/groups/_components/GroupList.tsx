@@ -125,12 +125,21 @@ export const GroupList: FC<Props> = ({ nsId }) => {
       <DataTable
         columns={columns}
         data={groups?.map((v) => ({ ...v, namespaceId: nsId })) || []}
-        deleteSelected={(selected) => {
-          deleteServiceGroups(
-            nsId,
-            selected.rows.map((v) => v.original.id),
-          );
-        }}
+        selected={({ selected }) => (
+          <div>
+            <Button
+              variant="outline"
+              onClick={() => {
+                deleteServiceGroups(
+                  nsId,
+                  selected.rows.map((v) => v.original.id),
+                );
+              }}
+            >
+              選択した {selected.rows.length} 件を削除
+            </Button>
+          </div>
+        )}
       />
     </div>
   );

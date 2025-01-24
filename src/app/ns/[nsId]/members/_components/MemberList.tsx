@@ -2,10 +2,17 @@
 
 import { Button } from "@/components/ui/button";
 import type { TMember } from "@/types/prisma";
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef, RowModel } from "@tanstack/react-table";
 
 import { DataTable } from "@/app/ns/[nsId]/components/DataTable";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import {
   Dialog,
   DialogContent,
@@ -14,8 +21,10 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { deleteMember } from "@/requests/deleteMember";
-import { useState } from "react";
+import { type FC, useCallback, useState } from "react";
 import { MemberExternalAccountDisplay } from "../../components/MemberExternalAccountDisplay";
+import { MultipleTagPicker } from "../../components/MultipleTagPicker";
+import { useTags } from "../../roles/_hooks/use-tags";
 import {
   onMembersChange,
   useOnMembersChange,
@@ -155,10 +164,114 @@ type MemberListProps = {
   namespaceId: string;
 };
 
+type TagSelectorProps = {
+  namespaceId: string;
+  selectedTags: string[];
+  onChange: (tags: string[]) => void;
+};
+
+const TagSelector = ({
+  namespaceId,
+  selectedTags,
+  onChange,
+}: TagSelectorProps) => {
+  const { tags } = useTags(namespaceId);
+  const [query, setQuery] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
+
+  return (
+    <div className="">
+      <input
+        className="border-none outline-none bg-none"
+        value={query}
+        onChange={(v) => setQuery(v.target.value)}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
+      />
+      <Command>
+        <CommandList>
+          <CommandEmpty>No framework found.</CommandEmpty>
+          <CommandGroup>
+            {tags?.map((tag) => (
+              <CommandItem
+                key={tag.id}
+                onSelect={() => onChange([...selectedTags, tag.id])}
+              >
+                {tag.name}
+              </CommandItem>
+            ))}
+          </CommandGroup>
+        </CommandList>
+      </Command>
+    </div>
+  );
+};
+
 export function MemberList({ namespaceId }: MemberListProps) {
   const { members, isPending, refetch } = useMembers(namespaceId);
 
   useOnMembersChange(refetch);
+
+  const Selected = useCallback<FC<{ selected: RowModel<TMember> }>>(
+    ({ selected }) => {
+      const { patchMembers } = usePatchMember(namespaceId);
+      const [selectedTags, setSelectedTags] = useState<string[]>([]);
+      return (
+        <div>
+          <Button
+            variant="outline"
+            onClick={async () => {
+              await deleteMembers(
+                namespaceId,
+                selected.rows.map((v) => v.original.id),
+              );
+              onMembersChange();
+            }}
+          >
+            選択した {selected.rows.length} 件を削除
+          </Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                選択した {selected.rows.length} 件にタグを追加
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>タグを追加</DialogTitle>
+              </DialogHeader>
+              <MultipleTagPicker
+                namespacedId={namespaceId}
+                onChange={setSelectedTags}
+              />
+              <Button
+                variant="outline"
+                onClick={async () => {
+                  await Promise.all(
+                    selected.rows.map(({ original: member }) => {
+                      member.tags = [
+                        ...member.tags,
+                        ...selectedTags.map((tagId) => ({
+                          id: tagId,
+                          name: "",
+                          namespaceId: namespaceId,
+                        })),
+                      ];
+                      return patchMembers(member.id, member);
+                    }),
+                  );
+                  onMembersChange();
+                }}
+              >
+                タグを追加
+              </Button>
+            </DialogContent>
+          </Dialog>
+        </div>
+      );
+    },
+    [namespaceId],
+  );
 
   if (isPending) {
     return <div>loading...</div>;
@@ -166,17 +279,7 @@ export function MemberList({ namespaceId }: MemberListProps) {
 
   return (
     <div className="mt-6">
-      <DataTable
-        columns={columns}
-        data={members || []}
-        deleteSelected={(selected) => {
-          deleteMembers(
-            namespaceId,
-            selected.rows.map((v) => v.original.id),
-          );
-          onMembersChange();
-        }}
-      />
+      <DataTable columns={columns} data={members || []} selected={Selected} />
     </div>
   );
 }

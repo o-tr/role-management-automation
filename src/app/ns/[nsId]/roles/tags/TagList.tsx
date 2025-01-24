@@ -94,12 +94,21 @@ export function TagList({ namespaceId }: TagListProps) {
       <DataTable
         columns={columns}
         data={tags?.map((v) => ({ ...v, namespaceId })) || []}
-        deleteSelected={(selected) => {
-          deleteTags(
-            namespaceId,
-            selected.rows.map((v) => v.original.id),
-          );
-        }}
+        selected={({ selected }) => (
+          <div>
+            <Button
+              variant="outline"
+              onClick={() => {
+                deleteTags(
+                  namespaceId,
+                  selected.rows.map((v) => v.original.id),
+                );
+              }}
+            >
+              選択した {selected.rows.length} 件を削除
+            </Button>
+          </div>
+        )}
       />
       <form onSubmit={handleAddTag} className="mt-4 flex space-x-2">
         <Input

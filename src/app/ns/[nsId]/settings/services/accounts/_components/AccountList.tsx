@@ -104,12 +104,21 @@ export const AccountList: FC<Props> = ({ nsId }) => {
       <DataTable
         columns={columns}
         data={accounts?.map((v) => ({ ...v, namespaceId: nsId })) || []}
-        deleteSelected={(selected) => {
-          deleteServiceAccounts(
-            selected.rows[0].original.namespaceId,
-            selected.rows.map((v) => v.original.id),
-          );
-        }}
+        selected={({ selected }) => (
+          <div>
+            <Button
+              variant="outline"
+              onClick={() => {
+                deleteServiceAccounts(
+                  selected.rows[0].original.namespaceId,
+                  selected.rows.map((v) => v.original.id),
+                );
+              }}
+            >
+              選択した {selected.rows.length} 件を削除
+            </Button>
+          </div>
+        )}
       />
     </div>
   );
