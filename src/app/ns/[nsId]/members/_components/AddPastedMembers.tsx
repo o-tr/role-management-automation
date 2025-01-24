@@ -103,6 +103,7 @@ export const AddPastedMembers: FC<Props> = ({ nsId }) => {
         .filter((v) => !!v)
         .map((val) => {
           return {
+            memberId: val.memberId,
             name: val.name,
             service: val.service,
             serviceId: val.serviceId,
@@ -110,7 +111,8 @@ export const AddPastedMembers: FC<Props> = ({ nsId }) => {
             icon: val.icon,
           };
         });
-      return { services, tags };
+      const memberId = services.find((s) => s.memberId)?.memberId;
+      return { services, tags, memberId };
     });
 
     await createMembers(data);

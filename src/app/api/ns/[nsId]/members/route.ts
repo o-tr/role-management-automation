@@ -36,8 +36,10 @@ export type GetMembersResponse =
     };
 
 const memberSchema = z.object({
+  memberId: z.string().optional(),
   services: z.array(
     z.object({
+      memberId: z.string().optional(),
       service: ZExternalServiceName,
       serviceId: z.string(),
       serviceUsername: z.string().optional(),
@@ -102,31 +104,53 @@ export async function POST(
     },
   });
 
-  console.log(serviceAccounts);
-  //todo: 重複するアカウントがある場合は統合する
-
   const members = await prisma.$transaction(
     body.map((member) =>
-      prisma.member.create({
-        data: {
-          namespaceId: params.nsId,
-          tags: member.tags
-            ? {
-                connect: member.tags.map((tagId) => ({ id: tagId })),
-              }
-            : undefined,
-          externalAccounts: {
-            create: member.services.map((service) => ({
+      member.memberId
+        ? prisma.member.update({
+            where: {
+              id: member.memberId,
+            },
+            data: {
+              tags: member.tags
+                ? {
+                    connect: member.tags.map((tagId) => ({ id: tagId })),
+                  }
+                : undefined,
+              externalAccounts: {
+                create: member.services
+                  .filter((v) => !v.memberId)
+                  .map((service) => ({
+                    namespaceId: params.nsId,
+                    service: service.service,
+                    serviceId: service.serviceId,
+                    serviceUsername: service.serviceUsername,
+                    name: service.name,
+                    icon: service.icon,
+                  })),
+              },
+            },
+          })
+        : prisma.member.create({
+            data: {
               namespaceId: params.nsId,
-              service: service.service,
-              serviceId: service.serviceId,
-              serviceUsername: service.serviceUsername,
-              name: service.name,
-              icon: service.icon,
-            })),
-          },
-        },
-      }),
+              tags: member.tags
+                ? {
+                    connect: member.tags.map((tagId) => ({ id: tagId })),
+                  }
+                : undefined,
+              externalAccounts: {
+                create: member.services.map((service) => ({
+                  namespaceId: params.nsId,
+                  service: service.service,
+                  serviceId: service.serviceId,
+                  serviceUsername: service.serviceUsername,
+                  name: service.name,
+                  icon: service.icon,
+                })),
+              },
+            },
+          }),
     ),
   );
 

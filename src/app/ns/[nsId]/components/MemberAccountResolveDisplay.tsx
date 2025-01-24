@@ -29,7 +29,11 @@ export const MemberAccountResolveDisplay: FC<Props> = ({
   if (data?.status !== "success")
     return <div className="text-red-500">Not Found ({serviceId})</div>;
   return (
-    <div className="flex flex-row items-center">
+    <div
+      className={`flex flex-row items-center ${
+        data.item.memberId ? "text-green-500" : ""
+      }`}
+    >
       {data.item.icon && (
         <img
           src={data.item.icon}

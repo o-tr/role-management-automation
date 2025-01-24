@@ -34,15 +34,15 @@ const updateMemberSchema = z.object({
       }),
     )
     .optional(),
-  services: z
+  externalAccounts: z
     .array(
       z.object({
-        id: z.string().optional(),
+        memberId: z.string().optional(),
         service: ZExternalServiceName,
         serviceId: z.string(),
-        serviceUsername: z.string().nullable(),
+        serviceUsername: z.string().nullable().optional(),
         name: z.string(),
-        icon: z.string().optional(),
+        icon: z.string().nullable().optional(),
       }),
     )
     .optional(),
@@ -151,6 +151,10 @@ export async function PATCH(
   }
 
   const body = updateMemberSchema.parse(await req.json());
+  console.log(
+    "test",
+    body.externalAccounts?.map((service) => "memberId" in service),
+  );
 
   const [result] = await prisma.$transaction([
     prisma.member.update({
@@ -164,10 +168,10 @@ export async function PATCH(
       },
       include: { externalAccounts: true, tags: true },
     }),
-    ...(body.services?.map((service) =>
-      "id" in service
-        ? prisma.memberExternalServiceAccount.update({
-            where: { id: service.id },
+    ...(body.externalAccounts?.map((service) =>
+      "memberId" in service
+        ? prisma.memberExternalServiceAccount.updateMany({
+            where: { memberId: service.memberId, service: service.service },
             data: {
               service: service.service,
               serviceId: service.serviceId,

@@ -85,6 +85,7 @@ export async function GET(
 }
 
 export type ResolveResult = {
+  memberId?: string;
   name: string;
   icon?: string;
   service: ExternalServiceName;
@@ -132,6 +133,7 @@ const resolveVRCUserId = async (
   });
   if (member) {
     return {
+      memberId: member.memberId,
       name: member.name,
       icon: member.icon || undefined,
       serviceId: member.serviceId,
@@ -162,6 +164,7 @@ const resolveDiscordUserId = async (
   });
   if (member) {
     return {
+      memberId: member.memberId,
       name: member.name,
       serviceUsername: member.serviceUsername || undefined,
       serviceId: member.serviceId,
@@ -195,6 +198,7 @@ const resolveDiscordUserName = async (
   });
   if (member) {
     return {
+      memberId: member.memberId,
       name: member.name,
       serviceUsername: member.serviceUsername || undefined,
       serviceId: member.serviceId,
@@ -216,6 +220,7 @@ const resolveDiscordUserName = async (
     );
     if (!members?.[0]) continue;
     const { user } = members[0];
+    if (user.username !== serviceId) continue;
     return {
       name: user.global_name || user.username,
       serviceUsername: user.username,
