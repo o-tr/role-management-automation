@@ -14,11 +14,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { deleteMember } from "@/requests/deleteMember";
+import { useState } from "react";
 import { MemberExternalAccountDisplay } from "../../components/MemberExternalAccountDisplay";
 import {
   onMembersChange,
   useOnMembersChange,
 } from "../_hooks/on-members-change";
+import { usePatchMember } from "../_hooks/use-patch-member";
 import { useMembers } from "../_hooks/use-tags";
 import { EditMember } from "./EditMember/EditMember";
 
@@ -102,30 +104,46 @@ export const columns: ColumnDef<TMember>[] = [
   },
   {
     id: "actions",
-    cell: ({ row }) => (
-      <div className="flex flex-row space-x-2">
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="outline">編集</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>編集</DialogTitle>
-            </DialogHeader>
-            <EditMember member={row.original} />
-          </DialogContent>
-        </Dialog>
-        <Button
-          variant="outline"
-          onClick={async () => {
-            await deleteMember(row.original.namespaceId, row.original.id);
-            onMembersChange();
-          }}
-        >
-          削除
-        </Button>
-      </div>
-    ),
+    cell: ({ row }) => {
+      const [isOpen, setIsOpen] = useState(false);
+      const { patchMembers, loading } = usePatchMember(
+        row.original.namespaceId,
+      );
+      const onConfirm = async (member: TMember) => {
+        setIsOpen(false);
+        await patchMembers(member.id, member);
+        onMembersChange();
+      };
+      return (
+        <div className="flex flex-row space-x-2">
+          <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">編集</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>編集</DialogTitle>
+              </DialogHeader>
+              <EditMember
+                member={row.original}
+                onConfirm={onConfirm}
+                disabled={loading}
+              />
+            </DialogContent>
+          </Dialog>
+          <Button
+            variant="outline"
+            disabled={loading}
+            onClick={async () => {
+              await deleteMember(row.original.namespaceId, row.original.id);
+              onMembersChange();
+            }}
+          >
+            削除
+          </Button>
+        </div>
+      );
+    },
   },
 ];
 

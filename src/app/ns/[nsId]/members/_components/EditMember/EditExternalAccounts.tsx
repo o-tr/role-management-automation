@@ -8,9 +8,14 @@ import { AddExternalAccount } from "./AddExternalAccount";
 type Props = {
   member: TMember;
   setMember: Dispatch<SetStateAction<TMember>>;
+  disabled: boolean;
 };
 
-export const EditExternalAccounts: FC<Props> = ({ member, setMember }) => {
+export const EditExternalAccounts: FC<Props> = ({
+  member,
+  setMember,
+  disabled,
+}) => {
   return (
     <div>
       {member.externalAccounts.map((account) => (
@@ -20,7 +25,7 @@ export const EditExternalAccounts: FC<Props> = ({ member, setMember }) => {
           <Button
             variant={"outline"}
             size={"sm"}
-            disabled={member.externalAccounts.length === 1}
+            disabled={member.externalAccounts.length === 1 || disabled}
             onClick={() => {
               setMember((pv) => {
                 const nv = structuredClone(pv);
@@ -35,7 +40,11 @@ export const EditExternalAccounts: FC<Props> = ({ member, setMember }) => {
           </Button>
         </div>
       ))}
-      <AddExternalAccount member={member} setMember={setMember} />
+      <AddExternalAccount
+        member={member}
+        setMember={setMember}
+        disabled={disabled}
+      />
     </div>
   );
 };

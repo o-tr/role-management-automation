@@ -25,7 +25,8 @@ import { MemberAccountResolveDisplay } from "../../../components/MemberAccountRe
 export const AddExternalAccount: FC<{
   member: TMember;
   setMember: Dispatch<SetStateAction<TMember>>;
-}> = ({ member, setMember }) => {
+  disabled: boolean;
+}> = ({ member, setMember, disabled }) => {
   const [addAccountService, setAddAccountService] =
     useState<TResolveRequestType>("VRCUserId");
   const [addAccountValue, setAddAccountValue] = useState("");
@@ -61,6 +62,7 @@ export const AddExternalAccount: FC<{
             setAddAccountService(service);
             setAddAccountValue(value);
           }}
+          disabled={disabled}
         />
       )}
       {addAccountValue && (
@@ -69,6 +71,7 @@ export const AddExternalAccount: FC<{
           service={addAccountService}
           value={addAccountValue}
           onConfirm={onConfirm}
+          disabled={disabled}
         />
       )}
     </div>
@@ -80,7 +83,8 @@ const AddExternalAccountPreview: FC<{
   service: TResolveRequestType;
   value: string;
   onConfirm: (data: ResolveResult) => void;
-}> = ({ service, value, onConfirm, nsId }) => {
+  disabled: boolean;
+}> = ({ service, value, onConfirm, nsId, disabled }) => {
   const [result, setResult] = useState<ResolveResult | null>(null);
   const onConfirmClick = () => {
     if (!result) return;
@@ -94,7 +98,7 @@ const AddExternalAccountPreview: FC<{
         serviceId={value}
         onResolve={setResult}
       />
-      <Button onClick={onConfirmClick} disabled={!result}>
+      <Button onClick={onConfirmClick} disabled={!result || disabled}>
         追加
       </Button>
     </div>
@@ -112,7 +116,8 @@ const KeyLabelMap = {
 const AddExternalAccountInput: FC<{
   availableServices: ExternalServiceName[];
   onConfirm: (service: TResolveRequestType, value: string) => void;
-}> = ({ onConfirm, availableServices }) => {
+  disabled: boolean;
+}> = ({ onConfirm, availableServices, disabled }) => {
   const [addAccountService, setAddAccountService] =
     useState<TResolveRequestType>("VRCUserId");
   const [addAccountValue, setAddAccountValue] = useState("");
@@ -145,6 +150,7 @@ const AddExternalAccountInput: FC<{
       <Select
         value={addAccountService}
         onValueChange={(v) => setAddAccountService(v as TResolveRequestType)}
+        disabled={disabled}
       >
         <SelectTrigger className="w-[300px]">
           <SelectValue placeholder="プロバイダー" />
@@ -158,12 +164,14 @@ const AddExternalAccountInput: FC<{
         </SelectContent>
       </Select>
       <Input
-        disabled={!addAccountService}
+        disabled={!addAccountService || disabled}
         value={addAccountValue}
         onChange={(e) => setAddAccountValue(e.target.value)}
         placeholder="ID"
       />
-      <Button onClick={onConfirmClick}>確認</Button>
+      <Button onClick={onConfirmClick} disabled={disabled}>
+        確認
+      </Button>
     </div>
   );
 };
