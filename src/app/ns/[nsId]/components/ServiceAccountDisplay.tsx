@@ -1,3 +1,4 @@
+import { Image } from "@/app/ns/[nsId]/components/Image";
 import type { TServiceAccount } from "@/types/prisma";
 import type { FC } from "react";
 
@@ -9,9 +10,11 @@ export const ServiceAccountDisplay: FC<Props> = ({ account }) => {
   return (
     <div className="flex flex-row items-center">
       {account.icon && (
-        <img
+        <Image
           src={account.icon}
           alt={account.name}
+          width={24}
+          height={24}
           className="w-6 h-6 mr-2 rounded-full"
           referrerPolicy="no-referrer"
         />

@@ -6,6 +6,7 @@ import type { TExternalServiceGroupDetail } from "@/types/prisma";
 import type { ColumnDef } from "@tanstack/react-table";
 
 import { DataTable } from "@/app/ns/[nsId]/components/DataTable";
+import { Image } from "@/app/ns/[nsId]/components/Image";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useServiceGroups } from "../../../../_hooks/use-service-groups";
 import { useOnServiceGroupChange } from "../../_hooks/on-groups-change";
@@ -49,9 +50,11 @@ export const columns: ColumnDef<InternalServiceGroup>[] = [
     cell: ({ row }) => {
       return (
         <div className={"flex flex-row items-center gap-2"}>
-          <img
-            src={row.original.icon}
+          <Image
+            src={row.original.icon || ""}
             alt={row.original.name}
+            width={24}
+            height={24}
             className={"w-8 h-8 rounded-full"}
           />
           <span>{row.original.name}</span>
@@ -67,9 +70,11 @@ export const columns: ColumnDef<InternalServiceGroup>[] = [
       return (
         <div className={"flex flex-row items-center gap-2"}>
           {row.original.account.icon && (
-            <img
+            <Image
               src={row.original.account.icon}
               alt={row.original.account.name}
+              width={24}
+              height={24}
               className={"w-8 h-8 rounded-full"}
             />
           )}

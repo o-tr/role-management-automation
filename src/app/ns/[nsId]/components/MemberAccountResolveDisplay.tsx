@@ -2,6 +2,7 @@ import type {
   ResolveResult,
   TResolveRequestType,
 } from "@/app/api/ns/[nsId]/members/resolve/[type]/[serviceId]/route";
+import { Image } from "@/app/ns/[nsId]/components/Image";
 import { type FC, useLayoutEffect } from "react";
 import { useMemberResolve } from "../_hooks/use-member-resolve";
 
@@ -35,11 +36,13 @@ export const MemberAccountResolveDisplay: FC<Props> = ({
       }`}
     >
       {data.item.icon && (
-        <img
+        <Image
           src={data.item.icon}
           alt={data.item.name}
           className="w-6 h-6 mr-2 rounded-full"
           referrerPolicy="no-referrer"
+          width={24}
+          height={24}
         />
       )}
       <span className="truncate">{data.item.name}</span>

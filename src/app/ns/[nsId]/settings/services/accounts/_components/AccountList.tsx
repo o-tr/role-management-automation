@@ -8,6 +8,7 @@ import type { TServiceAccount } from "@/types/prisma";
 import type { ColumnDef } from "@tanstack/react-table";
 
 import { DataTable } from "@/app/ns/[nsId]/components/DataTable";
+import { Image } from "@/app/ns/[nsId]/components/Image";
 import { useDeleteServiceAccount } from "@/app/ns/[nsId]/settings/services/_hooks/use-delete-service-accounts";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -48,9 +49,11 @@ export const columns: ColumnDef<InternalServiceAccount>[] = [
       return (
         <div className={"flex flex-row items-center gap-2"}>
           {row.original.icon && (
-            <img
+            <Image
               src={row.original.icon}
               alt="icon"
+              width={24}
+              height={24}
               className={"w-8 h-8 rounded-full"}
             />
           )}
