@@ -1,11 +1,14 @@
+import { discordLimit } from "../plimit";
 import { ZDiscordUser } from "../types/user";
 
 export const getUser = async (token: string, userId: string) => {
-  const response = await fetch(`https://discord.com/api/v10/users/${userId}`, {
-    headers: {
-      Authorization: `Bot ${token}`,
-    },
-  });
+  const response = await discordLimit(() =>
+    fetch(`https://discord.com/api/v10/users/${userId}`, {
+      headers: {
+        Authorization: `Bot ${token}`,
+      },
+    }),
+  );
   if (!response.ok) {
     throw new Error(`Failed to get guild: ${response.statusText}`);
   }

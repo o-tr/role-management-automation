@@ -202,7 +202,11 @@ export async function GET(
       namespaceId: params.nsId,
     },
     include: {
-      tags: true,
+      tags: {
+        orderBy: {
+          name: "asc",
+        },
+      },
       externalAccounts: true,
     },
     orderBy: {

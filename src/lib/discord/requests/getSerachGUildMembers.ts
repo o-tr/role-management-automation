@@ -1,17 +1,15 @@
 import { sleep } from "@/lib/sleep";
 import pLimit from "p-limit";
 import { z } from "zod";
+import { discordLimit } from "../plimit";
 import { ZDiscordGuildMember } from "../types/guild";
-
-const limit = pLimit(1);
 
 export const getSearchGuildMembers = async (
   token: string,
   guildId: string,
   query: string,
 ) => {
-  await sleep(1000);
-  const response = await limit(() =>
+  const response = await discordLimit(() =>
     fetch(
       `https://discord.com/api/v10/guilds/${guildId}/members/search?limit=1&query=${query}`,
       {

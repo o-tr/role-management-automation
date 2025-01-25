@@ -2,6 +2,7 @@ import { ZVRChatCredentials } from "@/types/credentials";
 import type { ExternalServiceAccount } from "@prisma/client";
 import { VRCHAT_USER_AGENT } from "../const";
 import { buildCookie } from "../cookie";
+import { vrchatLimit } from "../plimit";
 import { UnauthorizedError, retry } from "../retry";
 import { ZVRCUserGroups } from "../types/UserGroups";
 
@@ -12,15 +13,14 @@ export const getUserGroups = retry(async (account: ExternalServiceAccount) => {
     twoFactorToken: twoFactorAuth,
     userId,
   } = ZVRChatCredentials.parse(JSON.parse(credential));
-  const response = await fetch(
-    `https://api.vrchat.cloud/api/1/users/${userId}/groups`,
-    {
+  const response = await vrchatLimit(() =>
+    fetch(`https://api.vrchat.cloud/api/1/users/${userId}/groups`, {
       method: "GET",
       headers: {
         Cookie: buildCookie({ token, twoFactorAuth }),
         "User-Agent": VRCHAT_USER_AGENT,
       },
-    },
+    }),
   );
   if (!response.ok) {
     throw new UnauthorizedError(

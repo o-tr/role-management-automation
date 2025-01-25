@@ -1,14 +1,14 @@
 import { z } from "zod";
+import { discordLimit } from "../plimit";
 import { ZDiscordGuildRole } from "../types/guild";
 
 export const getGuildRoles = async (token: string, guildId: string) => {
-  const response = await fetch(
-    `https://discord.com/api/v10/guilds/${guildId}/roles`,
-    {
+  const response = await discordLimit(() =>
+    fetch(`https://discord.com/api/v10/guilds/${guildId}/roles`, {
       headers: {
         Authorization: `Bot ${token}`,
       },
-    },
+    }),
   );
   if (!response.ok) {
     throw new Error(`Failed to get guild: ${response.statusText}`);
