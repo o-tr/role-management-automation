@@ -72,6 +72,14 @@ export type TExternalServiceGroupDetail = {
   };
 };
 
+export type TExternalServiceGroupMember = {
+  serviceId: string;
+  serviceUsername?: string;
+  name: string;
+  icon?: string;
+  roleIds: string[];
+};
+
 export type TExternalServiceGroupRole = {
   id: string;
   name: string;

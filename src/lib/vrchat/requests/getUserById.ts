@@ -10,7 +10,6 @@ import type { VRCUserId } from "../types/brand";
 
 export const getUserById = retry(
   async (account: ExternalServiceAccount, userId: VRCUserId) => {
-    await sleep(250);
     const { credential } = account;
     const { token, twoFactorToken } = ZVRChatCredentials.parse(
       JSON.parse(credential),

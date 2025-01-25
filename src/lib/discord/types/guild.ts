@@ -22,4 +22,6 @@ export const ZDiscordGuildMember = z.object({
     global_name: z.string().nullable(),
     avatar: z.string().nullable(),
   }),
+  roles: z.array(z.string()),
 });
+export type DiscordGuildMember = z.infer<typeof ZDiscordGuildMember>;
