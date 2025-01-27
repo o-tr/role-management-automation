@@ -23,6 +23,9 @@ export const getMembersWithRelation = async (
       },
       externalAccounts: true,
     },
+    orderBy: {
+      createdAt: "asc",
+    },
   });
   return result.map(formatTMemberWithRelation);
 };

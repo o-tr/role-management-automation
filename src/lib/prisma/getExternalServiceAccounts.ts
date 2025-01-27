@@ -9,6 +9,9 @@ export const getExternalServiceAccounts = async (
     where: {
       namespaceId: namespaceId,
     },
+    orderBy: {
+      createdAt: "asc",
+    },
   });
   return result.map(formatTExternalServiceAccount);
 };

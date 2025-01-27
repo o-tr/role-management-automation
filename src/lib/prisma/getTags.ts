@@ -7,6 +7,9 @@ export const getTags = async (nsId: TNamespaceId): Promise<TTag[]> => {
     where: {
       namespaceId: nsId,
     },
+    orderBy: {
+      name: "asc",
+    },
   });
   return result.map(formatTTag);
 };
