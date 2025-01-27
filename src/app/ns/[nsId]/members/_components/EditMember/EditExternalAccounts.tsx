@@ -1,13 +1,13 @@
 import { Button } from "@/components/ui/button";
-import type { TMember } from "@/types/prisma";
+import type { TMemberWithRelation } from "@/types/prisma";
 import type { Dispatch, FC, SetStateAction } from "react";
 import { TbTrash } from "react-icons/tb";
 import { MemberExternalAccountDisplay } from "../../../components/MemberExternalAccountDisplay";
 import { AddExternalAccount } from "./AddExternalAccount";
 
 type Props = {
-  member: TMember;
-  setMember: Dispatch<SetStateAction<TMember>>;
+  member: TMemberWithRelation;
+  setMember: Dispatch<SetStateAction<TMemberWithRelation>>;
   disabled: boolean;
 };
 

@@ -1,8 +1,16 @@
-import { prisma } from "@/lib/prisma";
+import { api } from "@/lib/api";
+import { NotFoundException } from "@/lib/exceptions/NotFoundException";
+import { deleteExternalServiceGroupRoleMapping } from "@/lib/prisma/deleteExternalServiceGroupRoleMapping";
+import { getExternalServiceGroupRoleMapping } from "@/lib/prisma/getExternalServiceGroupRoleMapping";
+import { updateExternalServiceGroupRoleMapping } from "@/lib/prisma/updateExternalServiceGroupRoleMapping";
+import { validatePermission } from "@/lib/validatePermission";
 import { ZMappingAction } from "@/types/actions";
 import { ZMappingCondition } from "@/types/conditions";
-import type { TSerializedMapping } from "@/types/prisma";
-import { getServerSession } from "next-auth/next";
+import type {
+  TMappingId,
+  TNamespaceId,
+  TSerializedMapping,
+} from "@/types/prisma";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -30,134 +38,57 @@ const updateMappingSchema = z.object({
 });
 export type UpdateMappingBody = z.infer<typeof updateMappingSchema>;
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { nsId: string; mappingId: string } },
-): Promise<NextResponse<DeleteExternalServiceGroupMappingResponse>> {
-  const session = await getServerSession();
+export const DELETE = api(
+  async (
+    req: NextRequest,
+    { params }: { params: { nsId: TNamespaceId; mappingId: TMappingId } },
+  ): Promise<DeleteExternalServiceGroupMappingResponse> => {
+    await validatePermission(params.nsId, "admin");
 
-  const email = session?.user?.email;
-
-  if (!email) {
-    return NextResponse.json(
-      { status: "error", error: "Not authenticated" },
-      { status: 401 },
+    const mapping = await getExternalServiceGroupRoleMapping(
+      params.nsId,
+      params.mappingId,
     );
-  }
 
-  const namespace = await prisma.namespace.findUnique({
-    where: {
-      id: params.nsId,
-    },
-    include: {
-      owner: true,
-    },
-  });
+    if (!mapping) {
+      throw new NotFoundException("Mapping not found");
+    }
 
-  if (!namespace) {
-    return NextResponse.json(
-      { status: "error", error: "Namespace not found" },
-      { status: 404 },
+    await deleteExternalServiceGroupRoleMapping(params.nsId, params.mappingId);
+
+    return {
+      status: "success",
+    };
+  },
+);
+
+export const PATCH = api(
+  async (
+    req: NextRequest,
+    { params }: { params: { nsId: TNamespaceId; mappingId: TMappingId } },
+  ): Promise<UpdateExternalServiceGroupMappingResponse> => {
+    validatePermission(params.nsId, "admin");
+
+    const mapping = await getExternalServiceGroupRoleMapping(
+      params.nsId,
+      params.mappingId,
     );
-  }
 
-  if (namespace.owner.email !== email) {
-    return NextResponse.json(
-      { status: "error", error: "Not authorized" },
-      { status: 403 },
+    if (!mapping) {
+      throw new NotFoundException("Mapping not found");
+    }
+
+    const body = updateMappingSchema.parse(await req.json());
+
+    const updatedMapping = await updateExternalServiceGroupRoleMapping(
+      params.nsId,
+      params.mappingId,
+      body,
     );
-  }
 
-  const mapping = await prisma.externalServiceGroupRoleMapping.findUnique({
-    where: {
-      id: params.mappingId,
-      namespaceId: params.nsId,
-    },
-  });
-
-  if (!mapping) {
-    return NextResponse.json(
-      { status: "error", error: "Mapping not found" },
-      { status: 404 },
-    );
-  }
-
-  await prisma.externalServiceGroupRoleMapping.delete({
-    where: {
-      id: params.mappingId,
-    },
-  });
-
-  return NextResponse.json({
-    status: "success",
-  });
-}
-
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { nsId: string; mappingId: string } },
-): Promise<NextResponse<UpdateExternalServiceGroupMappingResponse>> {
-  const session = await getServerSession();
-  const email = session?.user?.email;
-
-  if (!email) {
-    return NextResponse.json(
-      { status: "error", error: "Not authenticated" },
-      { status: 401 },
-    );
-  }
-
-  const namespace = await prisma.namespace.findUnique({
-    where: {
-      id: params.nsId,
-    },
-    include: {
-      owner: true,
-    },
-  });
-
-  if (!namespace) {
-    return NextResponse.json(
-      { status: "error", error: "Namespace not found" },
-      { status: 404 },
-    );
-  }
-
-  if (namespace.owner.email !== email) {
-    return NextResponse.json(
-      { status: "error", error: "Not authorized" },
-      { status: 403 },
-    );
-  }
-
-  const mapping = await prisma.externalServiceGroupRoleMapping.findUnique({
-    where: {
-      id: params.mappingId,
-      namespaceId: params.nsId,
-    },
-  });
-
-  if (!mapping) {
-    return NextResponse.json(
-      { status: "error", error: "Mapping not found" },
-      { status: 404 },
-    );
-  }
-
-  const body = updateMappingSchema.parse(await req.json());
-
-  const updatedMapping = await prisma.externalServiceGroupRoleMapping.update({
-    where: {
-      id: params.mappingId,
-    },
-    data: {
-      conditions: JSON.stringify(body.conditions),
-      actions: JSON.stringify(body.actions),
-    },
-  });
-
-  return NextResponse.json({
-    status: "success",
-    mapping: updatedMapping,
-  });
-}
+    return {
+      status: "success",
+      mapping: updatedMapping,
+    };
+  },
+);

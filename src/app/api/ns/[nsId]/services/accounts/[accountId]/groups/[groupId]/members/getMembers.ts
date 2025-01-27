@@ -3,14 +3,13 @@ import type { DiscordGuildMember } from "@/lib/discord/types/guild";
 import { listGroupMembers } from "@/lib/vrchat/requests/listGroupMembers";
 import type { VRCGroupMember } from "@/lib/vrchat/types/GroupMember";
 import { ZVRCGroupId } from "@/lib/vrchat/types/brand";
-import type { TExternalServiceGroupMember } from "@/types/prisma";
 import type {
-  ExternalServiceAccount,
-  ExternalServiceGroup,
-} from "@prisma/client";
+  TExternalServiceGroupMember,
+  TExternalServiceGroupWithAccount,
+} from "@/types/prisma";
 
 export const getMembers = async (
-  group: ExternalServiceGroup & { account: ExternalServiceAccount },
+  group: TExternalServiceGroupWithAccount,
 ): Promise<TExternalServiceGroupMember[]> => {
   switch (group.account.service) {
     case "VRCHAT":
@@ -23,7 +22,7 @@ export const getMembers = async (
 };
 
 const getVRChatMembers = async (
-  group: ExternalServiceGroup & { account: ExternalServiceAccount },
+  group: TExternalServiceGroupWithAccount,
 ): Promise<TExternalServiceGroupMember[]> => {
   const groupId = ZVRCGroupId.parse(group.groupId);
   const members: VRCGroupMember[] = [];
@@ -46,7 +45,7 @@ const getVRChatMembers = async (
 };
 
 const getDiscordMembers = async (
-  group: ExternalServiceGroup & { account: ExternalServiceAccount },
+  group: TExternalServiceGroupWithAccount,
 ): Promise<TExternalServiceGroupMember[]> => {
   const token = JSON.parse(group.account.credential).token;
   const members: DiscordGuildMember[] = [];

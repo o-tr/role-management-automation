@@ -1,13 +1,20 @@
 import { getGuild } from "@/lib/discord/requests/getGuild";
 import { getGroup } from "@/lib/vrchat/requests/getGroup";
 import { ZDiscordCredentials, ZVRChatCredentials } from "@/types/credentials";
-import type { TExternalServiceGroup } from "@/types/prisma";
-import type { ExternalServiceAccount } from "@prisma/client";
+import type { TExternalServiceAccount } from "@/types/prisma";
+import type { ExternalServiceName } from "@prisma/client";
+
+type GroupDetailResult = {
+  name: string;
+  icon?: string;
+  service: ExternalServiceName;
+  groupId: string;
+};
 
 export const getGroupDetail = async (
-  serviceAccount: ExternalServiceAccount,
+  serviceAccount: TExternalServiceAccount,
   groupId: string,
-): Promise<TExternalServiceGroup> => {
+): Promise<GroupDetailResult> => {
   switch (serviceAccount.service) {
     case "DISCORD":
       return getDiscordGroupDetail(serviceAccount, groupId);
@@ -19,30 +26,30 @@ export const getGroupDetail = async (
 };
 
 const getDiscordGroupDetail = async (
-  serviceAccount: ExternalServiceAccount,
+  serviceAccount: TExternalServiceAccount,
   groupId: string,
-): Promise<TExternalServiceGroup> => {
+): Promise<GroupDetailResult> => {
   const data = ZDiscordCredentials.parse(JSON.parse(serviceAccount.credential));
   const guild = await getGuild(data.token, groupId);
   return {
-    id: guild.id,
     name: guild.name,
     icon: guild.icon
       ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png`
       : undefined,
-    service: "DISCORD",
+    service: "DISCORD" as ExternalServiceName,
+    groupId: guild.id,
   };
 };
 
 const getVRChatGroupDetail = async (
-  serviceAccount: ExternalServiceAccount,
+  serviceAccount: TExternalServiceAccount,
   groupId: string,
-): Promise<TExternalServiceGroup> => {
+): Promise<GroupDetailResult> => {
   const group = await getGroup(serviceAccount, groupId);
   return {
-    id: group.id,
     name: group.name,
     icon: group.iconUrl,
-    service: "VRCHAT",
+    service: "VRCHAT" as ExternalServiceName,
+    groupId: group.id,
   };
 };

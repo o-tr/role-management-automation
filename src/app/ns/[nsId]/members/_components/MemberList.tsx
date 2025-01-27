@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import type { TMember } from "@/types/prisma";
+import type { TMemberWithRelation } from "@/types/prisma";
 import type { ColumnDef, RowModel } from "@tanstack/react-table";
 
 import { DataTable } from "@/app/ns/[nsId]/components/DataTable";
@@ -33,7 +33,7 @@ import { usePatchMember } from "../_hooks/use-patch-member";
 import { useMembers } from "../_hooks/use-tags";
 import { EditMember } from "./EditMember/EditMember";
 
-export const columns: ColumnDef<TMember>[] = [
+export const columns: ColumnDef<TMemberWithRelation>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -118,7 +118,7 @@ export const columns: ColumnDef<TMember>[] = [
       const { patchMembers, loading } = usePatchMember(
         row.original.namespaceId,
       );
-      const onConfirm = async (member: TMember) => {
+      const onConfirm = async (member: TMemberWithRelation) => {
         setIsOpen(false);
         await patchMembers(member.id, member);
         onMembersChange();
@@ -212,7 +212,7 @@ export function MemberList({ namespaceId }: MemberListProps) {
 
   useOnMembersChange(refetch);
 
-  const Selected = useCallback<FC<{ selected: RowModel<TMember> }>>(
+  const Selected = useCallback<FC<{ selected: RowModel<TMemberWithRelation> }>>(
     ({ selected }) => {
       const { patchMembers } = usePatchMember(namespaceId);
       const [selectedTags, setSelectedTags] = useState<string[]>([]);

@@ -1,11 +1,15 @@
 import { getBelongGuilds } from "@/lib/discord/requests/getBelongGuilds";
 import { getUserGroups } from "@/lib/vrchat/requests/getUserGroups";
-import { ZDiscordCredentials, ZVRChatCredentials } from "@/types/credentials";
-import type { ExternalServiceAccount } from "@prisma/client";
+import { ZDiscordCredentials } from "@/types/credentials";
+import type {
+  TAvailableGroup,
+  TAvailableGroupId,
+  TExternalServiceAccount,
+} from "@/types/prisma";
 
 export const getAvailableGroups = async (
-  serviceAccount: ExternalServiceAccount,
-) => {
+  serviceAccount: TExternalServiceAccount,
+): Promise<TAvailableGroup[]> => {
   switch (serviceAccount.service) {
     case "DISCORD":
       return await getDiscordAvailableGroups(serviceAccount);
@@ -17,12 +21,12 @@ export const getAvailableGroups = async (
 };
 
 const getDiscordAvailableGroups = async (
-  serviceAccount: ExternalServiceAccount,
-) => {
+  serviceAccount: TExternalServiceAccount,
+): Promise<TAvailableGroup[]> => {
   const data = ZDiscordCredentials.parse(JSON.parse(serviceAccount.credential));
   const guilds = await getBelongGuilds(data.token);
   return guilds.map((guild) => ({
-    id: guild.id,
+    id: guild.id as TAvailableGroupId,
     name: guild.name,
     icon: guild.icon
       ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png`
@@ -32,8 +36,8 @@ const getDiscordAvailableGroups = async (
 };
 
 const getVRChatAvailableGroups = async (
-  serviceAccount: ExternalServiceAccount,
-) => {
+  serviceAccount: TExternalServiceAccount,
+): Promise<TAvailableGroup[]> => {
   const groups = await getUserGroups(serviceAccount);
   return groups.map((group) => ({
     id: group.groupId,

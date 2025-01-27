@@ -1,14 +1,17 @@
+import { api } from "@/lib/api";
 import { getSearchGuildMembers } from "@/lib/discord/requests/getSerachGuildMembers";
 import { getUser } from "@/lib/discord/requests/getUser";
-import { prisma } from "@/lib/prisma";
+import type { DiscordUserId, DiscordUsername } from "@/lib/discord/types/user";
+import { getExternalServiceAccountByServiceName } from "@/lib/prisma/getExternalServiceAccountByServiceName";
+import { getExternalServiceGroupsByAccountId } from "@/lib/prisma/getExternalServiceGroupsByAccountId";
+import { getMemberExternalServiceAccount } from "@/lib/prisma/getMemberExternalServiceAccount";
+import { getMemberExternalServiceAccountByUsername } from "@/lib/prisma/getMemberExternalServiceAccountByUsername";
+import { validatePermission } from "@/lib/validatePermission";
 import { getUserById } from "@/lib/vrchat/requests/getUserById";
 import type { VRCUserId } from "@/lib/vrchat/types/brand";
-import { ZDiscordCredentials, ZVRChatCredentials } from "@/types/credentials";
-import type {
-  ExternalServiceAccount,
-  ExternalServiceName,
-} from "@prisma/client";
-import { getServerSession } from "next-auth/next";
+import { ZDiscordCredentials } from "@/types/credentials";
+import type { TExternalServiceAccount, TNamespaceId } from "@/types/prisma";
+import type { ExternalServiceName } from "@prisma/client";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -20,13 +23,6 @@ export const ZResolveRequestType = z.union([
   z.literal("GitHubUsername"),
 ]);
 export type TResolveRequestType = z.infer<typeof ZResolveRequestType>;
-const ResolveRequestTypes = [
-  "DiscordUserId",
-  "DiscordUsername",
-  "VRCUserId",
-  "GitHubUserId",
-  "GitHubUsername",
-];
 
 export type ResolveResponse =
   | {
@@ -38,51 +34,24 @@ export type ResolveResponse =
       error: string;
     };
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { nsId: string; type: string; serviceId: string } },
-): Promise<NextResponse<ResolveResponse>> {
-  const type = ZResolveRequestType.parse(params.type);
-  const session = await getServerSession();
-  const email = session?.user?.email;
+export const GET = api(
+  async (
+    req: NextRequest,
+    {
+      params,
+    }: { params: { nsId: TNamespaceId; type: string; serviceId: string } },
+  ): Promise<ResolveResponse> => {
+    const type = ZResolveRequestType.parse(params.type);
+    validatePermission(params.nsId, "admin");
 
-  if (!email) {
-    return NextResponse.json(
-      { status: "error", error: "Not authenticated" },
-      { status: 401 },
-    );
-  }
+    const item = await resolve(type, params.serviceId, params.nsId);
 
-  const namespace = await prisma.namespace.findUnique({
-    where: {
-      id: params.nsId,
-    },
-    include: {
-      owner: true,
-    },
-  });
-
-  if (!namespace) {
-    return NextResponse.json(
-      { status: "error", error: "Namespace not found" },
-      { status: 404 },
-    );
-  }
-
-  if (namespace.owner.email !== email) {
-    return NextResponse.json(
-      { status: "error", error: "Not authorized" },
-      { status: 403 },
-    );
-  }
-
-  const item = await resolve(type, params.serviceId, params.nsId);
-
-  return NextResponse.json({
-    status: "success",
-    item,
-  });
-}
+    return {
+      status: "success",
+      item,
+    };
+  },
+);
 
 export type ResolveResult = {
   memberId?: string;
@@ -96,49 +65,42 @@ export type ResolveResult = {
 const resolve = async (
   type: TResolveRequestType,
   serviceId: string,
-  nsId: string,
+  nsId: TNamespaceId,
 ): Promise<ResolveResult> => {
   const service = requestType2Service(type);
-  const serviceAccount = await prisma.externalServiceAccount.findFirst({
-    where: {
-      service,
-      namespaceId: nsId,
-    },
-  });
+  const serviceAccount = await getExternalServiceAccountByServiceName(
+    nsId,
+    service,
+  );
   if (!serviceAccount) {
     throw new Error(`Service account not found: ${service}`);
   }
   switch (type) {
     case "VRCUserId":
-      return resolveVRCUserId(serviceId, serviceAccount);
+      return resolveVRCUserId(serviceId as VRCUserId, serviceAccount);
     case "DiscordUserId":
-      return resolveDiscordUserId(serviceId, serviceAccount);
+      return resolveDiscordUserId(serviceId as DiscordUserId, serviceAccount);
     case "DiscordUsername":
-      return resolveDiscordUserName(serviceId, serviceAccount);
+      return resolveDiscordUserName(
+        serviceId as DiscordUsername,
+        serviceAccount,
+      );
     default:
       throw new Error(`Unsupported service: ${service}`);
   }
 };
 
 const resolveVRCUserId = async (
-  serviceId: string,
-  serviceAccount: ExternalServiceAccount,
+  serviceId: VRCUserId,
+  serviceAccount: TExternalServiceAccount,
 ): Promise<ResolveResult> => {
-  const member = await prisma.memberExternalServiceAccount.findFirst({
-    where: {
-      service: "VRCHAT",
-      serviceId: serviceId,
-      namespaceId: serviceAccount.namespaceId,
-    },
-  });
+  const member = await getMemberExternalServiceAccount(
+    serviceAccount.namespaceId,
+    "VRCHAT",
+    serviceId,
+  );
   if (member) {
-    return {
-      memberId: member.memberId,
-      name: member.name,
-      icon: member.icon || undefined,
-      serviceId: member.serviceId,
-      service: "VRCHAT" as ExternalServiceName,
-    };
+    return member;
   }
   const user = await getUserById(serviceAccount, serviceId as VRCUserId);
 
@@ -152,25 +114,16 @@ const resolveVRCUserId = async (
 };
 
 const resolveDiscordUserId = async (
-  serviceId: string,
-  serviceAccount: ExternalServiceAccount,
+  serviceId: DiscordUserId,
+  serviceAccount: TExternalServiceAccount,
 ): Promise<ResolveResult> => {
-  const member = await prisma.memberExternalServiceAccount.findFirst({
-    where: {
-      service: "DISCORD",
-      serviceId: serviceId,
-      namespaceId: serviceAccount.namespaceId,
-    },
-  });
+  const member = await getMemberExternalServiceAccount(
+    serviceAccount.namespaceId,
+    "DISCORD",
+    serviceId,
+  );
   if (member) {
-    return {
-      memberId: member.memberId,
-      name: member.name,
-      serviceUsername: member.serviceUsername || undefined,
-      serviceId: member.serviceId,
-      icon: member.icon || undefined,
-      service: "DISCORD" as ExternalServiceName,
-    };
+    return member;
   }
   const data = ZDiscordCredentials.parse(JSON.parse(serviceAccount.credential));
   const user = await getUser(data.token, serviceId);
@@ -186,41 +139,32 @@ const resolveDiscordUserId = async (
 };
 
 const resolveDiscordUserName = async (
-  serviceId: string,
-  serviceAccount: ExternalServiceAccount,
+  serviceUsername: DiscordUsername,
+  serviceAccount: TExternalServiceAccount,
 ): Promise<ResolveResult> => {
-  const member = await prisma.memberExternalServiceAccount.findFirst({
-    where: {
-      service: "DISCORD",
-      serviceUsername: serviceId,
-      namespaceId: serviceAccount.namespaceId,
-    },
-  });
+  const member = await getMemberExternalServiceAccountByUsername(
+    serviceAccount.namespaceId,
+    "DISCORD",
+    serviceUsername,
+  );
   if (member) {
-    return {
-      memberId: member.memberId,
-      name: member.name,
-      serviceUsername: member.serviceUsername || undefined,
-      serviceId: member.serviceId,
-      icon: member.icon || undefined,
-      service: "DISCORD" as ExternalServiceName,
-    };
+    return member;
   }
   const data = ZDiscordCredentials.parse(JSON.parse(serviceAccount.credential));
-  const guilds = await prisma.externalServiceGroup.findMany({
-    where: {
-      accountId: serviceAccount.id,
-    },
-  });
+  const guilds = await getExternalServiceGroupsByAccountId(
+    serviceAccount.namespaceId,
+    serviceAccount.id,
+  );
+  if (!guilds) throw new Error("Guild not found");
   for (const guild of guilds) {
     const members = await getSearchGuildMembers(
       data.token,
       guild.groupId,
-      serviceId,
+      serviceUsername,
     );
     if (!members?.[0]) continue;
     const { user } = members[0];
-    if (user.username !== serviceId) continue;
+    if (user.username !== serviceUsername) continue;
     return {
       name: user.global_name || user.username,
       serviceUsername: user.username,

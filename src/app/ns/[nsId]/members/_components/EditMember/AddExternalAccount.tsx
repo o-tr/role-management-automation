@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { TMember } from "@/types/prisma";
+import type { TMemberWithRelation } from "@/types/prisma";
 import type { ExternalServiceName } from "@prisma/client";
 import {
   type Dispatch,
@@ -23,8 +23,8 @@ import {
 import { MemberAccountResolveDisplay } from "../../../components/MemberAccountResolveDisplay";
 
 export const AddExternalAccount: FC<{
-  member: TMember;
-  setMember: Dispatch<SetStateAction<TMember>>;
+  member: TMemberWithRelation;
+  setMember: Dispatch<SetStateAction<TMemberWithRelation>>;
   disabled: boolean;
 }> = ({ member, setMember, disabled }) => {
   const [addAccountService, setAddAccountService] =

@@ -1,4 +1,11 @@
+import { api } from "@/lib/api";
+import { BadRequestException } from "@/lib/exceptions/BadRequestException";
 import { prisma } from "@/lib/prisma";
+import { createTag } from "@/lib/prisma/createTag";
+import { formatTTag } from "@/lib/prisma/format/formatTTag";
+import { getTags } from "@/lib/prisma/getTags";
+import { validatePermission } from "@/lib/validatePermission";
+import type { TNamespaceId, TTag } from "@/types/prisma";
 import { getServerSession } from "next-auth/next";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -6,10 +13,7 @@ import { z } from "zod";
 export type CreateTagResponse =
   | {
       status: "success";
-      tag: {
-        id: string;
-        name: string;
-      };
+      tag: TTag;
     }
   | {
       status: "error";
@@ -19,10 +23,7 @@ export type CreateTagResponse =
 export type GetTagsResponse =
   | {
       status: "success";
-      tags: {
-        id: string;
-        name: string;
-      }[];
+      tags: TTag[];
     }
   | {
       status: "error";
@@ -33,101 +34,43 @@ const createTagSchema = z.object({
   name: z.string().min(1, "Name is required"),
 });
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { nsId: string } },
-): Promise<NextResponse<CreateTagResponse>> {
-  const session = await getServerSession();
+export const POST = api(
+  async (
+    req: NextRequest,
+    { params }: { params: { nsId: TNamespaceId } },
+  ): Promise<CreateTagResponse> => {
+    await validatePermission(params.nsId, "admin");
 
-  const email = session?.user?.email;
+    const body = await req.json();
+    const result = createTagSchema.safeParse(body);
 
-  if (!email) {
-    return NextResponse.json(
-      { status: "error", error: "Not authenticated" },
-      { status: 401 },
-    );
-  }
+    if (!result.success) {
+      throw new BadRequestException("Invalid request body");
+    }
 
-  const body = await req.json();
-  const result = createTagSchema.safeParse(body);
+    const { name } = result.data;
 
-  if (!result.success) {
-    return NextResponse.json(
-      { status: "error", error: result.error.errors[0].message },
-      { status: 400 },
-    );
-  }
+    const tag = await createTag(params.nsId, { name });
 
-  const { name } = result.data;
+    return {
+      status: "success",
+      tag,
+    };
+  },
+);
 
-  const tag = await prisma.tag.create({
-    data: {
-      name,
-      namespace: { connect: { id: params.nsId } },
-    },
-  });
+export const GET = api(
+  async (
+    req: NextRequest,
+    { params }: { params: { nsId: TNamespaceId } },
+  ): Promise<GetTagsResponse> => {
+    await validatePermission(params.nsId, "admin");
 
-  return NextResponse.json({
-    status: "success",
-    tag: {
-      id: tag.id,
-      name: tag.name,
-    },
-  });
-}
+    const tags = await getTags(params.nsId);
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { nsId: string } },
-): Promise<NextResponse<GetTagsResponse>> {
-  const session = await getServerSession();
-
-  const email = session?.user?.email;
-
-  if (!email) {
-    return NextResponse.json(
-      { status: "error", error: "Not authenticated" },
-      { status: 401 },
-    );
-  }
-
-  const namespace = await prisma.namespace.findUnique({
-    where: {
-      id: params.nsId,
-    },
-    include: {
-      owner: true,
-    },
-  });
-
-  if (!namespace) {
-    return NextResponse.json(
-      { status: "error", error: "Namespace not found" },
-      { status: 404 },
-    );
-  }
-
-  if (namespace.owner.email !== email) {
-    return NextResponse.json(
-      { status: "error", error: "Not authorized" },
-      { status: 403 },
-    );
-  }
-
-  const tags = await prisma.tag.findMany({
-    where: {
-      namespaceId: params.nsId,
-    },
-    orderBy: {
-      createdAt: "asc",
-    },
-  });
-
-  return NextResponse.json({
-    status: "success",
-    tags: tags.map((tag) => ({
-      id: tag.id,
-      name: tag.name,
-    })),
-  });
-}
+    return {
+      status: "success",
+      tags: tags,
+    };
+  },
+);

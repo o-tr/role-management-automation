@@ -1,7 +1,13 @@
-import { prisma } from "@/lib/prisma";
-import type { TAvailableGroup } from "@/types/prisma";
-import { getServerSession } from "next-auth/next";
-import { type NextRequest, NextResponse } from "next/server";
+import { api } from "@/lib/api";
+import { NotFoundException } from "@/lib/exceptions/NotFoundException";
+import { getExternalServiceAccount } from "@/lib/prisma/getExternalServiceAccount";
+import { validatePermission } from "@/lib/validatePermission";
+import type {
+  TAvailableGroup,
+  TExternalServiceAccountId,
+  TNamespaceId,
+} from "@/types/prisma";
+import type { NextRequest } from "next/server";
 import { getAvailableGroups } from "./get-available-groups";
 
 export type GetAvailableGroupsResponse =
@@ -14,59 +20,26 @@ export type GetAvailableGroupsResponse =
       error: string;
     };
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { nsId: string; accountId: string } },
-): Promise<NextResponse<GetAvailableGroupsResponse>> {
-  const session = await getServerSession();
+export const GET = api(
+  async (
+    req: NextRequest,
+    {
+      params,
+    }: { params: { nsId: TNamespaceId; accountId: TExternalServiceAccountId } },
+  ): Promise<GetAvailableGroupsResponse> => {
+    await validatePermission(params.nsId, "admin");
 
-  const email = session?.user?.email;
-
-  if (!email) {
-    return NextResponse.json(
-      { status: "error", error: "Not authenticated" },
-      { status: 401 },
+    const serviceAccount = await getExternalServiceAccount(
+      params.nsId,
+      params.accountId,
     );
-  }
 
-  const namespace = await prisma.namespace.findUnique({
-    where: {
-      id: params.nsId,
-    },
-    include: {
-      owner: true,
-    },
-  });
+    if (!serviceAccount) {
+      throw new NotFoundException("Service account not found");
+    }
 
-  if (!namespace) {
-    return NextResponse.json(
-      { status: "error", error: "Namespace not found" },
-      { status: 404 },
-    );
-  }
+    const groups = await getAvailableGroups(serviceAccount);
 
-  if (namespace.owner.email !== email) {
-    return NextResponse.json(
-      { status: "error", error: "Not authorized" },
-      { status: 403 },
-    );
-  }
-
-  const serviceAccount = await prisma.externalServiceAccount.findUnique({
-    where: {
-      id: params.accountId,
-      namespaceId: params.nsId,
-    },
-  });
-
-  if (!serviceAccount) {
-    return NextResponse.json(
-      { status: "error", error: "Service account not found" },
-      { status: 404 },
-    );
-  }
-
-  const groups = await getAvailableGroups(serviceAccount);
-
-  return NextResponse.json({ status: "success", groups });
-}
+    return { status: "success", groups };
+  },
+);

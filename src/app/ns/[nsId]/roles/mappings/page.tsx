@@ -12,7 +12,6 @@ import {
 import { useNamespace } from "@/hooks/use-namespace";
 import { useState } from "react";
 import { useOnServiceGroupMappingChange } from "../_hooks/on-mappings-change";
-import { useGroupMembers } from "../_hooks/use-group-members";
 import { AddMapping } from "./_components/AddMapping";
 import { MappingList } from "./_components/MappingList";
 

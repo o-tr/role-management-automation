@@ -1,6 +1,14 @@
+import { api } from "@/lib/api";
+import { NotFoundException } from "@/lib/exceptions/NotFoundException";
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth/next";
-import { type NextRequest, NextResponse } from "next/server";
+import { getExternalServiceGroup } from "@/lib/prisma/getExternalServiceGroup";
+import { validatePermission } from "@/lib/validatePermission";
+import type {
+  TExternalServiceAccountId,
+  TExternalServiceGroupId,
+  TNamespaceId,
+} from "@/types/prisma";
+import type { NextRequest } from "next/server";
 
 export type DeleteExternalServiceGroupResponse =
   | {
@@ -11,65 +19,39 @@ export type DeleteExternalServiceGroupResponse =
       error: string;
     };
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { nsId: string; groupId: string } },
-): Promise<NextResponse<DeleteExternalServiceGroupResponse>> {
-  const session = await getServerSession();
-
-  const email = session?.user?.email;
-
-  if (!email) {
-    return NextResponse.json(
-      { status: "error", error: "Not authenticated" },
-      { status: 401 },
-    );
-  }
-
-  const namespace = await prisma.namespace.findUnique({
-    where: {
-      id: params.nsId,
+export const DELETE = api(
+  async (
+    req: NextRequest,
+    {
+      params,
+    }: {
+      params: {
+        nsId: TNamespaceId;
+        accountId: TExternalServiceAccountId;
+        groupId: TExternalServiceGroupId;
+      };
     },
-    include: {
-      owner: true,
-    },
-  });
+  ): Promise<DeleteExternalServiceGroupResponse> => {
+    await validatePermission(params.nsId, "admin");
 
-  if (!namespace) {
-    return NextResponse.json(
-      { status: "error", error: "Namespace not found" },
-      { status: 404 },
+    const serviceGroup = await getExternalServiceGroup(
+      params.nsId,
+      params.accountId,
+      params.groupId,
     );
-  }
 
-  if (namespace.owner.email !== email) {
-    return NextResponse.json(
-      { status: "error", error: "Not authorized" },
-      { status: 403 },
-    );
-  }
+    if (!serviceGroup) {
+      throw new NotFoundException("Service group not found");
+    }
 
-  const serviceGroup = await prisma.externalServiceGroup.findUnique({
-    where: {
-      id: params.groupId,
-      namespaceId: params.nsId,
-    },
-  });
+    await prisma.externalServiceGroup.delete({
+      where: {
+        id: params.groupId,
+      },
+    });
 
-  if (!serviceGroup) {
-    return NextResponse.json(
-      { status: "error", error: "Service group not found" },
-      { status: 404 },
-    );
-  }
-
-  await prisma.externalServiceGroup.delete({
-    where: {
-      id: params.groupId,
-    },
-  });
-
-  return NextResponse.json({
-    status: "success",
-  });
-}
+    return {
+      status: "success",
+    };
+  },
+);

@@ -1,8 +1,5 @@
-import {
-  type VRChatCredentials,
-  ZVRChatCredentials,
-} from "@/types/credentials";
-import type { ExternalServiceAccount } from "@prisma/client";
+import { ZVRChatCredentials } from "@/types/credentials";
+import type { TExternalServiceAccount } from "@/types/prisma";
 import { z } from "zod";
 import { VRCHAT_USER_AGENT } from "../const";
 import { buildCookie } from "../cookie";
@@ -11,7 +8,7 @@ import { UnauthorizedError, retry } from "../retry";
 import { ZVRCGroupRole } from "../types/GroupRole";
 
 export const getGroupRoles = retry(
-  async (account: ExternalServiceAccount, groupId: string) => {
+  async (account: TExternalServiceAccount, groupId: string) => {
     const { credential } = account;
     const { token, twoFactorToken: twoFactorAuth } = ZVRChatCredentials.parse(
       JSON.parse(credential),

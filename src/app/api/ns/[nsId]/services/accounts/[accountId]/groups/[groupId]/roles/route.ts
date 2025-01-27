@@ -1,6 +1,14 @@
+import { api } from "@/lib/api";
+import { NotFoundException } from "@/lib/exceptions/NotFoundException";
 import { prisma } from "@/lib/prisma";
-import type { TExternalServiceGroupRole } from "@/types/prisma";
-import { getServerSession } from "next-auth/next";
+import { getExternalServiceGroup } from "@/lib/prisma/getExternalServiceGroup";
+import { validatePermission } from "@/lib/validatePermission";
+import type {
+  TExternalServiceAccountId,
+  TExternalServiceGroupId,
+  TExternalServiceGroupRole,
+  TNamespaceId,
+} from "@/types/prisma";
 import { type NextRequest, NextResponse } from "next/server";
 import { getGroupRoles } from "./get-group-roles";
 
@@ -14,66 +22,36 @@ export type GetExternalServiceGroupRolesResponse =
       error: string;
     };
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { nsId: string; accountId: string; groupId: string } },
-): Promise<NextResponse<GetExternalServiceGroupRolesResponse>> {
-  const session = await getServerSession();
-
-  const email = session?.user?.email;
-
-  if (!email) {
-    return NextResponse.json(
-      { status: "error", error: "Not authenticated" },
-      { status: 401 },
-    );
-  }
-
-  const namespace = await prisma.namespace.findUnique({
-    where: {
-      id: params.nsId,
+export const GET = api(
+  async (
+    req: NextRequest,
+    {
+      params,
+    }: {
+      params: {
+        nsId: TNamespaceId;
+        accountId: TExternalServiceAccountId;
+        groupId: TExternalServiceGroupId;
+      };
     },
-    include: {
-      owner: true,
-    },
-  });
+  ): Promise<GetExternalServiceGroupRolesResponse> => {
+    await validatePermission(params.nsId, "admin");
 
-  if (!namespace) {
-    return NextResponse.json(
-      { status: "error", error: "Namespace not found" },
-      { status: 404 },
+    const group = await getExternalServiceGroup(
+      params.nsId,
+      params.accountId,
+      params.groupId,
     );
-  }
 
-  if (namespace.owner.email !== email) {
-    return NextResponse.json(
-      { status: "error", error: "Not authorized" },
-      { status: 403 },
-    );
-  }
+    if (!group) {
+      throw new NotFoundException("Service group not found");
+    }
 
-  const group = await prisma.externalServiceGroup.findUnique({
-    where: {
-      id: params.groupId,
-      accountId: params.accountId,
-      namespaceId: params.nsId,
-    },
-    include: {
-      account: true,
-    },
-  });
+    const serviceRoles = await getGroupRoles(group.account, group);
 
-  if (!group) {
-    return NextResponse.json(
-      { status: "error", error: "Group not found" },
-      { status: 404 },
-    );
-  }
-
-  const serviceRoles = await getGroupRoles(group.account, group);
-
-  return NextResponse.json({
-    status: "success",
-    serviceRoles,
-  });
-}
+    return {
+      status: "success",
+      serviceRoles,
+    };
+  },
+);

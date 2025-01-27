@@ -2,7 +2,7 @@ import {
   type VRChatCredentials,
   ZVRChatCredentials,
 } from "@/types/credentials";
-import type { ExternalServiceAccount } from "@prisma/client";
+import type { TExternalServiceAccount } from "@/types/prisma";
 import { VRCHAT_USER_AGENT } from "../const";
 import { buildCookie } from "../cookie";
 import { vrchatLimit } from "../plimit";
@@ -10,7 +10,7 @@ import { UnauthorizedError, retry } from "../retry";
 import { ZVRCGroup } from "../types/Group";
 
 export const getGroup = retry(
-  async (account: ExternalServiceAccount, groupId: string) => {
+  async (account: TExternalServiceAccount, groupId: string) => {
     const credentials = ZVRChatCredentials.parse(
       JSON.parse(account.credential),
     );

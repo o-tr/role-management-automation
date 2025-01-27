@@ -1,5 +1,16 @@
+import { api } from "@/lib/api";
+import { BadRequestException } from "@/lib/exceptions/BadRequestException";
 import { prisma } from "@/lib/prisma";
-import { type TServiceAccount, ZExternalServiceName } from "@/types/prisma";
+import { createExternalServiceAccount } from "@/lib/prisma/createExternalServiceAccount";
+import { filterFExternalServiceAccount } from "@/lib/prisma/filter/filterFExternalServiceAccount";
+import { getExternalServiceAccounts } from "@/lib/prisma/getExternalServiceAccounts";
+import { validatePermission } from "@/lib/validatePermission";
+import {
+  type FExternalServiceAccount,
+  type TExternalServiceAccount,
+  type TNamespaceId,
+  ZExternalServiceName,
+} from "@/types/prisma";
 import { getServerSession } from "next-auth/next";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -23,7 +34,7 @@ export type CreateExternalServiceAccountResponse =
 export type GetExternalServiceAccountsResponse =
   | {
       status: "success";
-      serviceAccounts: TServiceAccount[];
+      serviceAccounts: FExternalServiceAccount[];
     }
   | {
       status: "error";
@@ -36,147 +47,59 @@ const createServiceAccountSchema = z.object({
   credential: z.string().min(1, "Credential is required"),
 });
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { nsId: string } },
-): Promise<NextResponse<GetExternalServiceAccountsResponse>> {
-  const session = await getServerSession();
+export const GET = api(
+  async (
+    req: NextRequest,
+    { params }: { params: { nsId: TNamespaceId } },
+  ): Promise<GetExternalServiceAccountsResponse> => {
+    await validatePermission(params.nsId, "admin");
 
-  const email = session?.user?.email;
-
-  if (!email) {
-    return NextResponse.json(
-      { status: "error", error: "Not authenticated" },
-      { status: 401 },
+    const serviceAccounts = (await getExternalServiceAccounts(params.nsId)).map(
+      filterFExternalServiceAccount,
     );
-  }
 
-  const namespace = await prisma.namespace.findUnique({
-    where: {
-      id: params.nsId,
-    },
-    include: {
-      owner: true,
-    },
-  });
+    return {
+      status: "success",
+      serviceAccounts,
+    };
+  },
+);
 
-  if (!namespace) {
-    return NextResponse.json(
-      { status: "error", error: "Namespace not found" },
-      { status: 404 },
+export const POST = api(
+  async (
+    req: NextRequest,
+    { params }: { params: { nsId: TNamespaceId } },
+  ): Promise<CreateExternalServiceAccountResponse> => {
+    await validatePermission(params.nsId, "admin");
+
+    const body = await req.json();
+    const result = createServiceAccountSchema.safeParse(body);
+
+    if (!result.success) {
+      throw new BadRequestException("Invalid request body");
+    }
+
+    const { name, service, credential } = result.data;
+    const validatedCredential = await validateCredential(service, credential);
+
+    if (!validatedCredential) {
+      throw new BadRequestException("Invalid credential");
+    }
+
+    const serviceAccount = await createExternalServiceAccount(
+      params.nsId,
+      { name, service, credential },
+      validatedCredential,
     );
-  }
 
-  if (namespace.owner.email !== email) {
-    return NextResponse.json(
-      { status: "error", error: "Not authorized" },
-      { status: 403 },
-    );
-  }
-
-  const serviceAccounts = (
-    await prisma.externalServiceAccount.findMany({
-      where: {
-        namespaceId: params.nsId,
+    return {
+      status: "success",
+      serviceAccount: {
+        id: serviceAccount.id,
+        name: serviceAccount.name,
+        service: serviceAccount.service,
+        icon: serviceAccount.icon || undefined,
       },
-      select: {
-        id: true,
-        name: true,
-        service: true,
-        icon: true,
-      },
-      orderBy: {
-        createdAt: "asc",
-      },
-    })
-  ).map((serviceAccount) => ({
-    ...serviceAccount,
-    icon: serviceAccount.icon || undefined,
-    credential: undefined,
-  }));
-
-  return NextResponse.json({
-    status: "success",
-    serviceAccounts,
-  });
-}
-
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { nsId: string } },
-): Promise<NextResponse<CreateExternalServiceAccountResponse>> {
-  const session = await getServerSession();
-
-  const email = session?.user?.email;
-
-  if (!email) {
-    return NextResponse.json(
-      { status: "error", error: "Not authenticated" },
-      { status: 401 },
-    );
-  }
-
-  const body = await req.json();
-  const result = createServiceAccountSchema.safeParse(body);
-
-  if (!result.success) {
-    return NextResponse.json(
-      { status: "error", error: result.error.errors[0].message },
-      { status: 400 },
-    );
-  }
-
-  const { name, service, credential } = result.data;
-
-  const namespace = await prisma.namespace.findUnique({
-    where: {
-      id: params.nsId,
-    },
-    include: {
-      owner: true,
-    },
-  });
-
-  if (!namespace) {
-    return NextResponse.json(
-      { status: "error", error: "Namespace not found" },
-      { status: 404 },
-    );
-  }
-
-  if (namespace.owner.email !== email) {
-    return NextResponse.json(
-      { status: "error", error: "Not authorized" },
-      { status: 403 },
-    );
-  }
-
-  const validatedCredential = await validateCredential(service, credential);
-
-  if (!validatedCredential) {
-    return NextResponse.json(
-      { status: "error", error: "Invalid credential" },
-      { status: 400 },
-    );
-  }
-
-  const serviceAccount = await prisma.externalServiceAccount.create({
-    data: {
-      name,
-      service,
-      credential: validatedCredential.credential,
-      icon: validatedCredential.icon || undefined,
-      namespace: { connect: { id: params.nsId } },
-    },
-  });
-
-  return NextResponse.json({
-    status: "success",
-    serviceAccount: {
-      id: serviceAccount.id,
-      name: serviceAccount.name,
-      service: serviceAccount.service,
-      icon: serviceAccount.icon || undefined,
-    },
-  });
-}
+    };
+  },
+);

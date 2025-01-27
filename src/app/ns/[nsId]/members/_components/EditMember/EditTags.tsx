@@ -6,14 +6,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { TMember } from "@/types/prisma";
+import type { TMemberWithRelation } from "@/types/prisma";
 import { type Dispatch, type FC, type SetStateAction, useState } from "react";
 import { TbTrash } from "react-icons/tb";
 import { useTags } from "../../../roles/_hooks/use-tags";
 
 type Props = {
-  member: TMember;
-  setMember: Dispatch<SetStateAction<TMember>>;
+  member: TMemberWithRelation;
+  setMember: Dispatch<SetStateAction<TMemberWithRelation>>;
   disabled: boolean;
 };
 export const EditTags: FC<Props> = ({ member, setMember, disabled }) => {
@@ -57,11 +57,8 @@ export const EditTags: FC<Props> = ({ member, setMember, disabled }) => {
 };
 
 const AddTag: FC<{
-  member: TMember;
-  onConfirm: (tag: {
-    id: string;
-    name: string;
-  }) => void;
+  member: TMemberWithRelation;
+  onConfirm: (tag: { id: string; name: string }) => void;
   disabled: boolean;
 }> = ({ onConfirm, member, disabled }) => {
   const { tags } = useTags(member.namespaceId);

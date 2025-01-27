@@ -1,5 +1,6 @@
 import { sleep } from "@/lib/sleep";
 import { ZVRChatCredentials } from "@/types/credentials";
+import type { TExternalServiceAccount } from "@/types/prisma";
 import type { ExternalServiceAccount } from "@prisma/client";
 import { z } from "zod";
 import { VRCHAT_USER_AGENT } from "../const";
@@ -7,7 +8,6 @@ import { buildCookie } from "../cookie";
 import { vrchatLimit } from "../plimit";
 import { UnauthorizedError, retry } from "../retry";
 import { ZVRCGroupMember } from "../types/GroupMember";
-import { ZVRCUser } from "../types/User";
 import type { VRCGroupId } from "../types/brand";
 
 type Options = {
@@ -19,7 +19,7 @@ type Options = {
 
 export const listGroupMembers = retry(
   async (
-    account: ExternalServiceAccount,
+    account: TExternalServiceAccount,
     groupId: VRCGroupId,
     options: Options = {},
   ) => {

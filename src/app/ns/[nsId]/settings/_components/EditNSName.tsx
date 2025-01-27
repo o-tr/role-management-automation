@@ -3,11 +3,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { onNsChange } from "@/events/on-ns-change";
 import { useSetNamespaceName } from "@/hooks/use-set-namespace-name";
-import type { TNamespaceDetail } from "@/types/prisma";
+import type { TNamespaceDetailWithRelation } from "@/types/prisma";
 import { type FC, useId, useState } from "react";
 
 type Props = {
-  namespace: TNamespaceDetail;
+  namespace: TNamespaceDetailWithRelation;
   refetch: () => void;
 };
 

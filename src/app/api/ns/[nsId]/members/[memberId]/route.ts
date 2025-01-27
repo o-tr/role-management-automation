@@ -1,8 +1,15 @@
-import { prisma } from "@/lib/prisma";
-import { type TMember, ZExternalServiceName } from "@/types/prisma";
-import { getServerSession } from "next-auth/next";
+import { api } from "@/lib/api";
+import { NotFoundException } from "@/lib/exceptions/NotFoundException";
+import { deleteMember } from "@/lib/prisma/deleteMember";
+import { getMember } from "@/lib/prisma/getMember";
+import { ZMemberUpdateInput, updateMember } from "@/lib/prisma/updateMember";
+import { validatePermission } from "@/lib/validatePermission";
+import type {
+  TMemberId,
+  TMemberWithRelation,
+  TNamespaceId,
+} from "@/types/prisma";
 import { type NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 
 export type DeleteMemberResponse =
   | {
@@ -16,186 +23,51 @@ export type DeleteMemberResponse =
 export type UpdateMemberResponse =
   | {
       status: "success";
-      member: TMember;
+      member: TMemberWithRelation;
     }
   | {
       status: "error";
       error: string;
     };
 
-const updateMemberSchema = z.object({
-  name: z.string().optional(),
-  email: z.string().email().optional(),
-  tags: z
-    .array(
-      z.object({
-        id: z.string().optional(),
-        name: z.string(),
-      }),
-    )
-    .optional(),
-  externalAccounts: z
-    .array(
-      z.object({
-        memberId: z.string().optional(),
-        service: ZExternalServiceName,
-        serviceId: z.string(),
-        serviceUsername: z.string().nullable().optional(),
-        name: z.string(),
-        icon: z.string().nullable().optional(),
-      }),
-    )
-    .optional(),
-});
+export const DELETE = api(
+  async (
+    req: NextRequest,
+    { params }: { params: { nsId: TNamespaceId; memberId: TMemberId } },
+  ): Promise<DeleteMemberResponse> => {
+    await validatePermission(params.nsId, "admin");
 
-export type UpdateMemberBody = z.infer<typeof updateMemberSchema>;
+    const member = await getMember(params.nsId, params.memberId);
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { nsId: string; memberId: string } },
-): Promise<NextResponse<DeleteMemberResponse>> {
-  const session = await getServerSession();
-  const email = session?.user?.email;
+    if (!member) {
+      throw new NotFoundException("Member not found");
+    }
 
-  if (!email) {
-    return NextResponse.json(
-      { status: "error", error: "Not authenticated" },
-      { status: 401 },
-    );
-  }
+    await deleteMember(params.nsId, params.memberId);
 
-  const namespace = await prisma.namespace.findUnique({
-    where: { id: params.nsId },
-    include: { owner: true },
-  });
+    return { status: "success" };
+  },
+);
 
-  if (!namespace) {
-    return NextResponse.json(
-      { status: "error", error: "Namespace not found" },
-      { status: 404 },
-    );
-  }
+export const PATCH = api(
+  async (
+    req: NextRequest,
+    { params }: { params: { nsId: TNamespaceId; memberId: TMemberId } },
+  ): Promise<UpdateMemberResponse> => {
+    await validatePermission(params.nsId, "admin");
 
-  if (namespace.owner.email !== email) {
-    return NextResponse.json(
-      { status: "error", error: "Not authorized" },
-      { status: 403 },
-    );
-  }
+    const member = await getMember(params.nsId, params.memberId);
 
-  const member = await prisma.member.findUnique({
-    where: { id: params.memberId, namespaceId: params.nsId },
-  });
+    if (!member) {
+      throw new NotFoundException("Member not found");
+    }
 
-  if (!member) {
-    return NextResponse.json(
-      { status: "error", error: "Member not found" },
-      { status: 404 },
-    );
-  }
+    const body = ZMemberUpdateInput.parse(await req.json());
 
-  await prisma.$transaction([
-    prisma.memberExternalServiceAccount.deleteMany({
-      where: { memberId: member.id },
-    }),
-    prisma.member.delete({
-      where: { id: member.id },
-    }),
-  ]);
-
-  return NextResponse.json({ status: "success" });
-}
-
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { nsId: string; memberId: string } },
-): Promise<NextResponse<UpdateMemberResponse>> {
-  const session = await getServerSession();
-  const email = session?.user?.email;
-
-  if (!email) {
-    return NextResponse.json(
-      { status: "error", error: "Not authenticated" },
-      { status: 401 },
-    );
-  }
-
-  const namespace = await prisma.namespace.findUnique({
-    where: { id: params.nsId },
-    include: { owner: true },
-  });
-
-  if (!namespace) {
-    return NextResponse.json(
-      { status: "error", error: "Namespace not found" },
-      { status: 404 },
-    );
-  }
-
-  if (namespace.owner.email !== email) {
-    return NextResponse.json(
-      { status: "error", error: "Not authorized" },
-      { status: 403 },
-    );
-  }
-
-  const member = await prisma.member.findUnique({
-    where: { id: params.memberId, namespaceId: params.nsId },
-  });
-
-  if (!member) {
-    return NextResponse.json(
-      { status: "error", error: "Member not found" },
-      { status: 404 },
-    );
-  }
-
-  const body = updateMemberSchema.parse(await req.json());
-  console.log(
-    "test",
-    body.externalAccounts?.map((service) => "memberId" in service),
-  );
-
-  const [result] = await prisma.$transaction([
-    prisma.member.update({
-      where: { id: params.memberId },
-      data: {
-        tags: body.tags
-          ? {
-              set: body.tags.map(({ id }) => ({ id })),
-            }
-          : undefined,
-      },
-      include: { externalAccounts: true, tags: true },
-    }),
-    ...(body.externalAccounts?.map((service) =>
-      "memberId" in service
-        ? prisma.memberExternalServiceAccount.updateMany({
-            where: { memberId: service.memberId, service: service.service },
-            data: {
-              service: service.service,
-              serviceId: service.serviceId,
-              serviceUsername: service.serviceUsername,
-              name: service.name,
-              icon: service.icon,
-            },
-          })
-        : prisma.memberExternalServiceAccount.create({
-            data: {
-              namespaceId: params.nsId,
-              memberId: member.id,
-              service: service.service,
-              serviceId: service.serviceId,
-              serviceUsername: service.serviceUsername,
-              name: service.name,
-              icon: service.icon,
-            },
-          }),
-    ) ?? []),
-  ]);
-
-  return NextResponse.json({
-    status: "success",
-    member: result,
-  });
-}
+    const result = await updateMember(params.nsId, params.memberId, body);
+    return {
+      status: "success",
+      member: result,
+    };
+  },
+);

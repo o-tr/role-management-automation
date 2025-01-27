@@ -1,13 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import type { TMember } from "@/types/prisma";
+import type { TMemberWithRelation } from "@/types/prisma";
 import { type FC, useState } from "react";
 import { EditExternalAccounts } from "./EditExternalAccounts";
 import { EditTags } from "./EditTags";
 
 type Props = {
-  member: TMember;
-  onConfirm: (member: TMember) => void;
+  member: TMemberWithRelation;
+  onConfirm: (member: TMemberWithRelation) => void;
   disabled: boolean;
 };
 

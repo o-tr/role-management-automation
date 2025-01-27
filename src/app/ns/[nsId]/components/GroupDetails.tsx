@@ -3,12 +3,12 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { TNamespaceDetail } from "@/types/prisma";
+import type { TNamespaceDetailWithRelation } from "@/types/prisma";
 import { Namespace, User } from "@prisma/client";
 import { useState } from "react";
 
 interface GroupDetailsProps {
-  namespace: TNamespaceDetail;
+  namespace: TNamespaceDetailWithRelation;
 }
 
 export default function GroupDetails({ namespace }: GroupDetailsProps) {

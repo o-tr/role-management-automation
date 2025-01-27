@@ -1,6 +1,12 @@
-import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth/next";
-import { type NextRequest, NextResponse } from "next/server";
+import { api } from "@/lib/api";
+import { BadRequestException } from "@/lib/exceptions/BadRequestException";
+import { NotFoundException } from "@/lib/exceptions/NotFoundException";
+import { createExternalServiceGroup } from "@/lib/prisma/createExternalServiceGroup";
+import { getExternalServiceAccount } from "@/lib/prisma/getExternalServiceAccount";
+import { getExternalServiceGroupByGroupId } from "@/lib/prisma/getExternalServiceGroupByGroupId";
+import { validatePermission } from "@/lib/validatePermission";
+import type { TExternalServiceAccountId, TNamespaceId } from "@/types/prisma";
+import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { getGroupDetail } from "./get-group-detail";
 
@@ -23,106 +29,58 @@ const createGroupSchema = z.object({
   groupId: z.string().min(1, "GroupId is required"),
 });
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: { nsId: string; accountId: string } },
-): Promise<NextResponse<CreateExternalServiceGroupResponse>> {
-  const session = await getServerSession();
+export const POST = api(
+  async (
+    req: NextRequest,
+    {
+      params,
+    }: { params: { nsId: TNamespaceId; accountId: TExternalServiceAccountId } },
+  ): Promise<CreateExternalServiceGroupResponse> => {
+    await validatePermission(params.nsId, "admin");
 
-  const email = session?.user?.email;
+    const body = await req.json();
+    const result = createGroupSchema.safeParse(body);
 
-  if (!email) {
-    return NextResponse.json(
-      { status: "error", error: "Not authenticated" },
-      { status: 401 },
+    if (!result.success) {
+      throw new BadRequestException("Invalid request body");
+    }
+
+    const { groupId } = result.data;
+
+    const serviceAccount = await getExternalServiceAccount(
+      params.nsId,
+      params.accountId,
     );
-  }
 
-  const body = await req.json();
-  const result = createGroupSchema.safeParse(body);
-
-  if (!result.success) {
-    return NextResponse.json(
-      {
-        status: "error",
-        error: result.error.errors.map((e) => e.message).join(", "),
-      },
-      { status: 400 },
-    );
-  }
-
-  const { groupId } = result.data;
-
-  const namespace = await prisma.namespace.findUnique({
-    where: {
-      id: params.nsId,
-    },
-    include: {
-      owner: true,
-    },
-  });
-
-  if (!namespace) {
-    return NextResponse.json(
-      { status: "error", error: "Namespace not found" },
-      { status: 404 },
-    );
-  }
-
-  if (namespace.owner.email !== email) {
-    return NextResponse.json(
-      { status: "error", error: "Not authorized" },
-      { status: 403 },
-    );
-  }
-
-  const serviceAccount = await prisma.externalServiceAccount.findUnique({
-    where: {
-      id: params.accountId,
-      namespaceId: params.nsId,
-    },
-  });
-
-  if (!serviceAccount) {
-    return NextResponse.json(
-      { status: "error", error: "Service account not found" },
-      { status: 404 },
-    );
-  }
-  const groupExists = await prisma.externalServiceGroup.findFirst({
-    where: {
-      namespaceId: params.nsId,
-      accountId: params.accountId,
+    if (!serviceAccount) {
+      throw new NotFoundException("Service account not found");
+    }
+    const groupExists = await getExternalServiceGroupByGroupId(
+      params.nsId,
+      params.accountId,
       groupId,
-    },
-  });
-
-  if (groupExists) {
-    return NextResponse.json(
-      { status: "error", error: "Group already exists" },
-      { status: 400 },
     );
-  }
 
-  const data = await getGroupDetail(serviceAccount, groupId);
+    if (groupExists) {
+      throw new BadRequestException("Group already exists");
+    }
 
-  const group = await prisma.externalServiceGroup.create({
-    data: {
-      name: data.name,
-      groupId: data.id,
-      icon: data.icon,
-      account: { connect: { id: params.accountId } },
-      namespace: { connect: { id: params.nsId } },
-    },
-  });
+    const data = await getGroupDetail(serviceAccount, groupId);
 
-  return NextResponse.json({
-    status: "success",
-    group: {
-      id: group.id,
-      name: group.name,
-      groupId: group.groupId,
-      icon: group.icon || undefined,
-    },
-  });
-}
+    const group = await createExternalServiceGroup(
+      params.nsId,
+      params.accountId,
+      data,
+    );
+
+    return {
+      status: "success",
+      group: {
+        id: group.id,
+        name: group.name,
+        groupId: group.groupId,
+        icon: group.icon || undefined,
+      },
+    };
+  },
+);

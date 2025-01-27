@@ -1,15 +1,15 @@
 import { getGuildRoles } from "@/lib/discord/requests/getGuildRoles";
 import { getGroupRoles as getVRCGroupRoles } from "@/lib/vrchat/requests/getGroupRoles";
-import { ZDiscordCredentials, ZVRChatCredentials } from "@/types/credentials";
-import type { TExternalServiceGroupRole } from "@/types/prisma";
+import { ZDiscordCredentials } from "@/types/credentials";
 import type {
-  ExternalServiceAccount,
-  ExternalServiceGroup,
-} from "@prisma/client";
+  TExternalServiceAccount,
+  TExternalServiceGroup,
+  TExternalServiceGroupRole,
+} from "@/types/prisma";
 
 export const getGroupRoles = async (
-  serviceAccount: ExternalServiceAccount,
-  serviceGroup: ExternalServiceGroup,
+  serviceAccount: TExternalServiceAccount,
+  serviceGroup: TExternalServiceGroup,
 ): Promise<TExternalServiceGroupRole[]> => {
   switch (serviceAccount.service) {
     case "DISCORD":
@@ -29,8 +29,8 @@ const colorNumberToHex = (color: number) => {
 };
 
 const getDiscordGroupRoles = async (
-  serviceAccount: ExternalServiceAccount,
-  serviceGroup: ExternalServiceGroup,
+  serviceAccount: TExternalServiceAccount,
+  serviceGroup: TExternalServiceGroup,
 ): Promise<TExternalServiceGroupRole[]> => {
   const data = ZDiscordCredentials.parse(JSON.parse(serviceAccount.credential));
   const roles = await getGuildRoles(data.token, serviceGroup.groupId);
@@ -43,8 +43,8 @@ const getDiscordGroupRoles = async (
 };
 
 const getVRChatGroupRoles = async (
-  serviceAccount: ExternalServiceAccount,
-  serviceGroup: ExternalServiceGroup,
+  serviceAccount: TExternalServiceAccount,
+  serviceGroup: TExternalServiceGroup,
 ): Promise<TExternalServiceGroupRole[]> => {
   const roles = await getVRCGroupRoles(serviceAccount, serviceGroup.groupId);
   return roles.map((role) => ({

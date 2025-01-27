@@ -1,5 +1,9 @@
-import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth/next";
+import { api } from "@/lib/api";
+import { NotFoundException } from "@/lib/exceptions/NotFoundException";
+import { deleteTag } from "@/lib/prisma/deleteTag";
+import { getTag } from "@/lib/prisma/getTag";
+import { validatePermission } from "@/lib/validatePermission";
+import type { TNamespaceId, TTagId } from "@/types/prisma";
 import { type NextRequest, NextResponse } from "next/server";
 
 export type DeleteTagResponse =
@@ -11,39 +15,21 @@ export type DeleteTagResponse =
       error: string;
     };
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { nsId: string; tagId: string } },
-): Promise<NextResponse<DeleteTagResponse>> {
-  const session = await getServerSession();
+export const DELETE = api(
+  async (
+    req: NextRequest,
+    { params }: { params: { nsId: TNamespaceId; tagId: TTagId } },
+  ): Promise<DeleteTagResponse> => {
+    await validatePermission(params.nsId, "admin");
 
-  const email = session?.user?.email;
+    const tag = await getTag(params.nsId, params.tagId);
 
-  if (!email) {
-    return NextResponse.json(
-      { status: "error", error: "Not authenticated" },
-      { status: 401 },
-    );
-  }
+    if (!tag) {
+      throw new NotFoundException("Tag not found");
+    }
 
-  const tag = await prisma.tag.findUnique({
-    where: {
-      id: params.tagId,
-    },
-  });
+    await deleteTag(params.nsId, params.tagId);
 
-  if (!tag) {
-    return NextResponse.json(
-      { status: "error", error: "Tag not found" },
-      { status: 404 },
-    );
-  }
-
-  await prisma.tag.delete({
-    where: {
-      id: params.tagId,
-    },
-  });
-
-  return NextResponse.json({ status: "success" });
-}
+    return { status: "success" };
+  },
+);

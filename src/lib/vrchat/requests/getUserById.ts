@@ -1,6 +1,5 @@
-import { sleep } from "@/lib/sleep";
 import { ZVRChatCredentials } from "@/types/credentials";
-import type { ExternalServiceAccount } from "@prisma/client";
+import type { TExternalServiceAccount } from "@/types/prisma";
 import { VRCHAT_USER_AGENT } from "../const";
 import { buildCookie } from "../cookie";
 import { vrchatLimit } from "../plimit";
@@ -9,7 +8,7 @@ import { ZVRCUser } from "../types/User";
 import type { VRCUserId } from "../types/brand";
 
 export const getUserById = retry(
-  async (account: ExternalServiceAccount, userId: VRCUserId) => {
+  async (account: TExternalServiceAccount, userId: VRCUserId) => {
     const { credential } = account;
     const { token, twoFactorToken } = ZVRChatCredentials.parse(
       JSON.parse(credential),

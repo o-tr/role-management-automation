@@ -1,10 +1,10 @@
-import { VRChatCredentials, ZVRChatCredentials } from "@/types/credentials";
-import type { ExternalServiceAccount } from "@prisma/client";
+import { ZVRChatCredentials } from "@/types/credentials";
+import type { TExternalServiceAccount } from "@/types/prisma";
 import { prisma } from "../prisma";
 import { getAuthTokens } from "./getAuthCookies";
 
 type ArgsType<T> = T extends (
-  ...args: infer U extends [ExternalServiceAccount, ...unknown[]] // biome-ignore lint/suspicious/noExplicitAny: tmp;
+  ...args: infer U extends [TExternalServiceAccount, ...unknown[]] // biome-ignore lint/suspicious/noExplicitAny: tmp;
 ) => any
   ? U
   : never;

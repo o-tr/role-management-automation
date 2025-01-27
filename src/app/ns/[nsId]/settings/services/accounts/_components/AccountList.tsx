@@ -4,7 +4,7 @@ import type { FC } from "react";
 import { useOnServiceAccountChange } from "../../_hooks/on-accounts-change";
 
 import { Button } from "@/components/ui/button";
-import type { TServiceAccount } from "@/types/prisma";
+import type { TExternalServiceAccount } from "@/types/prisma";
 import type { ColumnDef } from "@tanstack/react-table";
 
 import { DataTable } from "@/app/ns/[nsId]/components/DataTable";
@@ -12,7 +12,7 @@ import { Image } from "@/app/ns/[nsId]/components/Image";
 import { useDeleteServiceAccount } from "@/app/ns/[nsId]/settings/services/_hooks/use-delete-service-accounts";
 import { Checkbox } from "@/components/ui/checkbox";
 
-type InternalServiceAccount = TServiceAccount & { namespaceId: string };
+type InternalServiceAccount = TExternalServiceAccount & { namespaceId: string };
 
 export const columns: ColumnDef<InternalServiceAccount>[] = [
   {

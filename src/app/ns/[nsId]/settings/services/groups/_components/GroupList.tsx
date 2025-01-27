@@ -2,7 +2,7 @@
 import type { FC } from "react";
 
 import { Button } from "@/components/ui/button";
-import type { TExternalServiceGroupDetail } from "@/types/prisma";
+import type { TExternalServiceGroupWithAccount } from "@/types/prisma";
 import type { ColumnDef } from "@tanstack/react-table";
 
 import { DataTable } from "@/app/ns/[nsId]/components/DataTable";
@@ -12,7 +12,7 @@ import { useServiceGroups } from "../../../../_hooks/use-service-groups";
 import { useOnServiceGroupChange } from "../../_hooks/on-groups-change";
 import { useDeleteServiceGroup } from "../../_hooks/use-delete-service-group";
 
-type InternalServiceGroup = TExternalServiceGroupDetail & {
+type InternalServiceGroup = TExternalServiceGroupWithAccount & {
   namespaceId: string;
 };
 
