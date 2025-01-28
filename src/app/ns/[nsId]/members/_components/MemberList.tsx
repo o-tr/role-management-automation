@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import type { TMemberWithRelation } from "@/types/prisma";
+import type { TMemberWithRelation, TNamespaceId, TTagId } from "@/types/prisma";
 import type { ColumnDef, RowModel } from "@tanstack/react-table";
 
 import { DataTable } from "@/app/ns/[nsId]/components/DataTable";
@@ -161,7 +161,7 @@ const deleteMembers = async (groupId: string, tagIds: string[]) => {
 };
 
 type MemberListProps = {
-  namespaceId: string;
+  namespaceId: TNamespaceId;
 };
 
 type TagSelectorProps = {
@@ -252,7 +252,7 @@ export function MemberList({ namespaceId }: MemberListProps) {
                       member.tags = [
                         ...member.tags,
                         ...selectedTags.map((tagId) => ({
-                          id: tagId,
+                          id: tagId as TTagId,
                           name: "",
                           namespaceId: namespaceId,
                         })),

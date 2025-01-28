@@ -20,9 +20,14 @@ import {
   useGroupMembers,
 } from "./useGroupMembers";
 
-export type TMemberDiff = {
+export type TMemberWithDiff = {
+  member: TMemberWithRelation;
+  diff: TDiffItem[];
+};
+
+export type TDiffItem = {
   type: TMappingActionType;
-  serviceAccount: TMemberExternalServiceAccount;
+  serviceGroup: TExternalServiceGroupWithAccount;
   groupMember: TExternalServiceGroupMember;
   roleId: string;
 };
@@ -58,21 +63,21 @@ export const useCompare = (nsId: TNamespaceId) => {
     }
 
     const result = members
-      .map((member) => {
+      .map<TMemberWithDiff>((member) => {
         const tags = member.tags;
         const actions = evaluateMappings(tags, mappings);
         const filteredGroupMembers = extractGroupMembers(member, groupMembers);
-        const result = actions.map<TMemberDiff | undefined>((action) => {
-          const targetServiceType = groups.find(
+        const result = actions.map<TDiffItem | undefined>((action) => {
+          const group = groups.find(
             (group) =>
               group.account.id === action.targetServiceAccountId &&
               group.id === action.targetServiceGroupId,
-          )?.service;
-          if (!targetServiceType) {
+          );
+          if (!group?.service) {
             return undefined;
           }
           const groupMember = filteredGroupMembers.find(
-            (groupMember) => groupMember.account.service === targetServiceType,
+            (groupMember) => groupMember.account.service === group.service,
           );
           if (!groupMember) {
             return undefined;
@@ -87,7 +92,7 @@ export const useCompare = (nsId: TNamespaceId) => {
             }
             return {
               type: "add",
-              serviceAccount: groupMember.account,
+              serviceGroup: group,
               groupMember: groupMember.groupMember,
               roleId: action.targetServiceRoleId,
             };
@@ -102,7 +107,7 @@ export const useCompare = (nsId: TNamespaceId) => {
             }
             return {
               type: "remove",
-              serviceAccount: groupMember.account,
+              serviceGroup: group,
               groupMember: groupMember.groupMember,
               roleId: action.targetServiceRoleId,
             };
@@ -154,6 +159,7 @@ const extractGroupMembers = (
       }
       return {
         account,
+        group,
         groupMember,
       };
     })

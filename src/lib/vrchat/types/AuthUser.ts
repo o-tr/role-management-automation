@@ -9,5 +9,8 @@ export type VRCAuthUserWithAuth = z.infer<typeof ZVRCAuthUserWithAuth>;
 export const ZVRCAuthUser = z.object({
   id: ZVRCUserId,
   currentAvatarThumbnailImageUrl: z.string(),
+  displayName: z.string(),
+  userIcon: z.string(),
+  profilePicOverrideThumbnail: z.string(),
 });
 export type VRCAuthUser = z.infer<typeof ZVRCAuthUser>;

@@ -76,10 +76,10 @@ export type TAvailableGroup = {
   icon?: string;
 };
 
-export const ZExternalServiceGroupId = z.union([
-  z.string().uuid().brand("ExternalServiceGroupId"),
-  ZVRCGroupId,
-]);
+export const ZExternalServiceGroupId = z
+  .string()
+  .uuid()
+  .brand("ExternalServiceGroupId");
 export type TExternalServiceGroupId = z.infer<typeof ZExternalServiceGroupId>;
 export type TExternalServiceGroup = {
   id: TExternalServiceGroupId;

@@ -6,6 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 import {
   type ColumnDef,
   type RowModel,
@@ -19,12 +20,14 @@ interface DataTableProps<T> {
   columns: ColumnDef<T>[];
   data: T[];
   selected?: FC<{ selected: RowModel<T> }>;
+  className?: string;
 }
 
 export function DataTable<T>({
   columns,
   data,
   selected: Selected,
+  className,
 }: DataTableProps<T>) {
   const table = useReactTable({
     data,
@@ -34,19 +37,25 @@ export function DataTable<T>({
   const selected = table.getSelectedRowModel();
 
   return (
-    <div className={"flex flex-col gap-2 items-start"}>
+    <div className={cn("flex flex-col gap-2 items-start", className)}>
       <div className="rounded-md border">
         <Table className="table-fixed">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
-                  const size =
-                    columns.find((v) => v.id === header.id)?.size || 0;
+                  const column = columns.find((v) => v.id === header.id);
+
+                  const size = column?.size || 0;
+                  const maxSize = column?.maxSize || 0;
+
                   return (
                     <TableHead
                       key={header.id}
-                      style={{ width: size > 0 ? size : undefined }}
+                      style={{
+                        width: size > 0 ? `${size}px` : undefined,
+                        maxWidth: maxSize ? `${maxSize}px` : undefined,
+                      }}
                     >
                       {header.isPlaceholder
                         ? null

@@ -17,6 +17,7 @@ export const formatTExternalServiceGroupWithAccount = (
     name: input.name,
     service: input.account.service,
     groupId: input.groupId,
+    icon: input.icon || undefined,
     account: formatTExternalServiceAccount(input.account),
     namespaceId: input.namespaceId as TNamespaceId,
   };

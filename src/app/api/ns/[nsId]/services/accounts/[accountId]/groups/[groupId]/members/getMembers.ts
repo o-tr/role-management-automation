@@ -3,9 +3,12 @@ import type {
   DiscordGuildId,
   DiscordGuildMember,
 } from "@/lib/discord/types/guild";
+import { getAuthUser } from "@/lib/vrchat/requests/getAuthUser";
+import { getGroup } from "@/lib/vrchat/requests/getGroup";
 import { listGroupMembers } from "@/lib/vrchat/requests/listGroupMembers";
 import type { VRCGroupMember } from "@/lib/vrchat/types/GroupMember";
 import { ZVRCGroupId } from "@/lib/vrchat/types/brand";
+import { ZVRChatCredentials } from "@/types/credentials";
 import type {
   TExternalServiceGroupMember,
   TExternalServiceGroupWithAccount,
@@ -39,6 +42,25 @@ const getVRChatMembers = async (
     members.push(...requestResult);
     offset += 100;
   } while (requestResult.length > 0);
+
+  const credentials = ZVRChatCredentials.parse(
+    JSON.parse(group.account.credential),
+  );
+  const user = await getAuthUser(credentials.token, credentials.twoFactorToken);
+  const vrcGroup = await getGroup(group.account, groupId);
+  members.push({
+    ...vrcGroup.myMember,
+    user: {
+      id: user.id,
+      displayName: user.displayName,
+      thumbnailUrl: user.profilePicOverrideThumbnail,
+      iconUrl:
+        user.userIcon ||
+        user.profilePicOverrideThumbnail ||
+        user.currentAvatarThumbnailImageUrl,
+      currentAvatarThumbnailImageUrl: user.currentAvatarThumbnailImageUrl,
+    },
+  });
   return members.map((member) => ({
     serviceId: member.userId,
     name: member.user.displayName,
