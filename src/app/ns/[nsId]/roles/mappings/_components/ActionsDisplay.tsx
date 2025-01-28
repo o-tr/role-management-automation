@@ -40,7 +40,6 @@ const ActionDisplay: FC<ActionDisplayProps> = ({ action, nsId }) => {
   const group = groups?.find((g) => g.id === action.targetServiceGroupId);
   const account = accounts?.find((a) => a.id === action.targetServiceAccountId);
   const role = roles?.find((r) => r.id === action.targetServiceRoleId);
-  console.log("ActionDisplay", roles, role);
 
   return (
     <Card className="p-2 flex flex-row items-center space-x-2 flex-wrap">

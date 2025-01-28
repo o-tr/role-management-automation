@@ -1,7 +1,17 @@
+import { useServiceGroups } from "@/app/ns/[nsId]/_hooks/use-service-groups";
 import { useMembers } from "@/app/ns/[nsId]/members/_hooks/use-tags";
-import type { TMappingAction } from "@/types/actions";
+import type { TMappingAction, TMappingActionType } from "@/types/actions";
 import type { TMappingCondition } from "@/types/conditions";
-import type { TMapping, TMemberWithRelation, TTag } from "@/types/prisma";
+import type {
+  TExternalServiceAccount,
+  TExternalServiceGroupMember,
+  TExternalServiceGroupWithAccount,
+  TMapping,
+  TMemberExternalServiceAccount,
+  TMemberWithRelation,
+  TNamespaceId,
+  TTag,
+} from "@/types/prisma";
 import { useMemo } from "react";
 import { useMappings } from "../../../../_hooks/use-mappings";
 import {
@@ -10,11 +20,22 @@ import {
   useGroupMembers,
 } from "./useGroupMembers";
 
-export const useCompare = (nsId: string) => {
+export type TMemberDiff = {
+  type: TMappingActionType;
+  serviceAccount: TMemberExternalServiceAccount;
+  groupMember: TExternalServiceGroupMember;
+  roleId: string;
+};
+
+export const useCompare = (nsId: TNamespaceId) => {
   const { members, isPending: isMembersPending } = useMembers(nsId);
   const { mappings, isPending: isMappingsPending } = useMappings(nsId);
-  const targetGroups = useMemo(() => extractTargetGroups(mappings), [mappings]);
-  const { groupMembers, isPending: isGroupMembersPending } = useGroupMembers(
+  const { groups, isPending: isGroupsPending } = useServiceGroups(nsId);
+  const targetGroups = useMemo(
+    () => extractTargetGroups(groups, mappings),
+    [mappings, groups],
+  );
+  const { groupMembers, isLoading: isGroupMembersPending } = useGroupMembers(
     nsId,
     targetGroups,
   );
@@ -24,9 +45,11 @@ export const useCompare = (nsId: string) => {
       isMembersPending ||
       isMappingsPending ||
       isGroupMembersPending ||
+      isGroupsPending ||
       !members ||
       !mappings ||
-      !groupMembers
+      !groupMembers ||
+      !groups
     ) {
       return {
         isPending: true,
@@ -34,46 +57,64 @@ export const useCompare = (nsId: string) => {
       };
     }
 
-    const result = members.map((member) => {
-      const tags = member.tags;
-      const actions = evaluateMappings(tags, mappings);
-      const groupMember = extractGroupMembers(member, groupMembers);
-      const result = actions.map((action) => {
-        const targetGroup = targetGroups.find(
-          (group) =>
-            group.serviceAccountId === action.targetServiceAccountId &&
-            group.serviceGroupId === action.targetServiceGroupId,
-        );
-        if (!targetGroup) {
-          return undefined;
-        }
-        const group = groupMembers.find(
-          (groupMember) =>
-            groupMember.serviceAccountId === targetGroup.serviceAccountId &&
-            groupMember.serviceGroupId === targetGroup.serviceGroupId,
-        );
-        if (!group) {
-          return undefined;
-        }
-        const groupMemberDetail = group.members.find((groupMember) =>
-          member.externalAccounts.some(
-            (account) => account.serviceId === groupMember.serviceId,
-          ),
-        );
-        if (!groupMemberDetail) {
-          return undefined;
-        }
+    const result = members
+      .map((member) => {
+        const tags = member.tags;
+        const actions = evaluateMappings(tags, mappings);
+        const filteredGroupMembers = extractGroupMembers(member, groupMembers);
+        const result = actions.map<TMemberDiff | undefined>((action) => {
+          const targetServiceType = groups.find(
+            (group) =>
+              group.account.id === action.targetServiceAccountId &&
+              group.id === action.targetServiceGroupId,
+          )?.service;
+          if (!targetServiceType) {
+            return undefined;
+          }
+          const groupMember = filteredGroupMembers.find(
+            (groupMember) => groupMember.account.service === targetServiceType,
+          );
+          if (!groupMember) {
+            return undefined;
+          }
+          if (action.type === "add") {
+            if (
+              groupMember.groupMember.roleIds.includes(
+                action.targetServiceRoleId,
+              )
+            ) {
+              return undefined;
+            }
+            return {
+              type: "add",
+              serviceAccount: groupMember.account,
+              groupMember: groupMember.groupMember,
+              roleId: action.targetServiceRoleId,
+            };
+          }
+          if (action.type === "remove") {
+            if (
+              !groupMember.groupMember.roleIds.includes(
+                action.targetServiceRoleId,
+              )
+            ) {
+              return undefined;
+            }
+            return {
+              type: "remove",
+              serviceAccount: groupMember.account,
+              groupMember: groupMember.groupMember,
+              roleId: action.targetServiceRoleId,
+            };
+          }
+        });
+
         return {
           member,
-          groupMember: groupMemberDetail,
+          diff: result.filter((v) => !!v),
         };
-      });
-
-      return {
-        member,
-        groupMembers,
-      };
-    });
+      })
+      .filter((v) => v.diff.length > 0);
 
     return {
       isPending: false,
@@ -83,11 +124,17 @@ export const useCompare = (nsId: string) => {
     members,
     mappings,
     groupMembers,
-    targetGroups,
+    groups,
     isMappingsPending,
     isMembersPending,
     isGroupMembersPending,
+    isGroupsPending,
   ]);
+
+  return {
+    isPending: result.isPending,
+    diff: result.result,
+  };
 };
 
 const extractGroupMembers = (
@@ -97,12 +144,10 @@ const extractGroupMembers = (
   return member.externalAccounts
     .map((account) => {
       const group = groupMembers.find(
-        (groupMember) =>
-          groupMember.serviceAccountId === account.namespaceId &&
-          groupMember.serviceGroupId === account.serviceId,
+        (groupMember) => groupMember.service === account.service,
       );
       const groupMember = group?.members.find(
-        (member) => member.serviceId === account.id,
+        (member) => member.serviceId === account.serviceId,
       );
       if (!groupMember) {
         return undefined;
@@ -148,8 +193,11 @@ const evaluateConditions = (
   throw new Error("Unknown condition type");
 };
 
-const extractTargetGroups = (mappings?: TMapping[]) => {
-  if (!mappings) {
+const extractTargetGroups = (
+  groups?: TExternalServiceGroupWithAccount[],
+  mappings?: TMapping[],
+) => {
+  if (!mappings || !groups) {
     return [];
   }
   const targets: TargetGroup[] = [];
@@ -165,9 +213,16 @@ const extractTargetGroups = (mappings?: TMapping[]) => {
       ) {
         continue;
       }
+      const service = groups.find(
+        (group) => group.account.id === action.targetServiceAccountId,
+      );
+      if (!service) {
+        continue;
+      }
       targets.push({
         serviceAccountId: action.targetServiceAccountId,
         serviceGroupId: action.targetServiceGroupId,
+        service: service.account.service,
       });
     }
   }

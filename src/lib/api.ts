@@ -1,8 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { BaseException } from "./exceptions/BaseException";
-import { ForbiddenException } from "./exceptions/ForbiddenException";
-import { NotFoundException } from "./exceptions/NotFoundException";
-import { UnauthorizedError } from "./vrchat/retry";
 
 export const api = <
   T extends [NextRequest, { params: Record<string, string> }],
@@ -25,6 +22,11 @@ export const api = <
           { status: error.statusCode },
         );
       }
+      console.log(error);
+      return NextResponse.json(
+        { status: "error", error: "Internal Server Error" },
+        { status: 500 },
+      );
     }
   };
 };

@@ -1,52 +1,38 @@
-import { useMembers } from "@/app/ns/[nsId]/members/_hooks/use-tags";
-import type { TMapping } from "@/types/prisma";
-import { type FC, useEffect, useState } from "react";
-import { useMappings } from "../../../_hooks/use-mappings";
+import type { TNamespaceId } from "@/types/prisma";
+import type { FC } from "react";
+import { useCompare } from "./_hooks/useCompare";
 
 type Props = {
-  nsId: string;
-};
-
-type TargetGroup = {
-  service: string;
-  group: string;
+  nsId: TNamespaceId;
 };
 
 export const Compare: FC<Props> = ({ nsId }) => {
-  const { members, isPending: isMembersPending } = useMembers(nsId);
-  const { mappings, isPending: isMappingsPending } = useMappings(nsId);
-  const [targetGroups, setTargetGroups] = useState<TargetGroup[]>();
-
-  useEffect(() => {
-    if (mappings) {
-      setTargetGroups(extractTargetGroups(mappings));
-    }
-  }, [mappings]);
-
-  if (isMembersPending || isMappingsPending || !members || !mappings) {
+  const { isPending, diff } = useCompare(nsId);
+  if (isPending) {
     return <div>Loading...</div>;
   }
-};
 
-const extractTargetGroups = (mappings: TMapping[]) => {
-  const targets: TargetGroup[] = [];
-
-  for (const mapping of mappings) {
-    for (const action of mapping.actions) {
-      if (
-        targets.some(
-          (target) =>
-            target.service === action.targetServiceAccountId &&
-            target.group === action.targetServiceGroupId,
-        )
-      ) {
-        continue;
-      }
-      targets.push({
-        service: action.targetServiceAccountId,
-        group: action.targetServiceGroupId,
-      });
-    }
-  }
-  return targets;
+  return (
+    <div>
+      {diff.map((member) => (
+        <div key={member.member.id} className="flex flex-row gap-2">
+          <div>{member.member.externalAccounts[0].name}</div>
+          <div className="flex flex-col gap-2">
+            {member.diff.map((diff) => {
+              return (
+                <div
+                  key={diff.groupMember.serviceId}
+                  className="flex flex-row gap-2"
+                >
+                  <div>{diff.serviceAccount.name}</div>
+                  <div>{diff.type}</div>
+                  <div>{diff.roleId}</div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 };

@@ -1,3 +1,4 @@
+import { filterObject } from "@/lib/filterObject";
 import { sleep } from "@/lib/sleep";
 import { ZVRChatCredentials } from "@/types/credentials";
 import type { TExternalServiceAccount } from "@/types/prisma";
@@ -27,12 +28,13 @@ export const listGroupMembers = retry(
     const { token, twoFactorToken } = ZVRChatCredentials.parse(
       JSON.parse(credential),
     );
-    const query = new URLSearchParams({
+    const params = {
       offset: options.offset?.toString(),
       n: options.limit?.toString(),
       sort: options.sort,
       roleId: options.roleId,
-    } as Record<string, string>);
+    } as Record<string, string>;
+    const query = new URLSearchParams(filterObject(params));
     const response = await vrchatLimit(() =>
       fetch(
         `https://api.vrchat.cloud/api/1/groups/${groupId}/members?${query.toString()}`,
@@ -46,9 +48,7 @@ export const listGroupMembers = retry(
       ),
     );
     if (!response.ok) {
-      throw new UnauthorizedError(
-        `Failed to fetch user: ${response.statusText}`,
-      );
+      throw new Error(`Failed to fetch user: ${response.statusText}`);
     }
     const json = await response.json();
     const data = z.array(ZVRCGroupMember).safeParse(json);

@@ -1,5 +1,8 @@
 import { listGuildMembers } from "@/lib/discord/requests/listGuildMembers";
-import type { DiscordGuildMember } from "@/lib/discord/types/guild";
+import type {
+  DiscordGuildId,
+  DiscordGuildMember,
+} from "@/lib/discord/types/guild";
 import { listGroupMembers } from "@/lib/vrchat/requests/listGroupMembers";
 import type { VRCGroupMember } from "@/lib/vrchat/types/GroupMember";
 import { ZVRCGroupId } from "@/lib/vrchat/types/brand";
@@ -53,10 +56,14 @@ const getDiscordMembers = async (
   let requestResult: DiscordGuildMember[];
   const processedUserIds = new Set<string>();
   do {
-    requestResult = await listGuildMembers(token, group.groupId, {
-      after: maxUserId,
-      limit: 100,
-    });
+    requestResult = await listGuildMembers(
+      token,
+      group.groupId as DiscordGuildId,
+      {
+        after: maxUserId,
+        limit: 100,
+      },
+    );
     const filteredMembers = requestResult.filter(
       (member) => !processedUserIds.has(member.user.id),
     );

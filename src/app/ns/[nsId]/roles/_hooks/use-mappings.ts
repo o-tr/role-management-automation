@@ -1,36 +1,26 @@
 "use client";
 import type { GetSerializedMappingsResponse } from "@/app/api/ns/[nsId]/mappings/route";
 import type { TMapping } from "@/types/prisma";
-import { useCallback, useEffect, useState } from "react";
+import { useMemo } from "react";
+import useSWR from "swr";
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export const useMappings = (nsId: string) => {
-  const [mappings, seTSerializedMappings] = useState<TMapping[]>();
-  const [isPending, setIsPending] = useState(true);
-  const [error, setError] = useState<string>();
+  const { data, error, isLoading, mutate } =
+    useSWR<GetSerializedMappingsResponse>(`/api/ns/${nsId}/mappings`, fetcher, {
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    });
+  const mappings = useMemo(() => {
+    if (data?.status !== "success") return undefined;
+    return data.mappings.map<TMapping>((mapping) => ({
+      ...mapping,
+      conditions: JSON.parse(mapping.conditions),
+      actions: JSON.parse(mapping.actions),
+    }));
+  }, [data]);
 
-  const fetchData = useCallback(async () => {
-    setIsPending(true);
-    setError(undefined);
-    const res = await fetch(`/api/ns/${nsId}/mappings`);
-    const data = (await res.json()) as GetSerializedMappingsResponse;
-    if (data.status === "error") {
-      setError(data.error);
-      setIsPending(false);
-      return;
-    }
-    seTSerializedMappings(
-      data.mappings.map<TMapping>((mapping) => ({
-        ...mapping,
-        conditions: JSON.parse(mapping.conditions),
-        actions: JSON.parse(mapping.actions),
-      })),
-    );
-    setIsPending(false);
-  }, [nsId]);
-
-  useEffect(() => {
-    void fetchData();
-  }, [fetchData]);
-
-  return { mappings, isPending, error, refetch: fetchData };
+  return { mappings, isPending: isLoading, error, refetch: mutate };
 };

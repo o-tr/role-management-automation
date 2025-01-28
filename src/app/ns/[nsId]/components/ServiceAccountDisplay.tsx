@@ -1,9 +1,9 @@
 import { Image } from "@/app/ns/[nsId]/components/Image";
-import type { TExternalServiceAccount } from "@/types/prisma";
+import type { FExternalServiceAccount } from "@/types/prisma";
 import type { FC } from "react";
 
 type Props = {
-  account: TExternalServiceAccount;
+  account: FExternalServiceAccount;
 };
 
 export const ServiceAccountDisplay: FC<Props> = ({ account }) => {

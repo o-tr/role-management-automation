@@ -1,9 +1,9 @@
 import { Image } from "@/app/ns/[nsId]/components/Image";
-import type { TAvailableGroup } from "@/types/prisma";
+import type { TAvailableGroup, TExternalServiceGroup } from "@/types/prisma";
 import type { FC } from "react";
 
 type Props = {
-  group: TAvailableGroup;
+  group: TAvailableGroup | TExternalServiceGroup;
 };
 
 export const ServiceGroupDisplay: FC<Props> = ({ group }) => {

@@ -8,19 +8,20 @@ export const useGroupRoles = (
   accountId: string,
   groupId: string,
 ) => {
-  const { data, error } = useSWR<GetExternalServiceGroupRolesResponse>(
-    `/api/ns/${nsId}/services/accounts/${accountId}/groups/${groupId}/roles`,
-    fetcher,
-    {
-      revalidateIfStale: false,
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-    },
-  );
+  const { data, error, isLoading } =
+    useSWR<GetExternalServiceGroupRolesResponse>(
+      `/api/ns/${nsId}/services/accounts/${accountId}/groups/${groupId}/roles`,
+      fetcher,
+      {
+        revalidateIfStale: false,
+        revalidateOnFocus: false,
+        revalidateOnReconnect: false,
+      },
+    );
 
   return {
     roles: data && data.status === "success" ? data.serviceRoles : undefined,
-    isLoading: !error && !data,
+    isLoading,
     isError: error,
   };
 };

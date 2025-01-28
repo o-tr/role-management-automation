@@ -1,50 +1,55 @@
 import type { GetExternalServiceGroupMembersResponse } from "@/app/api/ns/[nsId]/services/accounts/[accountId]/groups/[groupId]/members/route";
 import type { TExternalServiceGroupMember } from "@/types/prisma";
-import { useLayoutEffect, useState } from "react";
+import type { ExternalServiceName } from "@prisma/client";
+import { useLayoutEffect, useMemo, useState } from "react";
+import useSWR from "swr";
 
 export type TargetGroup = {
   serviceAccountId: string;
   serviceGroupId: string;
+  service: ExternalServiceName;
 };
 
 export type TargetGroupMembers = TargetGroup & {
   members: TExternalServiceGroupMember[];
 };
 
+const fetcher = (url: string) =>
+  Promise.all(url.split(",").map((u) => fetch(u).then((res) => res.json())));
+
 export const useGroupMembers = (nsId: string, groups: TargetGroup[]) => {
-  const [isPending, setIsPending] = useState(true);
-  const [groupMembers, setGroupMembers] = useState<TargetGroupMembers[]>([]);
+  const { data, error, isLoading } = useSWR<
+    GetExternalServiceGroupMembersResponse[]
+  >(
+    groups
+      .map(
+        (group) =>
+          `/api/ns/${nsId}/services/accounts/${group.serviceAccountId}/groups/${group.serviceGroupId}/members`,
+      )
+      .join(","),
+    fetcher,
+    {
+      revalidateIfStale: false,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    },
+  );
 
-  useLayoutEffect(() => {
-    const fetchGroupMembers = async () => {
-      setIsPending(true);
-      const result = (
-        await Promise.all(
-          groups.map(async (group) => {
-            const res = await fetch(
-              `/api/ns/${nsId}/services/accounts/${group.serviceAccountId}/groups/${group.serviceGroupId}/members`,
-            );
-            const data =
-              (await res.json()) as GetExternalServiceGroupMembersResponse;
-            if (data.status === "error") {
-              return undefined;
-            }
-            return {
-              ...group,
-              members: data.members,
-              service: data.service,
-            };
-          }),
-        )
-      ).filter((r) => !!r);
-      setGroupMembers(result);
-      setIsPending(false);
-    };
+  const groupMembers = useMemo(() => {
+    if (!data) return undefined;
+    if (data.some((v) => v.status === "error")) return undefined;
+    return data
+      .filter((v) => v.status === "success")
+      .map((d, i) => ({
+        ...groups[i],
+        members: d.members,
+        service: d.service,
+      }));
+  }, [data, groups]);
 
-    void fetchGroupMembers();
-  }, [nsId, groups]);
   return {
     groupMembers,
-    isPending,
+    isLoading,
+    error,
   };
 };
