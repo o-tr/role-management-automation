@@ -12,11 +12,17 @@ import type { ExternalServiceName } from "@prisma/client";
 import type { NextRequest } from "next/server";
 import { getMembers } from "./getMembers";
 
+export type TExternalServiceGroupMembers = {
+  serviceAccountId: TExternalServiceAccountId;
+  serviceGroupId: TExternalServiceGroupId;
+  members: TExternalServiceGroupMember[];
+  service: ExternalServiceName;
+};
+
 export type GetExternalServiceGroupMembersResponse =
   | {
       status: "success";
-      members: TExternalServiceGroupMember[];
-      service: ExternalServiceName;
+      data: TExternalServiceGroupMembers;
     }
   | {
       status: "error";
@@ -52,8 +58,12 @@ export const GET = api(
 
     return {
       status: "success",
-      members,
-      service: serviceGroup.account.service,
+      data: {
+        serviceAccountId: serviceGroup.account.id,
+        serviceGroupId: serviceGroup.id,
+        members,
+        service: serviceGroup.account.service,
+      },
     };
   },
 );
