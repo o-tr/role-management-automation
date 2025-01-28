@@ -23,9 +23,12 @@ export const getUserGroups = retry(async (account: TExternalServiceAccount) => {
     }),
   );
   if (!response.ok) {
-    throw new UnauthorizedError(
-      `Failed to fetch user groups: ${response.statusText}`,
-    );
+    if (response.status === 401) {
+      throw new UnauthorizedError(
+        `Failed to get user groups: ${response.statusText}`,
+      );
+    }
+    throw new Error(`Failed to get user groups: ${response.statusText}`);
   }
   const data = ZVRCUserGroups.safeParse(await response.json());
   if (!data.success) {

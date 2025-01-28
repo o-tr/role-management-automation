@@ -1,11 +1,10 @@
 import type { TExternalServiceGroupMembers } from "@/app/api/ns/[nsId]/services/accounts/[accountId]/groups/[groupId]/members/route";
-import type {
-  TDiffItem,
-  TMemberWithDiff,
-} from "@/app/ns/[nsId]/roles/mappings/_components/compare/_hooks/useCompare";
 import type { TMappingAction } from "@/types/actions";
 import type { TMappingCondition } from "@/types/conditions";
+import type { TDiffItem, TMemberWithDiff } from "@/types/diff";
 import type {
+  TExternalServiceAccountId,
+  TExternalServiceGroupId,
   TExternalServiceGroupWithAccount,
   TMapping,
   TMemberWithRelation,
@@ -14,8 +13,8 @@ import type {
 import type { ExternalServiceName } from "@prisma/client";
 
 export type TargetGroup = {
-  serviceAccountId: string;
-  serviceGroupId: string;
+  serviceAccountId: TExternalServiceAccountId;
+  serviceGroupId: TExternalServiceGroupId;
   service: ExternalServiceName;
 };
 

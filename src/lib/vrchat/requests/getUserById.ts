@@ -23,9 +23,12 @@ export const getUserById = retry(
       }),
     );
     if (!response.ok) {
-      throw new UnauthorizedError(
-        `Failed to fetch user: ${response.statusText}`,
-      );
+      if (response.status === 401) {
+        throw new UnauthorizedError(
+          `Failed to get user: ${response.statusText}`,
+        );
+      }
+      throw new Error(`Failed to get user: ${response.statusText}`);
     }
     const json = await response.json();
     const data = ZVRCUser.safeParse(json);

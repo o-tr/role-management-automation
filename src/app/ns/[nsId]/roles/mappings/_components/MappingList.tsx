@@ -83,6 +83,7 @@ export const columns: ColumnDef<InternalMapping>[] = [
     id: "buttons",
     cell: ({ row }) => {
       const [isModalOpen, setIsModalOpen] = useState(false);
+      useOnServiceGroupMappingChange(() => setIsModalOpen(false));
 
       return (
         <div className="flex flex-col gap-2">

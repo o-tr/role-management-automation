@@ -16,8 +16,12 @@ import {
 } from "@tanstack/react-table";
 import type { FC } from "react";
 
+export type TColumnDef<T> = ColumnDef<T> & {
+  widthPercent?: number;
+};
+
 interface DataTableProps<T> {
-  columns: ColumnDef<T>[];
+  columns: TColumnDef<T>[];
   data: T[];
   selected?: FC<{ selected: RowModel<T> }>;
   className?: string;
@@ -46,15 +50,20 @@ export function DataTable<T>({
                 {headerGroup.headers.map((header) => {
                   const column = columns.find((v) => v.id === header.id);
 
-                  const size = column?.size || 0;
-                  const maxSize = column?.maxSize || 0;
+                  const size = column?.size ? `${column.size}px` : undefined;
+                  const sizePercent = column?.widthPercent
+                    ? `${column.widthPercent}%`
+                    : undefined;
+                  const maxSize = column?.maxSize
+                    ? `${column.maxSize}px`
+                    : undefined;
 
                   return (
                     <TableHead
                       key={header.id}
                       style={{
-                        width: size > 0 ? `${size}px` : undefined,
-                        maxWidth: maxSize ? `${maxSize}px` : undefined,
+                        width: size || sizePercent,
+                        maxWidth: maxSize,
                       }}
                     >
                       {header.isPlaceholder

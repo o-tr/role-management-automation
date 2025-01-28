@@ -1,5 +1,6 @@
 "use client";
 import type { GetSerializedMappingsResponse } from "@/app/api/ns/[nsId]/mappings/route";
+import { convertTSerializedMappingToTMapping } from "@/lib/prisma/convert/convertTSerializedMappingToTMapping";
 import type { TMapping } from "@/types/prisma";
 import { useMemo } from "react";
 import useSWR from "swr";
@@ -15,11 +16,7 @@ export const useMappings = (nsId: string) => {
     });
   const mappings = useMemo(() => {
     if (data?.status !== "success") return undefined;
-    return data.mappings.map<TMapping>((mapping) => ({
-      ...mapping,
-      conditions: JSON.parse(mapping.conditions),
-      actions: JSON.parse(mapping.actions),
-    }));
+    return data.mappings.map<TMapping>(convertTSerializedMappingToTMapping);
   }, [data]);
 
   return { mappings, isPending: isLoading, error, refetch: mutate };

@@ -22,9 +22,12 @@ export const getGroupRoles = retry(
       }),
     );
     if (!response.ok) {
-      throw new UnauthorizedError(
-        `Failed to get group: ${response.statusText}`,
-      );
+      if (response.status === 401) {
+        throw new UnauthorizedError(
+          `Failed to get group: ${response.statusText}`,
+        );
+      }
+      throw new Error(`Failed to get group: ${response.statusText}`);
     }
     const data = z.array(ZVRCGroupRole).safeParse(await response.json());
     if (!data.success) {

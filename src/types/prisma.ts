@@ -4,6 +4,12 @@ import { z } from "zod";
 import type { TMappingAction } from "./actions";
 import type { TMappingCondition } from "./conditions";
 
+export const ZExternalServiceName = z.union([
+  z.literal("DISCORD"),
+  z.literal("VRCHAT"),
+  z.literal("GITHUB"),
+]);
+
 export const ZUserId = z.string().uuid().brand("UserId");
 export type TUserId = z.infer<typeof ZUserId>;
 export type TUser = {
@@ -37,11 +43,12 @@ export type TNamespaceWithRelation = {
 
 export const ZTagId = z.string().uuid().brand("TagId");
 export type TTagId = z.infer<typeof ZTagId>;
-export type TTag = {
-  id: TTagId;
-  name: string;
-  namespaceId: TNamespaceId;
-};
+export const ZTag = z.object({
+  id: ZTagId,
+  namespaceId: ZNamespaceId,
+  name: z.string(),
+});
+export type TTag = z.infer<typeof ZTag>;
 
 export const ZExternalServiceAccountId = z
   .string()
@@ -50,14 +57,15 @@ export const ZExternalServiceAccountId = z
 export type TExternalServiceAccountId = z.infer<
   typeof ZExternalServiceAccountId
 >;
-export type TExternalServiceAccount = {
-  id: TExternalServiceAccountId;
-  name: string;
-  service: ExternalServiceName;
-  credential: string;
-  icon?: string;
-  namespaceId: TNamespaceId;
-};
+export const ZExternalServiceAccount = z.object({
+  id: ZExternalServiceAccountId,
+  name: z.string(),
+  service: ZExternalServiceName,
+  credential: z.string(),
+  icon: z.string().optional(),
+  namespaceId: ZNamespaceId,
+});
+export type TExternalServiceAccount = z.infer<typeof ZExternalServiceAccount>;
 
 export type FExternalServiceAccount = Omit<
   TExternalServiceAccount,
@@ -81,26 +89,35 @@ export const ZExternalServiceGroupId = z
   .uuid()
   .brand("ExternalServiceGroupId");
 export type TExternalServiceGroupId = z.infer<typeof ZExternalServiceGroupId>;
-export type TExternalServiceGroup = {
-  id: TExternalServiceGroupId;
-  namespaceId: TNamespaceId;
-  name: string;
-  service: ExternalServiceName;
-  icon?: string;
-  groupId: string;
-};
+export const ZExternalServiceGroup = z.object({
+  id: ZExternalServiceGroupId,
+  namespaceId: ZNamespaceId,
+  name: z.string(),
+  service: ZExternalServiceName,
+  icon: z.string().optional(),
+  groupId: z.string(),
+});
+export type TExternalServiceGroup = z.infer<typeof ZExternalServiceGroup>;
 
-export type TExternalServiceGroupWithAccount = TExternalServiceGroup & {
-  account: TExternalServiceAccount;
-};
+export const ZExternalServiceGroupWithAccount = ZExternalServiceGroup.merge(
+  z.object({
+    account: ZExternalServiceAccount,
+  }),
+);
+export type TExternalServiceGroupWithAccount = z.infer<
+  typeof ZExternalServiceGroupWithAccount
+>;
 
-export type TExternalServiceGroupMember = {
-  serviceId: string;
-  serviceUsername?: string;
-  name: string;
-  icon?: string;
-  roleIds: string[];
-};
+export const ZExternalServiceGroupMember = z.object({
+  serviceId: z.string(),
+  serviceUsername: z.string().optional(),
+  name: z.string(),
+  icon: z.string().optional(),
+  roleIds: z.array(z.string()),
+});
+export type TExternalServiceGroupMember = z.infer<
+  typeof ZExternalServiceGroupMember
+>;
 
 export type TExternalServiceGroupRole = {
   id: string;
@@ -125,14 +142,6 @@ export type TMapping = {
 
 export const ZMemberId = z.string().uuid().brand("MemberId");
 export type TMemberId = z.infer<typeof ZMemberId>;
-export type TMember = {
-  id: TMemberId;
-  namespaceId: TNamespaceId;
-};
-export type TMemberWithRelation = TMember & {
-  tags: TTag[];
-  externalAccounts: TMemberExternalServiceAccount[];
-};
 
 export const ZMemberExternalServiceAccountId = z
   .string()
@@ -141,22 +150,32 @@ export const ZMemberExternalServiceAccountId = z
 export type TMemberExternalServiceAccountId = z.infer<
   typeof ZMemberExternalServiceAccountId
 >;
-export type TMemberExternalServiceAccount = {
-  id: TMemberExternalServiceAccountId;
-  service: ExternalServiceName;
-  serviceId: string;
-  serviceUsername?: string;
-  name: string;
-  icon: string | undefined;
-  memberId: TMemberId;
-  namespaceId: TNamespaceId;
-};
+export const ZMemberExternalServiceAccount = z.object({
+  id: ZMemberExternalServiceAccountId,
+  service: ZExternalServiceName,
+  serviceId: z.string(),
+  serviceUsername: z.string().optional(),
+  name: z.string(),
+  icon: z.string().optional(),
+  memberId: ZMemberId,
+  namespaceId: ZNamespaceId,
+});
+export type TMemberExternalServiceAccount = z.infer<
+  typeof ZMemberExternalServiceAccount
+>;
 
-export const ZExternalServiceName = z.union([
-  z.literal("DISCORD"),
-  z.literal("VRCHAT"),
-  z.literal("GITHUB"),
-]);
+export const ZMember = z.object({
+  id: ZMemberId,
+  namespaceId: ZNamespaceId,
+});
+export type TMember = z.infer<typeof ZMember>;
+export const ZMemberWithRelation = z
+  .object({
+    tags: z.array(ZTag),
+    externalAccounts: z.array(ZMemberExternalServiceAccount),
+  })
+  .merge(ZMember);
+export type TMemberWithRelation = z.infer<typeof ZMemberWithRelation>;
 
 export const ZServiceRoleId = z.string().brand("ServiceRoleId");
 export type TServiceRoleId = z.infer<typeof ZServiceRoleId>;

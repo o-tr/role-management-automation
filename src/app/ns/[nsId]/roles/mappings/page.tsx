@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -38,33 +37,21 @@ export default function GroupTagsPage({
 
   return (
     <div>
-      <div className="flex flex-row justify-end">
+      <div className="flex flex-row justify-end space-x-4">
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogTrigger asChild>
             <Button>割り当てを追加</Button>
           </DialogTrigger>
-          <DialogContent className="max-w-7xl">
-            <DialogHeader>
-              <DialogTitle>割り当てを追加</DialogTitle>
-              <DialogDescription>
-                <AddMapping nsId={namespace.id} />
-              </DialogDescription>
-            </DialogHeader>
-          </DialogContent>
-        </Dialog>
-        <Dialog open={isDiffModalOpen} onOpenChange={setIsDiffModalOpen}>
-          <DialogTrigger asChild>
-            <Button>差分を表示</Button>
-          </DialogTrigger>
           <DialogContent className="max-w-7xl max-h-[90dvh] flex flex-col flex-nowrap">
             <DialogHeader>
-              <DialogTitle>割り当ての差分</DialogTitle>
+              <DialogTitle>割り当てを追加</DialogTitle>
             </DialogHeader>
-            <div className="p-4 overflow-y-auto h-full">
-              {isDiffModalOpen && <Compare nsId={namespace.id} />}
+            <div className="flex-grow-0 overflow-y-scroll">
+              <AddMapping nsId={namespace.id} />
             </div>
           </DialogContent>
         </Dialog>
+        <Compare nsId={namespace.id} />
       </div>
       <MappingList namespaceId={namespace.id} />
       <BreadcrumbUpdater paths={paths} />

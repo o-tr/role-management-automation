@@ -1,94 +1,59 @@
-import { DataTable } from "@/app/ns/[nsId]/components/DataTable";
-import { MemberExternalAccountDisplay } from "@/app/ns/[nsId]/components/MemberExternalAccountDisplay";
-import { Checkbox } from "@/components/ui/checkbox";
+import type { ApplyDiffResult } from "@/app/api/ns/[nsId]/mappings/apply/applyDiff";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import type { TNamespaceId } from "@/types/prisma";
-import type { ColumnDef, RowModel } from "@tanstack/react-table";
-import type { FC } from "react";
-import { DIffItemDisplay } from "./DiffItemDisplay";
-import { type TMemberWithDiff, useCompare } from "./_hooks/useCompare";
+import { type FC, useCallback, useState } from "react";
+import { DiffList } from "./DiffList";
+import { MappingDiffList } from "./MappingDiffList";
 
 type Props = {
   nsId: TNamespaceId;
 };
 
-export const columns: ColumnDef<TMemberWithDiff>[] = [
-  {
-    id: "vrchat",
-    header: "VRChat",
-    cell: ({ row }) => {
-      const account = row.original.member.externalAccounts.find(
-        (account) => account.service === "VRCHAT",
-      );
-      if (!account) return null;
-      return <MemberExternalAccountDisplay data={account} />;
-    },
-  },
-  {
-    id: "discord",
-    header: "Discord",
-    cell: ({ row }) => {
-      const account = row.original.member.externalAccounts.find(
-        (account) => account.service === "DISCORD",
-      );
-      if (!account) return null;
-      return <MemberExternalAccountDisplay data={account} />;
-    },
-  },
-  {
-    id: "github",
-    header: "GitHub",
-    cell: ({ row }) => {
-      const account = row.original.member.externalAccounts.find(
-        (account) => account.service === "GITHUB",
-      );
-      if (!account) return null;
-      return <MemberExternalAccountDisplay data={account} />;
-    },
-  },
-  {
-    id: "tags",
-    header: "Tags",
-    cell: ({ row }) => {
-      return (
-        <div className="flex flex-wrap">
-          {row.original.member.tags.map((tag) => (
-            <span
-              key={tag.id}
-              className="bg-gray-200 px-2 py-1 rounded-full text-sm font-semibold text-gray-700 mr-2"
-            >
-              {tag.name}
-            </span>
-          ))}
-        </div>
-      );
-    },
-  },
-  {
-    id: "diff",
-    header: "Diff",
-    cell: ({ row }) => {
-      return (
-        <div className="flex flex-col gap-2">
-          {row.original.diff.map((diff) => (
-            <DIffItemDisplay key={diff.groupMember.serviceId} item={diff} />
-          ))}
-        </div>
-      );
-    },
-  },
-];
-
-const Selected: FC<{ selected: RowModel<TMemberWithDiff> }> = ({
-  selected,
-}) => {
-  return <div />;
-};
-
 export const Compare: FC<Props> = ({ nsId }) => {
-  const { isPending, diff } = useCompare(nsId);
-  if (isPending) {
-    return <div>Loading...</div>;
-  }
-
-  return <DataTable columns={columns} data={diff || []} selected={Selected} />;
+  const [isDiffModalOpen, setIsDiffModalOpen] = useState(false);
+  const [applyResult, setApplyResult] = useState<ApplyDiffResult[] | undefined>(
+    [],
+  );
+  const onApplyResult = useCallback((result: ApplyDiffResult[]) => {
+    setIsDiffModalOpen(false);
+    setApplyResult(result);
+  }, []);
+  return (
+    <>
+      <Dialog open={isDiffModalOpen} onOpenChange={setIsDiffModalOpen}>
+        <DialogTrigger asChild>
+          <Button>差分を表示</Button>
+        </DialogTrigger>
+        <DialogContent className="max-w-7xl max-h-[90dvh] flex flex-col flex-nowrap">
+          <DialogHeader>
+            <DialogTitle>割り当ての差分</DialogTitle>
+          </DialogHeader>
+          <div className="p-4 overflow-y-auto h-full">
+            {isDiffModalOpen && (
+              <DiffList nsId={nsId} onApplyResult={onApplyResult} />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={!!applyResult?.length}>
+        <DialogContent className="max-w-7xl max-h-[90dvh] flex flex-col flex-nowrap">
+          <DialogHeader>
+            <DialogTitle>適用結果</DialogTitle>
+          </DialogHeader>
+          {applyResult && <MappingDiffList data={applyResult} />}
+          <DialogFooter>
+            <Button onClick={() => setApplyResult(undefined)}>閉じる</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
 };

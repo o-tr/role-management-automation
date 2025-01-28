@@ -48,7 +48,12 @@ export const listGroupMembers = retry(
       ),
     );
     if (!response.ok) {
-      throw new Error(`Failed to fetch user: ${response.statusText}`);
+      if (response.status === 401) {
+        throw new UnauthorizedError(
+          `Failed to get group: ${response.statusText}`,
+        );
+      }
+      throw new Error(`Failed to get group: ${response.statusText}`);
     }
     const json = await response.json();
     const data = z.array(ZVRCGroupMember).safeParse(json);

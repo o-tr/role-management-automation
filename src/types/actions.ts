@@ -1,5 +1,12 @@
 import { z } from "zod";
-import { type TServiceRoleId, ZServiceRoleId } from "./prisma";
+import {
+  type TExternalServiceAccountId,
+  type TExternalServiceGroupId,
+  type TServiceRoleId,
+  ZExternalServiceAccountId,
+  ZExternalServiceGroupId,
+  ZServiceRoleId,
+} from "./prisma";
 
 export const ZMappingActionId = z
   .string()
@@ -17,8 +24,8 @@ export const ZMappingActions = ["add", "remove"] as const;
 export const ZMappingAction = z.object({
   id: ZMappingActionId,
   type: ZMappingActionType,
-  targetServiceAccountId: z.string().uuid(),
-  targetServiceGroupId: z.string().uuid(),
+  targetServiceAccountId: ZExternalServiceAccountId,
+  targetServiceGroupId: ZExternalServiceGroupId,
   targetServiceRoleId: ZServiceRoleId,
 });
 
@@ -30,8 +37,8 @@ export const createNewMappingAction = (
   return {
     id: crypto.randomUUID() as TMappingActionId,
     type,
-    targetServiceAccountId: "",
-    targetServiceGroupId: "",
+    targetServiceAccountId: "" as TExternalServiceAccountId,
+    targetServiceGroupId: "" as TExternalServiceGroupId,
     targetServiceRoleId: "" as TServiceRoleId,
   };
 };

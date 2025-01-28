@@ -1,5 +1,5 @@
 import type { GetExternalServiceGroupMembersResponse } from "@/app/api/ns/[nsId]/services/accounts/[accountId]/groups/[groupId]/members/route";
-import type { TargetGroup } from "@/lib/memberDiff";
+import type { TargetGroup } from "@/lib/mapping/memberDiff";
 import { useMemo } from "react";
 import useSWR from "swr";
 
@@ -7,7 +7,7 @@ const fetcher = (url: string) =>
   Promise.all(url.split(",").map((u) => fetch(u).then((res) => res.json())));
 
 export const useGroupMembers = (nsId: string, groups: TargetGroup[]) => {
-  const { data, error, isLoading } = useSWR<
+  const { data, error, isLoading, mutate } = useSWR<
     GetExternalServiceGroupMembersResponse[]
   >(
     groups
@@ -30,11 +30,10 @@ export const useGroupMembers = (nsId: string, groups: TargetGroup[]) => {
     return data.filter((v) => v.status === "success").map((v) => v.data);
   }, [data]);
 
-  console.log("groupMembers", groupMembers);
-
   return {
     groupMembers,
     isLoading,
     error,
+    refetch: mutate,
   };
 };
