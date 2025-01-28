@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { discordLimit } from "../plimit";
-import { ZDiscordGuildList } from "../types/application";
-import { ZDiscordGuildMember } from "../types/guild";
+import { type DiscordGuildId, ZDiscordGuildMember } from "../types/guild";
+import type { DiscordToken } from "../types/token";
 
 type Options = {
   limit?: number;
@@ -9,8 +9,8 @@ type Options = {
 };
 
 export const listGuildMembers = async (
-  token: string,
-  guildId: string,
+  token: DiscordToken,
+  guildId: DiscordGuildId,
   options: Options = {},
 ) => {
   const query = new URLSearchParams({

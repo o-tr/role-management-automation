@@ -1,7 +1,8 @@
 import { discordLimit } from "../plimit";
 import { ZDiscordGuildList } from "../types/application";
+import type { DiscordToken } from "../types/token";
 
-export const getBelongGuilds = async (token: string) => {
+export const getBelongGuilds = async (token: DiscordToken) => {
   const response = await discordLimit(() =>
     fetch("https://discord.com/api/v10/users/@me/guilds", {
       headers: {

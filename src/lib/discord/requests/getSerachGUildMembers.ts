@@ -1,12 +1,11 @@
-import { sleep } from "@/lib/sleep";
-import pLimit from "p-limit";
 import { z } from "zod";
 import { discordLimit } from "../plimit";
-import { ZDiscordGuildMember } from "../types/guild";
+import { type DiscordGuildId, ZDiscordGuildMember } from "../types/guild";
+import type { DiscordToken } from "../types/token";
 
 export const getSearchGuildMembers = async (
-  token: string,
-  guildId: string,
+  token: DiscordToken,
+  guildId: DiscordGuildId,
   query: string,
 ) => {
   const response = await discordLimit(() =>

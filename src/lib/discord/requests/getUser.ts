@@ -1,7 +1,8 @@
 import { discordLimit } from "../plimit";
-import { ZDiscordUser } from "../types/user";
+import type { DiscordToken } from "../types/token";
+import { type DiscordUserId, ZDiscordUser } from "../types/user";
 
-export const getUser = async (token: string, userId: string) => {
+export const getUser = async (token: DiscordToken, userId: DiscordUserId) => {
   const response = await discordLimit(() =>
     fetch(`https://discord.com/api/v10/users/${userId}`, {
       headers: {

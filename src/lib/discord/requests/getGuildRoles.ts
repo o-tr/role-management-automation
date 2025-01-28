@@ -1,8 +1,12 @@
 import { z } from "zod";
 import { discordLimit } from "../plimit";
-import { ZDiscordGuildRole } from "../types/guild";
+import { type DiscordGuildId, ZDiscordGuildRole } from "../types/guild";
+import type { DiscordToken } from "../types/token";
 
-export const getGuildRoles = async (token: string, guildId: string) => {
+export const getGuildRoles = async (
+  token: DiscordToken,
+  guildId: DiscordGuildId,
+) => {
   const response = await discordLimit(() =>
     fetch(`https://discord.com/api/v10/guilds/${guildId}/roles`, {
       headers: {

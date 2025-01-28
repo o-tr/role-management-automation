@@ -1,7 +1,11 @@
 import { z } from "zod";
 
+export const ZDiscordGuildId = z
+  .string()
+  .brand<"DiscordGuildId">("DiscordGuildId");
+export type DiscordGuildId = z.infer<typeof ZDiscordGuildId>;
 export const ZDiscordGuild = z.object({
-  id: z.string(),
+  id: ZDiscordGuildId,
   name: z.string(),
   icon: z.string().optional(),
 });
