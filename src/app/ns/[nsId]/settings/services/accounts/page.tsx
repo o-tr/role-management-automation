@@ -30,7 +30,7 @@ export default function AuthenticationPage({
   params: { nsId: TNamespaceId };
 }) {
   return (
-    <div className="space-y-4">
+    <div className="h-full overflow-y-hidden flex flex-col">
       <BreadcrumbUpdater paths={paths} />
       <Dialog>
         <div className="flex flex-row justify-end">

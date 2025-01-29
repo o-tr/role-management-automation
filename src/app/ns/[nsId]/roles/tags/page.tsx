@@ -13,7 +13,7 @@ export default function GroupTagsPage({
   params: { nsId: TNamespaceId };
 }) {
   return (
-    <div>
+    <div className="h-full overflow-y-hidden flex flex-col">
       <TagList namespaceId={params.nsId} />
       <BreadcrumbUpdater paths={paths} />
     </div>

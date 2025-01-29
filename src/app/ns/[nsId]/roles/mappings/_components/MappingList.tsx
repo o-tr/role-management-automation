@@ -1,17 +1,15 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import type { TMapping } from "@/types/prisma";
-import type { ColumnDef } from "@tanstack/react-table";
-
 import {
   CommonCheckboxCell,
   CommonCheckboxHeader,
   DataTable,
+  type TColumnDef,
 } from "@/app/ns/[nsId]/components/DataTable";
 import { useMappings } from "@/app/ns/[nsId]/roles/_hooks/use-mappings";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
 import { deleteMapping } from "@/requests/deleteMapping";
+import type { TMapping } from "@/types/prisma";
 import {
   onServiceGroupMappingChange,
   useOnServiceGroupMappingChange,
@@ -32,7 +30,7 @@ import { EditMapping } from "./EditMapping";
 
 type InternalMapping = TMapping & { namespaceId: string };
 
-export const columns: ColumnDef<InternalMapping>[] = [
+export const columns: TColumnDef<InternalMapping>[] = [
   {
     id: "select",
     header: CommonCheckboxHeader,
@@ -51,6 +49,7 @@ export const columns: ColumnDef<InternalMapping>[] = [
         />
       </div>
     ),
+    widthPercent: 30,
   },
   {
     id: "actions",
@@ -63,6 +62,7 @@ export const columns: ColumnDef<InternalMapping>[] = [
         />
       </div>
     ),
+    widthPercent: 60,
   },
   {
     id: "buttons",
@@ -71,7 +71,7 @@ export const columns: ColumnDef<InternalMapping>[] = [
       useOnServiceGroupMappingChange(() => setIsModalOpen(false));
 
       return (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-row gap-2">
           <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
             <DialogTrigger asChild>
               <Button variant="outline">編集</Button>
@@ -99,7 +99,7 @@ export const columns: ColumnDef<InternalMapping>[] = [
         </div>
       );
     },
-    size: 100,
+    size: 150,
   },
 ];
 
@@ -121,12 +121,16 @@ export function MappingList({ namespaceId }: TagListProps) {
   if (isPending || !mappings) return <div>Loading...</div>;
 
   return (
-    <div className="mt-6">
+    <div className="overflow-y-hidden">
       <DataTable
         columns={columns}
         data={mappings.map((v) => ({ ...v, namespaceId }))}
         footer={({ table }) => {
           const selected = table.getSelectedRowModel();
+          if (selected.rows.length === 0) {
+            return <div className="h-[40px]">&nbsp;</div>;
+          }
+
           return (
             <div>
               <Button

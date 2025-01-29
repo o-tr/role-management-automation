@@ -36,7 +36,7 @@ export default function GroupTagsPage({
   }
 
   return (
-    <div>
+    <div className="overflow-y-hidden h-full flex flex-col space-y-4">
       <div className="flex flex-row justify-end space-x-4">
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogTrigger asChild>

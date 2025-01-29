@@ -29,7 +29,9 @@ export default function RootLayout({
               <ModeToggle />
             </div>
           </header>
-          <main className={"px-4 flex-grow-0 overflow-hidden"}>{children}</main>
+          <main className={"px-4 flex-grow-0 overflow-hidden pb-4"}>
+            {children}
+          </main>
         </SidebarInset>
       </BreadcrumbProvider>
     </SidebarProvider>

@@ -28,7 +28,7 @@ export const ConditionsDisplay: FC<Props> = ({ conditions, nsId }) => {
     const tag = tags?.find((t) => t.id === conditions.value);
 
     return (
-      <Card className="p-2 space-x-1 flex-row items-center">
+      <Card className="p-2 gap-1 flex flex-row items-center flex-wrap">
         <span>{keysLabel[conditions.key]}</span>
         {tag ? (
           <TagDisplay tag={tag} display="inline" />

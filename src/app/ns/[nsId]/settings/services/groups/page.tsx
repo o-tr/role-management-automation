@@ -21,7 +21,7 @@ export default async function GroupProvidersPage({
   params: { nsId: TNamespaceId };
 }) {
   return (
-    <div className="space-y-2">
+    <div className="h-full overflow-y-hidden flex flex-col gap-2">
       <BreadcrumbUpdater paths={paths} />
       <GroupList nsId={params.nsId} />
       <AddGroup nsId={params.nsId} />

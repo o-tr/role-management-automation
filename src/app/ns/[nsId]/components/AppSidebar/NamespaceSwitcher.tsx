@@ -55,10 +55,6 @@ export const NamespaceSwitcher: FC = () => {
 
   useOnNsChange(onNsChange);
 
-  if (isPending || !namespaces) {
-    return <p>Loading...</p>;
-  }
-
   return (
     <>
       <Dialog open={createDialogOpen}>
@@ -94,7 +90,7 @@ export const NamespaceSwitcher: FC = () => {
                 <DropdownMenuLabel className="text-xs text-muted-foreground">
                   Teams
                 </DropdownMenuLabel>
-                {namespaces.map((namespace) => (
+                {namespaces?.map((namespace) => (
                   <Link href={`/ns/${namespace.id}`} key={namespace.id}>
                     <DropdownMenuItem
                       key={namespace.name}

@@ -81,8 +81,7 @@ export function TagList({ namespaceId }: TagListProps) {
   }
 
   return (
-    <div className="mt-6">
-      <h2 className="text-xl font-semibold mb-3">タグ</h2>
+    <div className="overflow-y-hidden">
       <DataTable
         columns={columns}
         data={tags?.map((v) => ({ ...v, namespaceId })) || []}

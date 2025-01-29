@@ -42,7 +42,7 @@ const ActionDisplay: FC<ActionDisplayProps> = ({ action, nsId }) => {
   const role = roles?.find((r) => r.id === action.targetServiceRoleId);
 
   return (
-    <Card className="p-2 flex flex-row items-center space-x-2 flex-wrap">
+    <Card className="p-2 flex flex-row items-center gap-2 flex-wrap">
       {account && <ServiceAccountDisplay account={account} />}
       {group && <ServiceGroupDisplay group={group} />}
       <span>の</span>
