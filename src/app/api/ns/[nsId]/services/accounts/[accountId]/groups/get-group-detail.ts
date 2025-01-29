@@ -1,7 +1,11 @@
 import { getGuild } from "@/lib/discord/requests/getGuild";
 import type { DiscordGuildId } from "@/lib/discord/types/guild";
+import { generateJWT } from "@/lib/github/generateJWT";
+import { getInstallationForAuthenticatedApp } from "@/lib/github/requests/getInstallationForAuthenticatedApp";
+
+import type { GitHubAppInstallationId } from "@/lib/github/types/AppInstallation";
 import { getGroup } from "@/lib/vrchat/requests/getGroup";
-import { ZDiscordCredentials, ZVRChatCredentials } from "@/types/credentials";
+import { ZDiscordCredentials, ZGithubCredentials } from "@/types/credentials";
 import type { TExternalServiceAccount } from "@/types/prisma";
 import type { ExternalServiceName } from "@prisma/client";
 
@@ -21,6 +25,11 @@ export const getGroupDetail = async (
       return getDiscordGroupDetail(serviceAccount, groupId);
     case "VRCHAT":
       return getVRChatGroupDetail(serviceAccount, groupId);
+    case "GITHUB":
+      return getGitHubAvailableOrganizations(
+        serviceAccount,
+        Number(groupId) as GitHubAppInstallationId,
+      );
     default:
       throw new Error(`Unsupported service: ${serviceAccount.service}`);
   }
@@ -52,5 +61,25 @@ const getVRChatGroupDetail = async (
     icon: group.iconUrl,
     service: "VRCHAT" as ExternalServiceName,
     groupId: group.id,
+  };
+};
+
+const getGitHubAvailableOrganizations = async (
+  serviceAccount: TExternalServiceAccount,
+  installationId: GitHubAppInstallationId,
+): Promise<GroupDetailResult> => {
+  const credential = ZGithubCredentials.parse(
+    JSON.parse(serviceAccount.credential),
+  );
+  const jwt = generateJWT(credential.clientId, credential.privateKey);
+  const installation = await getInstallationForAuthenticatedApp(
+    jwt,
+    installationId,
+  );
+  return {
+    name: installation.account.login,
+    icon: installation.account.avatar_url,
+    service: "GITHUB" as ExternalServiceName,
+    groupId: `${installation.id}`,
   };
 };

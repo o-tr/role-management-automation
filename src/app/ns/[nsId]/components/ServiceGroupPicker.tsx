@@ -34,7 +34,7 @@ export const ServiceGroupPicker: FC<Props> = ({
           </SelectItem>
         ) : (
           groups.map((group) => (
-            <SelectItem key={group.id} value={group.id}>
+            <SelectItem key={group.id} value={`${group.id}`}>
               <ServiceGroupDisplay group={group} />
             </SelectItem>
           ))

@@ -1,6 +1,8 @@
 import { getBelongGuilds } from "@/lib/discord/requests/getBelongGuilds";
+import { generateJWT } from "@/lib/github/generateJWT";
+import { listInstallationsForAuthenticatedApp } from "@/lib/github/requests/listInstallationsForAuthenticatedApp";
 import { getUserGroups } from "@/lib/vrchat/requests/getUserGroups";
-import { ZDiscordCredentials } from "@/types/credentials";
+import { ZDiscordCredentials, ZGithubCredentials } from "@/types/credentials";
 import type {
   TAvailableGroup,
   TAvailableGroupId,
@@ -15,6 +17,8 @@ export const getAvailableGroups = async (
       return await getDiscordAvailableGroups(serviceAccount);
     case "VRCHAT":
       return await getVRChatAvailableGroups(serviceAccount);
+    case "GITHUB":
+      return await getGitHubAvailableOrganizations(serviceAccount);
     default:
       throw new Error(`Unsupported service: ${serviceAccount.service}`);
   }
@@ -44,5 +48,21 @@ const getVRChatAvailableGroups = async (
     name: group.name,
     icon: group.iconUrl,
     href: `https://vrchat.com/home/group/${group.groupId}`,
+  }));
+};
+
+const getGitHubAvailableOrganizations = async (
+  serviceAccount: TExternalServiceAccount,
+): Promise<TAvailableGroup[]> => {
+  const credential = ZGithubCredentials.parse(
+    JSON.parse(serviceAccount.credential),
+  );
+  const jwt = generateJWT(credential.clientId, credential.privateKey);
+  const installations = await listInstallationsForAuthenticatedApp(jwt);
+  return installations.map((installation) => ({
+    id: installation.id,
+    name: installation.account.login,
+    icon: installation.account.avatar_url,
+    href: installation.account.html_url,
   }));
 };

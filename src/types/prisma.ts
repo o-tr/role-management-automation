@@ -1,3 +1,5 @@
+import { ZGitHubAccountId } from "@/lib/github/types/Account";
+import { ZGitHubAppInstallationId } from "@/lib/github/types/AppInstallation";
 import { ZVRCGroupId } from "@/lib/vrchat/types/brand";
 import type { ExternalServiceName } from "@prisma/client";
 import { z } from "zod";
@@ -111,6 +113,7 @@ export const ZAvailableGroupId = z.union([
   z.string().uuid().brand("AvailableGroupId"),
   ZVRCGroupId,
   ZExternalServiceGroupId,
+  ZGitHubAppInstallationId,
 ]);
 export type TAvailableGroupId = z.infer<typeof ZAvailableGroupId>;
 export type TAvailableGroup = {

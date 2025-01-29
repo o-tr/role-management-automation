@@ -38,6 +38,7 @@ export const AddGroup = ({ nsId }: { nsId: string }) => {
     setAccountId("");
     setGroupId("");
   };
+  console.log(groupId);
 
   if (isPending) {
     return <div>Loading...</div>;
