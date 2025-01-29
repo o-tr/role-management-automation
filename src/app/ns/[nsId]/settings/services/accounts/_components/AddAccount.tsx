@@ -11,7 +11,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import type { DiscordToken } from "@/lib/discord/types/token";
+import type {
+  GitHubAppClientId,
+  GitHubAppClientSecret,
+} from "@/lib/github/types/app";
 import {
   type DiscordCredentials,
   type GithubCredentials,
@@ -36,7 +41,9 @@ export type ServiceOption = {
 export type CredentialInputProps<T> = {
   disabled: boolean;
   credential: T;
-  handleCredentialChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  handleCredentialChange: (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => void;
 };
 
 const serviceOptions: ServiceOption[] = [
@@ -113,10 +120,18 @@ const GithubCredentialsInput: FC<CredentialInputProps<GithubCredentials>> = ({
   <FormItem>
     <Input
       type="text"
-      name="token"
-      value={credential.token}
+      name="clientId"
+      value={credential.clientId}
       onChange={handleCredentialChange}
-      placeholder="GitHub App Token"
+      placeholder="GitHub App Client ID"
+      required
+      disabled={disabled}
+    />
+    <Textarea
+      name="privateKey"
+      value={credential.privateKey}
+      onChange={handleCredentialChange}
+      placeholder="GitHub App Private Key"
       required
       disabled={disabled}
     />
@@ -133,11 +148,15 @@ export const AddAccount: FC<Props> = ({ nsId }) => {
     username: string;
     password: string;
     totp: string;
+    clientId: GitHubAppClientId | string;
+    privateKey: GitHubAppClientSecret | string;
   }>({
     token: "",
     username: "",
     password: "",
     totp: "",
+    clientId: "",
+    privateKey: "",
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -180,11 +199,20 @@ export const AddAccount: FC<Props> = ({ nsId }) => {
       setSuccess("Service account created successfully");
       setName("");
       setService(serviceOptions[0].value);
-      setCredential({ token: "", username: "", password: "", totp: "" });
+      setCredential({
+        token: "",
+        username: "",
+        password: "",
+        totp: "",
+        clientId: "",
+        privateKey: "",
+      });
     }
   };
 
-  const handleCredentialChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleCredentialChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     setCredential({ ...credential, [e.target.name]: e.target.value });
   };
 
@@ -241,7 +269,8 @@ export const AddAccount: FC<Props> = ({ nsId }) => {
       {service === "GITHUB" && (
         <GithubCredentialsInput
           credential={{
-            token: credential.token,
+            clientId: credential.clientId as GitHubAppClientId,
+            privateKey: credential.privateKey as GitHubAppClientSecret,
           }}
           handleCredentialChange={handleCredentialChange}
           disabled={loading}

@@ -1,5 +1,9 @@
 import { ZDiscordToken } from "@/lib/discord/types/token";
 import {
+  ZGitHubAppClientId,
+  ZGitHubAppClientSecret,
+} from "@/lib/github/types/app";
+import {
   ZVRCToken,
   ZVRCTwoFactorAuth,
   ZVRCUserId,
@@ -29,6 +33,7 @@ export const ZVRChatCredentials = z.object({
 export type VRChatCredentials = z.infer<typeof ZVRChatCredentials>;
 
 export const ZGithubCredentials = z.object({
-  token: z.string(),
+  clientId: ZGitHubAppClientId,
+  privateKey: ZGitHubAppClientSecret,
 });
 export type GithubCredentials = z.infer<typeof ZGithubCredentials>;

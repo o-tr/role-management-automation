@@ -1,5 +1,6 @@
 import type { ExternalServiceName } from "@prisma/client";
 import { isValidBotToken } from "./discord";
+import { isValidGithubCredential } from "./github";
 import { getAccountCredentials } from "./vrchat";
 
 export const validateCredential = async (
@@ -17,6 +18,8 @@ export const validateCredential = async (
       return await isValidBotToken(credential);
     case "VRCHAT":
       return await getAccountCredentials(credential);
+    case "GITHUB":
+      return await isValidGithubCredential(credential);
     default:
       return undefined;
   }
