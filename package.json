@@ -11,7 +11,7 @@
     "format:fix": "biome format --write src",
     "lint": "biome check src",
     "lint:fix": "biome check --unsafe --write src",
-    "prepare": "lefthook install"
+    "prepare": "node -e \"process.env.CI || process.env.DOCKER || process.exit(1)\" || lefthook install"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
