@@ -1,6 +1,6 @@
 import { api } from "@/lib/api";
 import { NotFoundException } from "@/lib/exceptions/NotFoundException";
-import { prisma } from "@/lib/prisma";
+import { deleteExternalServiceGroup } from "@/lib/prisma/deleteExternalServiceGroup";
 import { getExternalServiceGroup } from "@/lib/prisma/getExternalServiceGroup";
 import { validatePermission } from "@/lib/validatePermission";
 import type {
@@ -44,11 +44,7 @@ export const DELETE = api(
       throw new NotFoundException("Service group not found");
     }
 
-    await prisma.externalServiceGroup.delete({
-      where: {
-        id: params.groupId,
-      },
-    });
+    await deleteExternalServiceGroup(params.nsId, params.groupId);
 
     return {
       status: "success",

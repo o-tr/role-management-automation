@@ -1,18 +1,15 @@
 import { api } from "@/lib/api";
 import { BadRequestException } from "@/lib/exceptions/BadRequestException";
-import { prisma } from "@/lib/prisma";
 import { createExternalServiceAccount } from "@/lib/prisma/createExternalServiceAccount";
 import { filterFExternalServiceAccount } from "@/lib/prisma/filter/filterFExternalServiceAccount";
 import { getExternalServiceAccounts } from "@/lib/prisma/getExternalServiceAccounts";
 import { validatePermission } from "@/lib/validatePermission";
 import {
   type FExternalServiceAccount,
-  type TExternalServiceAccount,
   type TNamespaceId,
   ZExternalServiceName,
 } from "@/types/prisma";
-import { getServerSession } from "next-auth/next";
-import { type NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { validateCredential } from "./validation";
 

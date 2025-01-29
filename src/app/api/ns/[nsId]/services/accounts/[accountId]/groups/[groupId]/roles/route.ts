@@ -1,6 +1,5 @@
 import { api } from "@/lib/api";
 import { NotFoundException } from "@/lib/exceptions/NotFoundException";
-import { prisma } from "@/lib/prisma";
 import { getExternalServiceGroup } from "@/lib/prisma/getExternalServiceGroup";
 import { validatePermission } from "@/lib/validatePermission";
 import type {
@@ -9,7 +8,7 @@ import type {
   TExternalServiceGroupRole,
   TNamespaceId,
 } from "@/types/prisma";
-import { type NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { getGroupRoles } from "./get-group-roles";
 
 export type GetExternalServiceGroupRolesResponse =

@@ -1,16 +1,12 @@
 import { api } from "@/lib/api";
 import { BadRequestException } from "@/lib/exceptions/BadRequestException";
-import { prisma } from "@/lib/prisma";
-import { getNamespaceWithRelation } from "@/lib/prisma/getNamespaceWithRelation";
 import { updateNamespace } from "@/lib/prisma/updateNamespace";
 import { validatePermission } from "@/lib/validatePermission";
 import type {
   TNamespaceId,
   TNamespaceWithOwnerAndAdmins,
-  TNamespaceWithRelation,
 } from "@/types/prisma";
-import { getServerSession } from "next-auth/next";
-import { type NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { z } from "zod";
 
 export type NamespaceDetailResponse = TNamespaceWithOwnerAndAdmins & {

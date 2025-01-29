@@ -1,9 +1,6 @@
-import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth/next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import MemberList from "./components/MemberList";
 
 export default async function GroupPage({
   params,

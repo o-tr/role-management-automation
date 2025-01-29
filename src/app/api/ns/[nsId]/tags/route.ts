@@ -1,14 +1,11 @@
 import { api } from "@/lib/api";
 import { BadRequestException } from "@/lib/exceptions/BadRequestException";
-import { prisma } from "@/lib/prisma";
 import { createTag } from "@/lib/prisma/createTag";
-import { formatTTag } from "@/lib/prisma/format/formatTTag";
 import { getTags } from "@/lib/prisma/getTags";
 import { validatePermission } from "@/lib/validatePermission";
 import { ZColorCode } from "@/types/brand";
 import type { TNamespaceId, TTag } from "@/types/prisma";
-import { getServerSession } from "next-auth/next";
-import { type NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { z } from "zod";
 
 export type CreateTagResponse =
