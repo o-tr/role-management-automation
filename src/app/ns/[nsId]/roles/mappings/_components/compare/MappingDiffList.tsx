@@ -3,6 +3,7 @@ import {
   type TColumnDef,
 } from "@/app/ns/[nsId]/components/DataTable";
 import { MemberExternalAccountDisplay } from "@/app/ns/[nsId]/components/MemberExternalAccountDisplay";
+import { TagDisplay } from "@/app/ns/[nsId]/components/TagDisplay";
 import type { TMemberWithDiff } from "@/types/diff";
 import type { RowModel } from "@tanstack/react-table";
 import type { FC } from "react";
@@ -54,14 +55,9 @@ export const columns: TColumnDef<InternalTMember>[] = [
     header: "Tags",
     cell: ({ row }) => {
       return (
-        <div className="flex flex-wrap">
+        <div className="flex flex-wrap gap-2">
           {row.original.member.tags.map((tag) => (
-            <span
-              key={tag.id}
-              className="bg-gray-200 px-2 py-1 rounded-full text-sm font-semibold text-gray-700 mr-2"
-            >
-              {tag.name}
-            </span>
+            <TagDisplay key={tag.id} tag={tag} />
           ))}
         </div>
       );

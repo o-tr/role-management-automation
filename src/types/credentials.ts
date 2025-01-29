@@ -1,3 +1,4 @@
+import { ZDiscordToken } from "@/lib/discord/types/token";
 import {
   ZVRCToken,
   ZVRCTwoFactorAuth,
@@ -6,7 +7,7 @@ import {
 import { z } from "zod";
 
 export const ZDiscordCredentials = z.object({
-  token: z.string(),
+  token: ZDiscordToken,
 });
 export type DiscordCredentials = z.infer<typeof ZDiscordCredentials>;
 

@@ -14,7 +14,12 @@ import {
   ZMappingActions,
   createNewMappingAction,
 } from "@/types/actions";
-import type { TServiceRoleId } from "@/types/prisma";
+import type {
+  TAvailableGroup,
+  TExternalServiceAccountId,
+  TExternalServiceGroupId,
+  TServiceRoleId,
+} from "@/types/prisma";
 import type { Dispatch, FC, SetStateAction } from "react";
 import { useServiceAccounts } from "../../../_hooks/use-service-accounts";
 import { useServiceGroups } from "../../../_hooks/use-service-groups";
@@ -101,7 +106,10 @@ const ActionsItem: FC<ActionsItemProps> = ({ action, onChange, nsId }) => {
         <ServiceAccountPicker
           accounts={accounts ?? []}
           onChange={(value) =>
-            onChange({ ...action, targetServiceAccountId: value })
+            onChange({
+              ...action,
+              targetServiceAccountId: value as TExternalServiceAccountId,
+            })
           }
           value={action.targetServiceAccountId}
         />
@@ -111,7 +119,10 @@ const ActionsItem: FC<ActionsItemProps> = ({ action, onChange, nsId }) => {
           disabled={isGroupsPending || groups.length === 0}
           groups={groups ?? []}
           onChange={(value) =>
-            onChange({ ...action, targetServiceGroupId: value })
+            onChange({
+              ...action,
+              targetServiceGroupId: value as TExternalServiceGroupId,
+            })
           }
           value={action.targetServiceGroupId}
         />
@@ -130,8 +141,11 @@ const ActionsItem: FC<ActionsItemProps> = ({ action, onChange, nsId }) => {
         >
           <SelectTrigger>
             <SelectValue>
-              {roles?.find((role) => role.id === action.targetServiceRoleId)
-                ?.name || "ロール"}
+              {selectedRole ? (
+                <ServiceGroupRoleDisplay role={selectedRole} />
+              ) : (
+                "ロール"
+              )}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>

@@ -25,6 +25,7 @@ import {
   createNewMappingCondition,
 } from "@/types/conditions";
 import type { FC } from "react";
+import { TagDisplay } from "../../../components/TagDisplay";
 import { useTags } from "../../_hooks/use-tags";
 
 type Props<T extends TMappingCondition> = {
@@ -258,6 +259,8 @@ export const ConditionsEditorComparator: FC<
 > = ({ conditions, onChange, nsId }) => {
   const { tags } = useTags(nsId);
 
+  const selectedTag = tags?.find((tag) => tag.id === conditions.value);
+
   return (
     <div className="flex flex-row space-x-1 items-center p-1">
       <FormItem>
@@ -289,13 +292,13 @@ export const ConditionsEditorComparator: FC<
         >
           <SelectTrigger>
             <SelectValue>
-              {tags?.find((tag) => tag.id === conditions.value)?.name}
+              {selectedTag && <TagDisplay tag={selectedTag} />}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {tags?.map((tag) => (
               <SelectItem key={tag.id} value={tag.id}>
-                {tag.name}
+                <TagDisplay tag={tag} />
               </SelectItem>
             ))}
           </SelectContent>

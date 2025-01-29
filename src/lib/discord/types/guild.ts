@@ -11,8 +11,12 @@ export const ZDiscordGuild = z.object({
 });
 export type DiscordGuild = z.infer<typeof ZDiscordGuild>;
 
+export const ZDiscordGuildRoleId = z
+  .string()
+  .brand<"DiscordGuildRoleId">("DiscordGuildRoleId");
+export type DiscordGuildRoleId = z.infer<typeof ZDiscordGuildRoleId>;
 export const ZDiscordGuildRole = z.object({
-  id: z.string(),
+  id: ZDiscordGuildRoleId,
   name: z.string(),
   color: z.number(),
   icon: z.string().nullable(),

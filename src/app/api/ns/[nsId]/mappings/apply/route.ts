@@ -7,8 +7,8 @@ import { getExternalServiceGroupRoleMappingsByNamespaceId } from "@/lib/prisma/g
 import { getExternalServiceGroups } from "@/lib/prisma/getExternalServiceGroups";
 import { getMembersWithRelation } from "@/lib/prisma/getMembersWithRelation";
 import { validatePermission } from "@/lib/validatePermission";
-import { type TMemberWithDiff, ZDiffItem, ZMemberWithDiff } from "@/types/diff";
-import { type TNamespaceId, ZMemberWithRelation } from "@/types/prisma";
+import { type TMemberWithDiff, ZMemberWithDiff } from "@/types/diff";
+import type { TNamespaceId } from "@/types/prisma";
 import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { getMembers } from "../../services/accounts/[accountId]/groups/[groupId]/members/getMembers";

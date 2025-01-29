@@ -5,5 +5,6 @@ export const ZVRCGroupRole = z.object({
   id: ZVRCGroupRoleId,
   groupId: ZVRCGroupId,
   name: z.string(),
+  order: z.number(),
 });
 export type VRCGroupRole = z.infer<typeof ZVRCGroupRole>;

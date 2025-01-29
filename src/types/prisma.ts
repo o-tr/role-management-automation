@@ -74,18 +74,6 @@ export type FExternalServiceAccount = Omit<
   "credential"
 >;
 
-export const ZAvailableGroupId = z.union([
-  z.string().uuid().brand("AvailableGroupId"),
-  ZVRCGroupId,
-]);
-export type TAvailableGroupId = z.infer<typeof ZAvailableGroupId>;
-export type TAvailableGroup = {
-  id: TAvailableGroupId;
-  name: string;
-  href?: string;
-  icon?: string;
-};
-
 export const ZExternalServiceGroupId = z
   .string()
   .uuid()
@@ -110,12 +98,26 @@ export type TExternalServiceGroupWithAccount = z.infer<
   typeof ZExternalServiceGroupWithAccount
 >;
 
+export const ZAvailableGroupId = z.union([
+  z.string().uuid().brand("AvailableGroupId"),
+  ZVRCGroupId,
+  ZExternalServiceGroupId,
+]);
+export type TAvailableGroupId = z.infer<typeof ZAvailableGroupId>;
+export type TAvailableGroup = {
+  id: TAvailableGroupId;
+  name: string;
+  href?: string;
+  icon?: string;
+};
+
 export const ZExternalServiceGroupMember = z.object({
   serviceId: z.string(),
   serviceUsername: z.string().optional(),
   name: z.string(),
   icon: z.string().optional(),
   roleIds: z.array(z.string()),
+  isEditable: z.boolean(),
 });
 export type TExternalServiceGroupMember = z.infer<
   typeof ZExternalServiceGroupMember

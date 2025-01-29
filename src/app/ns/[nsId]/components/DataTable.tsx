@@ -9,6 +9,7 @@ import {
 import { cn } from "@/lib/utils";
 import {
   type ColumnDef,
+  type Row,
   type RowModel,
   flexRender,
   getCoreRowModel,
@@ -25,6 +26,7 @@ interface DataTableProps<T> {
   data: T[];
   selected?: FC<{ selected: RowModel<T> }>;
   className?: string;
+  calcRowClassName?: (row: Row<T>) => string;
 }
 
 export function DataTable<T>({
@@ -32,6 +34,7 @@ export function DataTable<T>({
   data,
   selected: Selected,
   className,
+  calcRowClassName,
 }: DataTableProps<T>) {
   const table = useReactTable({
     data,
@@ -84,6 +87,7 @@ export function DataTable<T>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
+                  className={calcRowClassName?.(row)}
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>

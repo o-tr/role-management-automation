@@ -39,7 +39,9 @@ export const calculateDiff = (
           return undefined;
         }
         const groupMember = filteredGroupMembers.find(
-          (groupMember) => groupMember.account.service === group.service,
+          (groupMember) =>
+            groupMember.group.serviceAccountId === group.account.id &&
+            groupMember.group.serviceGroupId === group.id,
         );
         if (!groupMember) {
           return undefined;
@@ -55,6 +57,7 @@ export const calculateDiff = (
             serviceGroup: group,
             groupMember: groupMember.groupMember,
             roleId: action.targetServiceRoleId,
+            ignore: !groupMember.groupMember.isEditable,
           };
         }
         if (action.type === "remove") {
@@ -70,6 +73,7 @@ export const calculateDiff = (
             serviceGroup: group,
             groupMember: groupMember.groupMember,
             roleId: action.targetServiceRoleId,
+            ignore: !groupMember.groupMember.isEditable,
           };
         }
       });
@@ -94,7 +98,7 @@ const extractGroupMembers = (
       const groupMember = group?.members.find(
         (member) => member.serviceId === account.serviceId,
       );
-      if (!groupMember) {
+      if (!groupMember || !group) {
         return undefined;
       }
       return {

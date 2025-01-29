@@ -5,8 +5,10 @@ import type {
 } from "@/lib/discord/types/guild";
 import { getAuthUser } from "@/lib/vrchat/requests/getAuthUser";
 import { getGroup } from "@/lib/vrchat/requests/getGroup";
+import { getGroupRoles } from "@/lib/vrchat/requests/getGroupRoles";
 import { listGroupMembers } from "@/lib/vrchat/requests/listGroupMembers";
 import type { VRCGroupMember } from "@/lib/vrchat/types/GroupMember";
+import type { VRCGroupRole } from "@/lib/vrchat/types/GroupRole";
 import { ZVRCGroupId } from "@/lib/vrchat/types/brand";
 import { ZVRChatCredentials } from "@/types/credentials";
 import type {
@@ -48,6 +50,17 @@ const getVRChatMembers = async (
   );
   const user = await getAuthUser(credentials.token, credentials.twoFactorToken);
   const vrcGroup = await getGroup(group.account, groupId);
+
+  const roles = await getGroupRoles(group.account, groupId);
+  const serviceAccountOrder = getHighestRole(
+    roles,
+    vrcGroup.myMember.roleIds,
+  )?.order;
+
+  if (!serviceAccountOrder) {
+    throw new Error("Service account has no role in the group");
+  }
+
   members.push({
     ...vrcGroup.myMember,
     user: {
@@ -66,7 +79,20 @@ const getVRChatMembers = async (
     name: member.user.displayName,
     icon: member.user.iconUrl,
     roleIds: member.roleIds,
+    isEditable:
+      (getHighestRole(roles, member.roleIds)?.order ||
+        Number.MAX_SAFE_INTEGER) > serviceAccountOrder ||
+      member.user.id === user.id,
   }));
+};
+
+const getHighestRole = (
+  roles: VRCGroupRole[],
+  roleIds: string[],
+): VRCGroupRole | undefined => {
+  return roles
+    .filter((role) => roleIds.includes(role.id))
+    .sort((a, b) => a.order - b.order)[0];
 };
 
 const getDiscordMembers = async (
@@ -101,5 +127,6 @@ const getDiscordMembers = async (
     serviceUsername: member.user.username,
     icon: member.user.avatar || undefined,
     roleIds: member.roles,
+    isEditable: true,
   }));
 };

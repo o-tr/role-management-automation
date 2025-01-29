@@ -28,7 +28,8 @@ export const compareDiff = (
           item.type === diff.type &&
           item.serviceGroup.id === diff.serviceGroup.id &&
           item.groupMember.serviceId === diff.groupMember.serviceId &&
-          item.roleId === diff.roleId,
+          item.roleId === diff.roleId &&
+          item.ignore === diff.ignore,
       );
       if (!diffB) {
         console.log(

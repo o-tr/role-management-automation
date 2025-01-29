@@ -11,6 +11,7 @@ export const ZDiffItem = z.object({
   serviceGroup: ZExternalServiceGroupWithAccount,
   groupMember: ZExternalServiceGroupMember,
   roleId: z.string(),
+  ignore: z.boolean(),
 });
 export type TDiffItem = z.infer<typeof ZDiffItem>;
 

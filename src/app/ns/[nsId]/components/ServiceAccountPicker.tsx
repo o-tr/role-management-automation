@@ -5,12 +5,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { TExternalServiceAccount } from "@/types/prisma";
+import type { FExternalServiceAccount } from "@/types/prisma";
 import type { FC } from "react";
 import { ServiceAccountDisplay } from "./ServiceAccountDisplay";
 
 type Props = {
-  accounts: TExternalServiceAccount[];
+  accounts: FExternalServiceAccount[];
   disabled?: boolean;
   value: string;
   onChange: (value: string) => void;
