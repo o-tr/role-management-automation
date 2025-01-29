@@ -48,6 +48,8 @@ export const applyDiff = async (
                 return await applyVRChatDiff(nsId, diff);
               case "DISCORD":
                 return await applyDiscordDiff(nsId, diff);
+              case "GITHUB":
+                return await applyGitHubDiff(nsId, diff);
               default:
                 throw new Error("Unsupported service");
             }
@@ -153,4 +155,26 @@ const applyDiscordDiff = async (
       success: false,
     };
   }
+};
+
+const applyGitHubDiff = async (
+  nsId: TNamespaceId,
+  diff: TDiffItem,
+): Promise<ApplyDiffResultItem> => {
+  const serviceAccount = await getExternalServiceAccountByServiceName(
+    nsId,
+    diff.serviceGroup.service,
+  );
+  if (!serviceAccount) {
+    return {
+      ...diff,
+      success: false,
+      reason: "Service account not found",
+    };
+  }
+  return {
+    ...diff,
+    success: false,
+    reason: "Not implemented",
+  };
 };
