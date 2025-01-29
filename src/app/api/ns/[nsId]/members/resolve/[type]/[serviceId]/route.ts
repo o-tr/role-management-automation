@@ -1,6 +1,7 @@
 import { api } from "@/lib/api";
-import { getSearchGuildMembers } from "@/lib/discord/requests/getSerachGuildMembers";
+import { getSearchGuildMembers } from "@/lib/discord/requests/getSearchGuildMembers";
 import { getUser } from "@/lib/discord/requests/getUser";
+import type { DiscordGuildId } from "@/lib/discord/types/guild";
 import type { DiscordUserId, DiscordUsername } from "@/lib/discord/types/user";
 import { getExternalServiceAccountByServiceName } from "@/lib/prisma/getExternalServiceAccountByServiceName";
 import { getExternalServiceGroupsByAccountId } from "@/lib/prisma/getExternalServiceGroupsByAccountId";
@@ -159,7 +160,7 @@ const resolveDiscordUserName = async (
   for (const guild of guilds) {
     const members = await getSearchGuildMembers(
       data.token,
-      guild.groupId,
+      guild.groupId as DiscordGuildId,
       serviceUsername,
     );
     if (!members?.[0]) continue;
