@@ -5,7 +5,7 @@ import { formatTTag } from "./format/formatTTag";
 
 type TCreateTag = {
   name: string;
-  color: TColorCode;
+  color?: TColorCode;
 };
 
 export const createTag = async (
