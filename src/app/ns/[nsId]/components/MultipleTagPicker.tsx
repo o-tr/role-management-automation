@@ -70,13 +70,15 @@ export const MultipleTagPicker: FC<Props> = ({
             onDelete={() => {
               onChange((prev) => prev.filter((v) => v !== tagId));
             }}
+            deleteArea="all"
+            variant="outline"
           />
         );
       })}
       <input
         id={inputId}
         type="text"
-        className="outline-none bg-none border-none bg-transparent h-[36px] px-2"
+        className="outline-none bg-none border-none bg-transparent h-[36px] px-2 peer"
         onKeyDown={onKeyDown}
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
@@ -84,9 +86,9 @@ export const MultipleTagPicker: FC<Props> = ({
         onBlur={() => setTimeout(() => setIsFocused(false), 100)}
       />
       <Command
-        className={`absolute top-full max-h-[300px] h-max ${
-          isFocused ? "block" : "hidden"
-        } focus:block`}
+        className={
+          "absolute top-full max-h-[300px] h-max hidden peer-focus:block focus:block hover:block"
+        }
         autoFocus={false}
       >
         <CommandList>
@@ -100,6 +102,16 @@ export const MultipleTagPicker: FC<Props> = ({
                 }}
               >
                 Select All
+              </CommandItem>
+            )}
+            {showSelectAll && filteredTags.length === 0 && (
+              <CommandItem
+                onSelect={() => {
+                  onChange([]);
+                  setInputValue("");
+                }}
+              >
+                Clear All
               </CommandItem>
             )}
             {filteredTags?.map((tag) => (

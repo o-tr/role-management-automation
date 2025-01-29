@@ -1,9 +1,9 @@
 export const parseClipboard = (e: ClipboardEvent) => {
   if (e.clipboardData?.types.includes("text/html")) {
-    return parseClipboardHtml(e);
+    return normalize(parseClipboardHtml(e));
   }
   if (e.clipboardData?.types.includes("text/plain")) {
-    return parseClipboardText(e);
+    return normalize(parseClipboardText(e));
   }
 };
 
@@ -29,5 +29,13 @@ const parseClipboardText = (e: ClipboardEvent) => {
   const lines = text.split("\n");
   return lines.map((line) => {
     return line.split(delimiter).map((cell) => cell.trim());
+  });
+};
+
+const normalize = (data: string[][] | undefined) => {
+  if (!data) return undefined;
+  const maxColumn = Math.max(...data.map((row) => row.length));
+  return data.map((row) => {
+    return row.concat(Array(maxColumn - row.length).fill(""));
   });
 };

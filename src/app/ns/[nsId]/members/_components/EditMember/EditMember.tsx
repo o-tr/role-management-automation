@@ -8,13 +8,15 @@ import { EditTags } from "./EditTags";
 type Props = {
   member: TMemberWithRelation;
   onConfirm: (member: TMemberWithRelation) => void;
-  disabled: boolean;
+  disabled?: boolean;
+  type?: "add" | "edit";
 };
 
 export const EditMember: FC<Props> = ({
   member: original,
   onConfirm,
   disabled,
+  type,
 }) => {
   const [member, setMember] = useState(original);
 
@@ -37,7 +39,7 @@ export const EditMember: FC<Props> = ({
         <EditTags member={member} setMember={setMember} disabled={disabled} />
       </Card>
       <Button onClick={onConfirmClick} disabled={disabled}>
-        保存
+        {type === "add" ? "追加" : "更新"}
       </Button>
     </div>
   );

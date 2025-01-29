@@ -6,7 +6,7 @@ import { AddTag } from "./AddTag";
 type Props = {
   member: TMemberWithRelation;
   setMember: Dispatch<SetStateAction<TMemberWithRelation>>;
-  disabled: boolean;
+  disabled?: boolean;
 };
 export const EditTags: FC<Props> = ({ member, setMember, disabled }) => {
   return (

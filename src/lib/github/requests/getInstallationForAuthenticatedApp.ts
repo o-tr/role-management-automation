@@ -1,3 +1,4 @@
+import { requests } from "@/lib/requests";
 import { githubLimit } from "../plimit";
 import {
   type GitHubAppInstallationId,
@@ -10,7 +11,7 @@ export const getInstallationForAuthenticatedApp = async (
   installationId: GitHubAppInstallationId,
 ) => {
   const response = await githubLimit(() =>
-    fetch(`https://api.github.com/app/installations/${installationId}`, {
+    requests(`https://api.github.com/app/installations/${installationId}`, {
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: "application/vnd.github+json",

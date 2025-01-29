@@ -90,9 +90,10 @@ export const columns: TColumnDef<InternalMapping>[] = [
           </Dialog>
           <Button
             variant="outline"
-            onClick={() =>
-              void deleteMapping(row.original.namespaceId, row.original.id)
-            }
+            onClick={async () => {
+              await deleteMapping(row.original.namespaceId, row.original.id);
+              onServiceGroupMappingChange();
+            }}
           >
             削除
           </Button>

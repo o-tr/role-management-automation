@@ -3,6 +3,19 @@ import type {
   DiscordGuildId,
   DiscordGuildMember,
 } from "@/lib/discord/types/guild";
+import { generateJWT } from "@/lib/github/generateJWT";
+import { createInstallationAccessTokenForApp } from "@/lib/github/requests/createInstallationAccessTokenForApp";
+import { getInstallationForAuthenticatedApp } from "@/lib/github/requests/getInstallationForAuthenticatedApp";
+import { listOrganizationMembers } from "@/lib/github/requests/listOrganizationMembers";
+import { listTeamMembers } from "@/lib/github/requests/listTeamMembers";
+import { listTeams } from "@/lib/github/requests/listTeams";
+import type { GitHubInstallationAccessToken } from "@/lib/github/types/AccessToken";
+import type {
+  GitHubAccount,
+  GitHubOrganizationId,
+} from "@/lib/github/types/Account";
+import type { GitHubTeamSlug } from "@/lib/github/types/Team";
+import { ZGitHubGroupId } from "@/lib/github/types/groupId";
 import { getAuthUser } from "@/lib/vrchat/requests/getAuthUser";
 import { getGroup } from "@/lib/vrchat/requests/getGroup";
 import { getGroupRoles } from "@/lib/vrchat/requests/getGroupRoles";
@@ -10,7 +23,11 @@ import { listGroupMembers } from "@/lib/vrchat/requests/listGroupMembers";
 import type { VRCGroupMember } from "@/lib/vrchat/types/GroupMember";
 import type { VRCGroupRole } from "@/lib/vrchat/types/GroupRole";
 import { ZVRCGroupId } from "@/lib/vrchat/types/brand";
-import { ZVRChatCredentials } from "@/types/credentials";
+import {
+  ZDiscordCredentials,
+  ZGithubCredentials,
+  ZVRChatCredentials,
+} from "@/types/credentials";
 import type {
   TExternalServiceGroupMember,
   TExternalServiceGroupWithAccount,
@@ -24,6 +41,8 @@ export const getMembers = async (
       return getVRChatMembers(group);
     case "DISCORD":
       return getDiscordMembers(group);
+    case "GITHUB":
+      return getGitHubMembers(group);
     default:
       throw new Error(`Unknown service: ${group.account.service}`);
   }
@@ -98,7 +117,9 @@ const getHighestRole = (
 const getDiscordMembers = async (
   group: TExternalServiceGroupWithAccount,
 ): Promise<TExternalServiceGroupMember[]> => {
-  const token = JSON.parse(group.account.credential).token;
+  const token = ZDiscordCredentials.parse(
+    JSON.parse(group.account.credential),
+  ).token;
   const members: DiscordGuildMember[] = [];
   let maxUserId = 0;
   let requestResult: DiscordGuildMember[];
@@ -129,4 +150,80 @@ const getDiscordMembers = async (
     roleIds: member.roles,
     isEditable: true,
   }));
+};
+
+const getGitHubMembers = async (
+  group: TExternalServiceGroupWithAccount,
+): Promise<TExternalServiceGroupMember[]> => {
+  const credentials = ZGithubCredentials.parse(
+    JSON.parse(group.account.credential),
+  );
+  const jwt = generateJWT(credentials.clientId, credentials.privateKey);
+  const { installationId, accountId } = ZGitHubGroupId.parse(
+    JSON.parse(group.groupId),
+  );
+  const organizationId = accountId as GitHubOrganizationId;
+  const { token } = await createInstallationAccessTokenForApp(
+    jwt,
+    installationId,
+  );
+  const teams = await listTeams(token, organizationId);
+  const members = await getGitHubOrgMembers(token, organizationId);
+  const teamMembers = await Promise.all(
+    teams.map((team) =>
+      getGitHubTeamMembers(token, organizationId, team.slug).then(
+        (members) => ({
+          id: team.id,
+          slug: team.slug,
+          memberIds: members.map((member) => member.id),
+        }),
+      ),
+    ),
+  );
+
+  return members.map((member) => ({
+    serviceId: `${member.id}`,
+    name: member.name || member.login,
+    icon: member.avatar_url,
+    serviceUsername: member.login,
+    roleIds: teamMembers
+      .filter((team) => team.memberIds.includes(member.id))
+      .map((team) => `${team.id}`),
+    isEditable: true,
+  }));
+};
+
+const getGitHubOrgMembers = async (
+  token: GitHubInstallationAccessToken,
+  organizationId: GitHubOrganizationId,
+): Promise<GitHubAccount[]> => {
+  const members: GitHubAccount[] = [];
+  let requestResult: GitHubAccount[];
+  let page = 1;
+  do {
+    requestResult = await listOrganizationMembers(token, organizationId, {
+      per_page: 100,
+      page: page++,
+    });
+    members.push(...requestResult);
+  } while (requestResult.length > 0);
+  return members;
+};
+
+const getGitHubTeamMembers = async (
+  token: GitHubInstallationAccessToken,
+  organizationId: GitHubOrganizationId,
+  teamSlug: GitHubTeamSlug,
+): Promise<GitHubAccount[]> => {
+  const members: GitHubAccount[] = [];
+  let requestResult: GitHubAccount[];
+  let page = 1;
+  do {
+    requestResult = await listTeamMembers(token, organizationId, teamSlug, {
+      per_page: 100,
+      page: page++,
+    });
+    members.push(...requestResult);
+  } while (requestResult.length > 0);
+  return members;
 };

@@ -30,24 +30,30 @@ export type TCreateOrUpdateMembers = z.infer<typeof ZCreateOrUpdateMembers>;
 export const createOrUpdateMember = async (
   namespaceId: TNamespaceId,
   members: TCreateOrUpdateMembers,
+  tagAppendOnly = false,
 ): Promise<{ id: TMemberId }[]> => {
   const results = await prisma.$transaction(async () => {
     return await Promise.all(
       members.map((member) =>
         member.memberId
-          ? updateMember(namespaceId, member.memberId, {
-              externalAccounts: member.services.map((service) => ({
-                memberId: member.memberId,
-                service: service.service,
-                serviceId: service.serviceId,
-                serviceUsername: service.serviceUsername,
-                name: service.name,
-                icon: service.icon,
-              })),
-              tags: member.tags
-                ? member.tags.map((tagId) => ({ id: tagId }))
-                : undefined,
-            })
+          ? updateMember(
+              namespaceId,
+              member.memberId,
+              {
+                externalAccounts: member.services.map((service) => ({
+                  memberId: member.memberId,
+                  service: service.service,
+                  serviceId: service.serviceId,
+                  serviceUsername: service.serviceUsername,
+                  name: service.name,
+                  icon: service.icon,
+                })),
+                tags: member.tags
+                  ? member.tags.map((tagId) => ({ id: tagId }))
+                  : undefined,
+              },
+              tagAppendOnly,
+            )
           : createMember(namespaceId, {
               tags: member.tags,
               externalAccounts: member.services.map((service) => ({

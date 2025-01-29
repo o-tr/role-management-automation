@@ -1,22 +1,62 @@
-import type { FC } from "react";
-import { useOnPaste } from "../_hooks/on-paste";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import type {
+  TMemberId,
+  TMemberWithRelation,
+  TNamespaceId,
+} from "@/types/prisma";
+import { type FC, useMemo, useState } from "react";
+import { onMembersChange } from "../_hooks/on-members-change";
+import { useCreateMembers } from "../_hooks/use-create-members";
+import { EditMember } from "./EditMember/EditMember";
 
 type Props = {
-  nsId: string;
+  nsId: TNamespaceId;
 };
 
 export const AddMembers: FC<Props> = ({ nsId }) => {
-  useOnPaste((e) => {
-    if (!e.clipboardData?.types.includes("text/html")) return;
-    const html = e.clipboardData?.getData("text/html");
-    if (!html?.includes("<table")) return;
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, "text/html");
-    const rows = doc.getElementsByTagName("tr");
-    const members = Array.from(rows).map((row) => {
-      const cells = row.getElementsByTagName("td");
-      return Array.from(cells).map((cell) => cell.innerText);
-    });
-  });
-  return <div>Members</div>;
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const { createMembers, loading } = useCreateMembers(nsId);
+  const defaultMember: TMemberWithRelation = useMemo<TMemberWithRelation>(
+    () => ({
+      id: "" as TMemberId,
+      namespaceId: nsId,
+      externalAccounts: [],
+      tags: [],
+    }),
+    [nsId],
+  );
+
+  const onConfirm = async (member: TMemberWithRelation) => {
+    await createMembers([
+      {
+        tags: member.tags.map((tag) => tag.id),
+        services: member.externalAccounts,
+      },
+    ]);
+    onMembersChange();
+    setIsModalOpen(false);
+  };
+
+  return (
+    <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+      <DialogTrigger asChild>
+        <Button>メンバーを追加</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>メンバーを追加</DialogHeader>
+        <EditMember
+          member={defaultMember}
+          onConfirm={onConfirm}
+          disabled={loading}
+          type="add"
+        />
+      </DialogContent>
+    </Dialog>
+  );
 };

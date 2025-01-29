@@ -8,12 +8,13 @@ import {
 } from "@/components/ui/select";
 import type { TMemberWithRelation, TTagId } from "@/types/prisma";
 import { type FC, useState } from "react";
+import { TagDisplay } from "../../../components/TagDisplay";
 import { useTags } from "../../../roles/_hooks/use-tags";
 
 export const AddTag: FC<{
   member: TMemberWithRelation;
   onConfirm: (tag: { id: TTagId; name: string }) => void;
-  disabled: boolean;
+  disabled?: boolean;
 }> = ({ onConfirm, member, disabled }) => {
   const { tags } = useTags(member.namespaceId);
   const [selectedTagId, setSelectedTagId] = useState<string | undefined>(
@@ -41,7 +42,7 @@ export const AddTag: FC<{
                 onClick={() => setSelectedTagId(tag.id)}
                 value={tag.id}
               >
-                {tag.name}
+                <TagDisplay tag={tag} variant="ghost" />
               </SelectItem>
             ))}
         </SelectContent>

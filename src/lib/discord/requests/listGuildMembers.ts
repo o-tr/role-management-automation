@@ -1,3 +1,5 @@
+import { filterObject } from "@/lib/filterObject";
+import { requests } from "@/lib/requests";
 import { z } from "zod";
 import { discordLimit } from "../plimit";
 import { type DiscordGuildId, ZDiscordGuildMember } from "../types/guild";
@@ -13,12 +15,14 @@ export const listGuildMembers = async (
   guildId: DiscordGuildId,
   options: Options = {},
 ) => {
-  const query = new URLSearchParams({
-    limit: options.limit?.toString(),
-    after: options.after?.toString(),
-  } as Record<string, string>);
+  const query = new URLSearchParams(
+    filterObject({
+      limit: options.limit?.toString(),
+      after: options.after?.toString(),
+    } as Record<string, string>),
+  );
   const response = await discordLimit(() =>
-    fetch(
+    requests(
       `https://discord.com/api/v10/guilds/${guildId}/members?${query.toString()}`,
       {
         headers: {

@@ -1,3 +1,4 @@
+import { requests } from "@/lib/requests";
 import { githubLimit } from "../plimit";
 import {
   type GitHubAuthenticatedApp,
@@ -9,7 +10,7 @@ export const getAuthenticatedApp = async (
   token: GitHubJWTToken,
 ): Promise<GitHubAuthenticatedApp> => {
   const response = await githubLimit(() =>
-    fetch("https://api.github.com/app", {
+    requests("https://api.github.com/app", {
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: "application/vnd.github+json",

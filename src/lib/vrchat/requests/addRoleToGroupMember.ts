@@ -1,3 +1,4 @@
+import { requests } from "@/lib/requests";
 import {
   type VRChatCredentials,
   ZVRChatCredentials,
@@ -28,7 +29,7 @@ export const addRoleToGroupMember = retry(
     );
     const { token, twoFactorToken: twoFactorAuth } = credentials;
     const response = await vrchatLimit(() =>
-      fetch(
+      requests(
         `https://api.vrchat.cloud/api/1/groups/${groupId}/members/${userId}/roles/${roleId}`,
         {
           method: "PUT",

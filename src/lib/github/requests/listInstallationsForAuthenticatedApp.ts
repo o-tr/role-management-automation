@@ -1,3 +1,4 @@
+import { requests } from "@/lib/requests";
 import { z } from "zod";
 import { githubLimit } from "../plimit";
 import {
@@ -10,7 +11,7 @@ export const listInstallationsForAuthenticatedApp = async (
   token: GitHubJWTToken,
 ): Promise<GitHubAppInstallation[]> => {
   const response = await githubLimit(() =>
-    fetch("https://api.github.com/app/installations", {
+    requests("https://api.github.com/app/installations", {
       headers: {
         Authorization: `Bearer ${token}`,
         Accept: "application/vnd.github+json",
@@ -25,6 +26,7 @@ export const listInstallationsForAuthenticatedApp = async (
     .array(ZGitHubAppInstallation)
     .safeParse(await response.json());
   if (!parsed.success) {
+    console.log(JSON.stringify(parsed.error, null, 2));
     throw new Error("Failed to parse response");
   }
   return parsed.data;

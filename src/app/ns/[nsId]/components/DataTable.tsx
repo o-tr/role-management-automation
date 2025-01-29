@@ -74,7 +74,7 @@ export function DataTable<T>({
       )}
     >
       {Header && <Header table={table} />}
-      <div className="rounded-md border overflow-y-hidden">
+      <div className="rounded-md border overflow-y-hidden flex flex-col">
         <Table className="table-fixed overflow-y-auto">
           <TableHeader className={`sticky top-0 z-10 ${styles.rowSeparator}`}>
             {table.getHeaderGroups().map((headerGroup) => (

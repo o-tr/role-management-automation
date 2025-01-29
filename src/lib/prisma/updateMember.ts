@@ -41,6 +41,7 @@ export const updateMember = async (
   nsId: TNamespaceId,
   id: TMemberId,
   data: TMemberUpdateInput,
+  tagAppendOnly = false,
 ): Promise<TMemberWithRelation> => {
   const result = await prisma.$transaction(async () => {
     const member = await getMemberWithRelation(nsId, id);
@@ -101,9 +102,13 @@ export const updateMember = async (
         },
         data: {
           tags: data.tags
-            ? {
-                set: data.tags?.map(({ id }) => ({ id })),
-              }
+            ? tagAppendOnly
+              ? {
+                  connect: data.tags.map((tag) => ({ id: tag.id })),
+                }
+              : {
+                  set: data.tags.map((tag) => ({ id: tag.id })),
+                }
             : undefined,
         },
         include: {

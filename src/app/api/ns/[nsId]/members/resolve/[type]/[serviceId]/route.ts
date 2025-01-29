@@ -3,21 +3,30 @@ import { getSearchGuildMembers } from "@/lib/discord/requests/getSearchGuildMemb
 import { getUser } from "@/lib/discord/requests/getUser";
 import type { DiscordGuildId } from "@/lib/discord/types/guild";
 import type { DiscordUserId, DiscordUsername } from "@/lib/discord/types/user";
+import { generateJWT } from "@/lib/github/generateJWT";
+import { createInstallationAccessTokenForApp } from "@/lib/github/requests/createInstallationAccessTokenForApp";
+import { getUserById as getGitHubUserById } from "@/lib/github/requests/getUserById";
+import { getUserByUsername as getGitHubUserByUsername } from "@/lib/github/requests/getUserByUsername";
+import type {
+  GitHubAccountId,
+  GitHubAccountUsername,
+} from "@/lib/github/types/Account";
+import { ZGitHubGroupId } from "@/lib/github/types/groupId";
 import { getExternalServiceAccountByServiceName } from "@/lib/prisma/getExternalServiceAccountByServiceName";
 import { getExternalServiceGroupsByAccountId } from "@/lib/prisma/getExternalServiceGroupsByAccountId";
 import { getMemberExternalServiceAccount } from "@/lib/prisma/getMemberExternalServiceAccount";
 import { getMemberExternalServiceAccountByUsername } from "@/lib/prisma/getMemberExternalServiceAccountByUsername";
 import { validatePermission } from "@/lib/validatePermission";
-import { getUserById } from "@/lib/vrchat/requests/getUserById";
+import { getUserById as getVRCUserById } from "@/lib/vrchat/requests/getUserById";
 import type { VRCUserId } from "@/lib/vrchat/types/brand";
-import { ZDiscordCredentials } from "@/types/credentials";
+import { ZDiscordCredentials, ZGithubCredentials } from "@/types/credentials";
 import type {
   TExternalServiceAccount,
   TMemberId,
   TNamespaceId,
 } from "@/types/prisma";
 import type { ExternalServiceName } from "@prisma/client";
-import { type NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 import { z } from "zod";
 
 export const ZResolveRequestType = z.union([
@@ -90,6 +99,16 @@ const resolve = async (
         serviceId as DiscordUsername,
         serviceAccount,
       );
+    case "GitHubUserId":
+      return resolveGitHubUserId(
+        Number(serviceId) as GitHubAccountId,
+        serviceAccount,
+      );
+    case "GitHubUsername":
+      return resolveGitHubUsername(
+        serviceId as GitHubAccountUsername,
+        serviceAccount,
+      );
     default:
       throw new Error(`Unsupported service: ${service}`);
   }
@@ -107,7 +126,7 @@ const resolveVRCUserId = async (
   if (member) {
     return member;
   }
-  const user = await getUserById(serviceAccount, serviceId as VRCUserId);
+  const user = await getVRCUserById(serviceAccount, serviceId as VRCUserId);
 
   return {
     name: user.displayName,
@@ -181,6 +200,66 @@ const resolveDiscordUserName = async (
     };
   }
   throw new Error("User not found");
+};
+
+const resolveGitHubUserId = async (
+  serviceId: GitHubAccountId,
+  serviceAccount: TExternalServiceAccount,
+): Promise<ResolveResult> => {
+  const group = (
+    await getExternalServiceGroupsByAccountId(
+      serviceAccount.namespaceId,
+      serviceAccount.id,
+    )
+  )?.[0];
+  if (!group) throw new Error("Group not found");
+  const credential = ZGithubCredentials.parse(
+    JSON.parse(serviceAccount.credential),
+  );
+  const jwt = generateJWT(credential.clientId, credential.privateKey);
+  const { installationId } = ZGitHubGroupId.parse(JSON.parse(group.groupId));
+  const { token } = await createInstallationAccessTokenForApp(
+    jwt,
+    installationId,
+  );
+  const user = await getGitHubUserById(token, serviceId);
+  return {
+    name: user.name || user.login,
+    serviceId: user.id.toString(),
+    serviceUsername: user.login,
+    icon: user.avatar_url,
+    service: "GITHUB" as ExternalServiceName,
+  };
+};
+
+const resolveGitHubUsername = async (
+  serviceId: GitHubAccountUsername,
+  serviceAccount: TExternalServiceAccount,
+): Promise<ResolveResult> => {
+  const group = (
+    await getExternalServiceGroupsByAccountId(
+      serviceAccount.namespaceId,
+      serviceAccount.id,
+    )
+  )?.[0];
+  if (!group) throw new Error("Group not found");
+  const credential = ZGithubCredentials.parse(
+    JSON.parse(serviceAccount.credential),
+  );
+  const jwt = generateJWT(credential.clientId, credential.privateKey);
+  const { installationId } = ZGitHubGroupId.parse(JSON.parse(group.groupId));
+  const { token } = await createInstallationAccessTokenForApp(
+    jwt,
+    installationId,
+  );
+  const user = await getGitHubUserByUsername(token, serviceId);
+  return {
+    name: user.name || user.login,
+    serviceId: user.id.toString(),
+    serviceUsername: user.login,
+    icon: user.avatar_url,
+    service: "GITHUB" as ExternalServiceName,
+  };
 };
 
 const requestType2Service = (

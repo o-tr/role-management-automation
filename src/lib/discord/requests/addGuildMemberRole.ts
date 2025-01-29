@@ -1,3 +1,4 @@
+import { requests } from "@/lib/requests";
 import { discordLimit } from "../plimit";
 import { ZDiscordGuildList } from "../types/application";
 import type { DiscordGuildId, DiscordGuildRoleId } from "../types/guild";
@@ -11,7 +12,7 @@ export const addGuildMemberRole = async (
   roleId: DiscordGuildRoleId,
 ): Promise<void> => {
   const response = await discordLimit(() =>
-    fetch(
+    requests(
       `https://discord.com/api/v10/guilds/${guildId}/members/${userId}/roles/${roleId}`,
       {
         method: "PUT",

@@ -1,3 +1,4 @@
+import { requests } from "@/lib/requests";
 import { discordLimit } from "../plimit";
 import type { DiscordGuildId, DiscordGuildRoleId } from "../types/guild";
 import type { DiscordToken } from "../types/token";
@@ -10,7 +11,7 @@ export const deleteGuildMemberRole = async (
   roleId: DiscordGuildRoleId,
 ): Promise<void> => {
   const response = await discordLimit(() =>
-    fetch(
+    requests(
       `https://discord.com/api/v10/guilds/${guildId}/members/${userId}/roles/${roleId}`,
       {
         method: "DELETE",

@@ -12,6 +12,13 @@ import {
   DataTable,
 } from "@/app/ns/[nsId]/components/DataTable";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { createTag } from "@/requests/createTag";
 import { deleteTag } from "@/requests/deleteTag";
 import { TbTag } from "react-icons/tb";
@@ -40,7 +47,11 @@ export const columns: ColumnDef<InternalTag>[] = [
     id: "actions",
     cell: ({ row }) => (
       <div className="flex space-x-2">
-        <EditTag nsId={row.original.namespaceId} tag={row.original} />
+        <EditTag
+          nsId={row.original.namespaceId}
+          tag={row.original}
+          key={row.original.id}
+        />
         <Button
           variant="outline"
           onClick={async () => {
@@ -81,7 +92,31 @@ export function TagList({ namespaceId }: TagListProps) {
   }
 
   return (
-    <div className="overflow-y-hidden">
+    <div className="overflow-y-hidden flex flex-col gap-2">
+      <div className="flex flex-row justify-end">
+        <Dialog>
+          <DialogTrigger>
+            <Button>タグを追加</Button>
+          </DialogTrigger>
+          <DialogContent>
+            <form onSubmit={handleAddTag} className="flex flex-col gap-2">
+              <DialogHeader>タグを追加</DialogHeader>
+              <Input
+                value={newTagName}
+                onChange={(e) => setNewTagName(e.target.value)}
+                placeholder="新しいタグ名"
+                required
+                disabled={isPending}
+              />
+              <DialogFooter>
+                <Button type="submit" disabled={isPending}>
+                  追加
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
       <DataTable
         columns={columns}
         data={tags?.map((v) => ({ ...v, namespaceId })) || []}
@@ -104,18 +139,6 @@ export function TagList({ namespaceId }: TagListProps) {
           );
         }}
       />
-      <form onSubmit={handleAddTag} className="mt-4 flex space-x-2">
-        <Input
-          value={newTagName}
-          onChange={(e) => setNewTagName(e.target.value)}
-          placeholder="新しいタグ名"
-          required
-          disabled={isPending}
-        />
-        <Button type="submit" disabled={isPending}>
-          追加
-        </Button>
-      </form>
     </div>
   );
 }

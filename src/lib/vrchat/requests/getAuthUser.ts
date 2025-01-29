@@ -1,3 +1,4 @@
+import { requests } from "@/lib/requests";
 import { VRCHAT_USER_AGENT } from "../const";
 import { buildCookie, getAuthToken } from "../cookie";
 import {
@@ -14,7 +15,7 @@ export const getAuthUserWithAuth = async (
   data: VRCAuthUserWithAuth;
   token: VRCToken;
 }> => {
-  const response = await fetch("https://api.vrchat.cloud/api/1/auth/user", {
+  const response = await requests("https://api.vrchat.cloud/api/1/auth/user", {
     method: "GET",
     headers: {
       Authorization: `Basic ${btoa(`${username}:${password}`)}`,
@@ -36,7 +37,9 @@ export const getAuthUserWithAuth = async (
   }
   if (!data.data.requiresTwoFactorAuth.includes("totp")) {
     throw new Error(
-      `Two factor auth is not supported: ${JSON.stringify(data.data.requiresTwoFactorAuth)}`,
+      `Two factor auth is not supported: ${JSON.stringify(
+        data.data.requiresTwoFactorAuth,
+      )}`,
     );
   }
   return {

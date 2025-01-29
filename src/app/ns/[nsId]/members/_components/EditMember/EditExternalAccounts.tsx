@@ -8,7 +8,7 @@ import { AddExternalAccount } from "./AddExternalAccount";
 type Props = {
   member: TMemberWithRelation;
   setMember: Dispatch<SetStateAction<TMemberWithRelation>>;
-  disabled: boolean;
+  disabled?: boolean;
 };
 
 export const EditExternalAccounts: FC<Props> = ({

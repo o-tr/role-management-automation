@@ -1,3 +1,4 @@
+import { requests } from "@/lib/requests";
 import { DISCORD_USER_AGENT } from "../const";
 import { discordLimit } from "../plimit";
 import { ZDiscordApplicaton } from "../types/application";
@@ -5,7 +6,7 @@ import type { DiscordToken } from "../types/token";
 
 export const getSelfApplication = async (token: DiscordToken) => {
   const response = await discordLimit(() =>
-    fetch("https://discord.com/api/v10/applications/@me", {
+    requests("https://discord.com/api/v10/applications/@me", {
       headers: {
         Authorization: `Bot ${token}`,
         UserAgent: DISCORD_USER_AGENT,

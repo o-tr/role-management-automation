@@ -1,3 +1,4 @@
+import { requests } from "@/lib/requests";
 import { ZVRChatCredentials } from "@/types/credentials";
 import type { TExternalServiceAccount } from "@/types/prisma";
 import { VRCHAT_USER_AGENT } from "../const";
@@ -14,7 +15,7 @@ export const getUserGroups = retry(async (account: TExternalServiceAccount) => {
     userId,
   } = ZVRChatCredentials.parse(JSON.parse(credential));
   const response = await vrchatLimit(() =>
-    fetch(`https://api.vrchat.cloud/api/1/users/${userId}/groups`, {
+    requests(`https://api.vrchat.cloud/api/1/users/${userId}/groups`, {
       method: "GET",
       headers: {
         Cookie: buildCookie({ token, twoFactorAuth }),

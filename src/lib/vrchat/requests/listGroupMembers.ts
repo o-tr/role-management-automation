@@ -1,4 +1,5 @@
 import { filterObject } from "@/lib/filterObject";
+import { requests } from "@/lib/requests";
 import { sleep } from "@/lib/sleep";
 import { ZVRChatCredentials } from "@/types/credentials";
 import type { TExternalServiceAccount } from "@/types/prisma";
@@ -36,7 +37,7 @@ export const listGroupMembers = retry(
     } as Record<string, string>;
     const query = new URLSearchParams(filterObject(params));
     const response = await vrchatLimit(() =>
-      fetch(
+      requests(
         `https://api.vrchat.cloud/api/1/groups/${groupId}/members?${query.toString()}`,
         {
           method: "GET",

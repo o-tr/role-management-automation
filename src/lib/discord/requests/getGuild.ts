@@ -1,3 +1,4 @@
+import { requests } from "@/lib/requests";
 import { discordLimit } from "../plimit";
 import { type DiscordGuildId, ZDiscordGuild } from "../types/guild";
 import type { DiscordToken } from "../types/token";
@@ -7,7 +8,7 @@ export const getGuild = async (
   guildId: DiscordGuildId,
 ) => {
   const response = await discordLimit(() =>
-    fetch(`https://discord.com/api/v10/guilds/${guildId}`, {
+    requests(`https://discord.com/api/v10/guilds/${guildId}`, {
       headers: {
         Authorization: `Bot ${token}`,
       },

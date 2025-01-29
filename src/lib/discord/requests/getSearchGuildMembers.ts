@@ -1,3 +1,4 @@
+import { requests } from "@/lib/requests";
 import { z } from "zod";
 import { discordLimit } from "../plimit";
 import { type DiscordGuildId, ZDiscordGuildMember } from "../types/guild";
@@ -9,7 +10,7 @@ export const getSearchGuildMembers = async (
   query: string,
 ) => {
   const response = await discordLimit(() =>
-    fetch(
+    requests(
       `https://discord.com/api/v10/guilds/${guildId}/members/search?limit=1&query=${query}`,
       {
         headers: {

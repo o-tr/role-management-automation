@@ -1,10 +1,11 @@
+import { requests } from "@/lib/requests";
 import { discordLimit } from "../plimit";
 import type { DiscordToken } from "../types/token";
 import { type DiscordUserId, ZDiscordUser } from "../types/user";
 
 export const getUser = async (token: DiscordToken, userId: DiscordUserId) => {
   const response = await discordLimit(() =>
-    fetch(`https://discord.com/api/v10/users/${userId}`, {
+    requests(`https://discord.com/api/v10/users/${userId}`, {
       headers: {
         Authorization: `Bot ${token}`,
       },

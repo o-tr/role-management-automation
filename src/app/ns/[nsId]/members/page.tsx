@@ -28,16 +28,9 @@ export default function GroupTagsPage({
 
   return (
     <div className="h-full flex flex-col overflow-y-hidden gap-2">
-      <div className="flex flex-row justify-end">
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button>メンバーを追加</Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>メンバーを追加</DialogHeader>
-            <AddMembers nsId={params.nsId} />
-          </DialogContent>
-        </Dialog>
+      <div className="flex flex-row justify-end items-center gap-2">
+        <AddMembers nsId={params.nsId} />
+        <span>またはテーブルを貼り付け</span>
       </div>
       <MemberList
         namespaceId={params.nsId}

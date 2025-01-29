@@ -1,3 +1,4 @@
+import { requests } from "@/lib/requests";
 import { VRCHAT_USER_AGENT } from "../const";
 import { buildCookie, getTwoFactorAuthToken } from "../cookie";
 import {
@@ -13,7 +14,7 @@ export const postAuthTwoFactorAuthTotp = async (
   data: VRCAuthTwoFactorAuthTotp;
   twoFactorToken: VRCTwoFactorAuth;
 }> => {
-  const response = await fetch(
+  const response = await requests(
     "https://api.vrchat.cloud/api/1/auth/twofactorauth/totp/verify",
     {
       method: "POST",

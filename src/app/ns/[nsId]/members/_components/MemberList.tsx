@@ -64,10 +64,7 @@ const TagsHeader: StringOrTemplateHeader<TMemberWithRelation, unknown> = ({
         .sort((a, b) => a.name.localeCompare(b.name)),
     [rows],
   );
-  const [selectedTags, setSelectedTags] = useState<TTagId[]>(
-    (table.getColumn("tags")?.getFilterValue() as TTagId[] | undefined) ||
-      tags.map((tag) => tag.id),
-  );
+  const [selectedTags, setSelectedTags] = useState<TTagId[]>([]);
 
   useEffect(() => {
     table.getColumn("tags")?.setFilterValue(selectedTags);
@@ -189,7 +186,7 @@ export const columns: ColumnDef<TMemberWithRelation>[] = [
       );
     },
     filterFn: (row, id, filterValue) => {
-      if (id !== "tags") {
+      if (id !== "tags" || !filterValue || !filterValue.length) {
         return true;
       }
       return (filterValue as TTagId[]).some((filterTag) =>

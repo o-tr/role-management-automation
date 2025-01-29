@@ -1,3 +1,4 @@
+import { requests } from "@/lib/requests";
 import {
   type VRChatCredentials,
   ZVRChatCredentials,
@@ -16,7 +17,7 @@ export const getGroup = retry(
     );
     const { token, twoFactorToken: twoFactorAuth } = credentials;
     const response = await vrchatLimit(() =>
-      fetch(`https://api.vrchat.cloud/api/1/groups/${groupId}`, {
+      requests(`https://api.vrchat.cloud/api/1/groups/${groupId}`, {
         headers: {
           Cookie: buildCookie({ token, twoFactorAuth }),
           "User-Agent": VRCHAT_USER_AGENT,

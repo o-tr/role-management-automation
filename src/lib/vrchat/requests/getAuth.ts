@@ -1,3 +1,4 @@
+import { requests } from "@/lib/requests";
 import { VRCHAT_USER_AGENT } from "../const";
 import { buildCookie } from "../cookie";
 import { type VRCAuth, ZVRCAuth } from "../types/Auth";
@@ -7,7 +8,7 @@ export const getAuth = async (
   token: VRCToken,
   twoFactorAuth: VRCTwoFactorAuth,
 ): Promise<VRCAuth> => {
-  const request = await fetch("https://api.vrchat.cloud/api/1/auth", {
+  const request = await requests("https://api.vrchat.cloud/api/1/auth", {
     headers: {
       "User-Agent": VRCHAT_USER_AGENT,
       Cookie: buildCookie({ token, twoFactorAuth }),
