@@ -1,4 +1,5 @@
 import { BreadcrumbUpdater } from "@/app/ns/[nsId]/components/Breadcrumb/BreadcrumbUpdater";
+import type { TNamespaceId } from "@/types/prisma";
 import { AddGroup } from "./_components/AddGroup";
 import { GroupList } from "./_components/GroupList";
 
@@ -17,7 +18,7 @@ const paths = [
 export default async function GroupProvidersPage({
   params,
 }: {
-  params: { nsId: string };
+  params: { nsId: TNamespaceId };
 }) {
   return (
     <div className="space-y-2">

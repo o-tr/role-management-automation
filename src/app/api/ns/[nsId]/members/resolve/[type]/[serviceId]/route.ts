@@ -11,7 +11,11 @@ import { validatePermission } from "@/lib/validatePermission";
 import { getUserById } from "@/lib/vrchat/requests/getUserById";
 import type { VRCUserId } from "@/lib/vrchat/types/brand";
 import { ZDiscordCredentials } from "@/types/credentials";
-import type { TExternalServiceAccount, TNamespaceId } from "@/types/prisma";
+import type {
+  TExternalServiceAccount,
+  TMemberId,
+  TNamespaceId,
+} from "@/types/prisma";
 import type { ExternalServiceName } from "@prisma/client";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -55,7 +59,7 @@ export const GET = api(
 );
 
 export type ResolveResult = {
-  memberId?: string;
+  memberId?: TMemberId;
   name: string;
   icon?: string;
   service: ExternalServiceName;

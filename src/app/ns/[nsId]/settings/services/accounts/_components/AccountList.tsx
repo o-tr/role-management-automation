@@ -4,40 +4,24 @@ import type { FC } from "react";
 import { useOnServiceAccountChange } from "../../_hooks/on-accounts-change";
 
 import { Button } from "@/components/ui/button";
-import type { TExternalServiceAccount } from "@/types/prisma";
+import type { FExternalServiceAccount, TNamespaceId } from "@/types/prisma";
 import type { ColumnDef } from "@tanstack/react-table";
 
-import { DataTable } from "@/app/ns/[nsId]/components/DataTable";
+import {
+  CommonCheckboxCell,
+  CommonCheckboxHeader,
+  DataTable,
+} from "@/app/ns/[nsId]/components/DataTable";
 import { Image } from "@/app/ns/[nsId]/components/Image";
 import { useDeleteServiceAccount } from "@/app/ns/[nsId]/settings/services/_hooks/use-delete-service-accounts";
-import { Checkbox } from "@/components/ui/checkbox";
 
-type InternalServiceAccount = TExternalServiceAccount & { namespaceId: string };
+type InternalServiceAccount = FExternalServiceAccount & { namespaceId: string };
 
 export const columns: ColumnDef<InternalServiceAccount>[] = [
   {
     id: "select",
-    header: ({ table }) => (
-      <div className={"grid place-items-center"}>
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      </div>
-    ),
-    cell: ({ row }) => (
-      <div className={"grid place-items-center"}>
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      </div>
-    ),
+    header: CommonCheckboxHeader,
+    cell: CommonCheckboxCell,
     size: 50,
     maxSize: 50,
   },
@@ -90,7 +74,7 @@ export const columns: ColumnDef<InternalServiceAccount>[] = [
 ];
 
 type Props = {
-  nsId: string;
+  nsId: TNamespaceId;
 };
 
 export const AccountList: FC<Props> = ({ nsId }) => {
@@ -107,21 +91,24 @@ export const AccountList: FC<Props> = ({ nsId }) => {
       <DataTable
         columns={columns}
         data={accounts?.map((v) => ({ ...v, namespaceId: nsId })) || []}
-        selected={({ selected }) => (
-          <div>
-            <Button
-              variant="outline"
-              onClick={() => {
-                deleteServiceAccounts(
-                  selected.rows[0].original.namespaceId,
-                  selected.rows.map((v) => v.original.id),
-                );
-              }}
-            >
-              選択した {selected.rows.length} 件を削除
-            </Button>
-          </div>
-        )}
+        footer={({ table }) => {
+          const selected = table.getSelectedRowModel();
+          return (
+            <div>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  deleteServiceAccounts(
+                    selected.rows[0].original.namespaceId,
+                    selected.rows.map((v) => v.original.id),
+                  );
+                }}
+              >
+                選択した {selected.rows.length} 件を削除
+              </Button>
+            </div>
+          );
+        }}
       />
     </div>
   );

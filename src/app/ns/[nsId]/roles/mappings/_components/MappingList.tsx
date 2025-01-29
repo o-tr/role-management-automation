@@ -4,7 +4,11 @@ import { Button } from "@/components/ui/button";
 import type { TMapping } from "@/types/prisma";
 import type { ColumnDef } from "@tanstack/react-table";
 
-import { DataTable } from "@/app/ns/[nsId]/components/DataTable";
+import {
+  CommonCheckboxCell,
+  CommonCheckboxHeader,
+  DataTable,
+} from "@/app/ns/[nsId]/components/DataTable";
 import { useMappings } from "@/app/ns/[nsId]/roles/_hooks/use-mappings";
 import { Checkbox } from "@/components/ui/checkbox";
 import { deleteMapping } from "@/requests/deleteMapping";
@@ -31,27 +35,8 @@ type InternalMapping = TMapping & { namespaceId: string };
 export const columns: ColumnDef<InternalMapping>[] = [
   {
     id: "select",
-    header: ({ table }) => (
-      <div className={"grid place-items-center"}>
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      </div>
-    ),
-    cell: ({ row }) => (
-      <div className={"grid place-items-center"}>
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      </div>
-    ),
+    header: CommonCheckboxHeader,
+    cell: CommonCheckboxCell,
     size: 50,
     maxSize: 50,
   },
@@ -140,21 +125,24 @@ export function MappingList({ namespaceId }: TagListProps) {
       <DataTable
         columns={columns}
         data={mappings.map((v) => ({ ...v, namespaceId }))}
-        selected={({ selected }) => (
-          <div>
-            <Button
-              variant="outline"
-              onClick={() => {
-                deleteMappings(
-                  namespaceId,
-                  selected.rows.map((v) => v.original.id),
-                );
-              }}
-            >
-              選択した {selected.rows.length} 件を削除
-            </Button>
-          </div>
-        )}
+        footer={({ table }) => {
+          const selected = table.getSelectedRowModel();
+          return (
+            <div>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  deleteMappings(
+                    namespaceId,
+                    selected.rows.map((v) => v.original.id),
+                  );
+                }}
+              >
+                選択した {selected.rows.length} 件を削除
+              </Button>
+            </div>
+          );
+        }}
       />
     </div>
   );

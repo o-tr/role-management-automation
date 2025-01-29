@@ -1,6 +1,8 @@
 "use client";
-import type { GetNamespaceDetailResponse } from "@/app/api/ns/[nsId]/route";
-import type { TNamespaceWithRelation } from "@/types/prisma";
+import type {
+  GetNamespaceDetailResponse,
+  NamespaceDetailResponse,
+} from "@/app/api/ns/[nsId]/route";
 import { useCallback, useEffect, useState } from "react";
 
 type Props = {
@@ -9,7 +11,7 @@ type Props = {
 
 export const useNamespace = ({ namespaceId }: Props) => {
   const [namespace, setNamespace] = useState<
-    TNamespaceWithRelation | undefined
+    NamespaceDetailResponse | undefined
   >();
   const [isPending, setIsPending] = useState(true);
 

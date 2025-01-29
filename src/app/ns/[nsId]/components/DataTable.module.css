@@ -1,0 +1,25 @@
+.colSeparator {
+  position: relative;
+}
+.colSeparator:not(:first-child)::after {
+  position: absolute;
+  content: "";
+  display: block;
+  left: 0;
+  top: 10%;
+  bottom: 10%;
+  height: 80%;
+  border-right-width: 1px;
+  border-color: hsl(var(--border));
+}
+.rowSeparator::after {
+  position: absolute;
+  content: "";
+  display: block;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  border-bottom-width: 2px;
+  border-color: hsl(var(--border));
+}

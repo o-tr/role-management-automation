@@ -1,15 +1,17 @@
 import { api } from "@/lib/api";
 import { BadRequestException } from "@/lib/exceptions/BadRequestException";
+import { filterFNamespaceWithOwnerAndAdmins } from "@/lib/prisma/filter/filterFNamespaceWithOwnerAndAdmins";
 import { updateNamespace } from "@/lib/prisma/updateNamespace";
 import { validatePermission } from "@/lib/validatePermission";
 import type {
+  FNamespaceWithOwnerAndAdmins,
   TNamespaceId,
   TNamespaceWithOwnerAndAdmins,
 } from "@/types/prisma";
 import type { NextRequest } from "next/server";
 import { z } from "zod";
 
-export type NamespaceDetailResponse = TNamespaceWithOwnerAndAdmins & {
+export type NamespaceDetailResponse = FNamespaceWithOwnerAndAdmins & {
   isOwner: boolean;
 };
 
@@ -31,7 +33,10 @@ export const GET = api(
     const namespace = await validatePermission(params.nsId, "admin");
     return {
       status: "success",
-      namespace,
+      namespace: {
+        ...filterFNamespaceWithOwnerAndAdmins(namespace),
+        isOwner: namespace.isOwner,
+      },
     };
   },
 );

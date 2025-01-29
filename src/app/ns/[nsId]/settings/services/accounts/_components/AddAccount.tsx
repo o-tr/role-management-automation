@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import type { DiscordToken } from "@/lib/discord/types/token";
 import {
   type DiscordCredentials,
   type GithubCredentials,
@@ -127,7 +128,12 @@ export const AddAccount: FC<Props> = ({ nsId }) => {
   const [service, setService] = useState<ExternalServiceName>(
     serviceOptions[0].value,
   );
-  const [credential, setCredential] = useState({
+  const [credential, setCredential] = useState<{
+    token: DiscordToken | string;
+    username: string;
+    password: string;
+    totp: string;
+  }>({
     token: "",
     username: "",
     password: "",
@@ -214,21 +220,29 @@ export const AddAccount: FC<Props> = ({ nsId }) => {
       </FormItem>
       {service === "DISCORD" && (
         <DiscordCredentialsInput
-          credential={credential}
+          credential={{
+            token: credential.token as DiscordToken,
+          }}
           handleCredentialChange={handleCredentialChange}
           disabled={loading}
         />
       )}
       {service === "VRCHAT" && (
         <VRChatCredentialsInput
-          credential={credential}
+          credential={{
+            username: credential.username,
+            password: credential.password,
+            totp: credential.totp,
+          }}
           handleCredentialChange={handleCredentialChange}
           disabled={loading}
         />
       )}
       {service === "GITHUB" && (
         <GithubCredentialsInput
-          credential={credential}
+          credential={{
+            token: credential.token,
+          }}
           handleCredentialChange={handleCredentialChange}
           disabled={loading}
         />

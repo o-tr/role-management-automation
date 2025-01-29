@@ -5,18 +5,30 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { type FC, type KeyboardEvent, useEffect, useId, useState } from "react";
-import { useTags } from "../roles/_hooks/use-tags";
+import type { TTag, TTagId } from "@/types/prisma";
+import {
+  type Dispatch,
+  type FC,
+  type KeyboardEvent,
+  type SetStateAction,
+  useId,
+  useState,
+} from "react";
+import { TagDisplay } from "./TagDisplay";
 
 type Props = {
-  namespacedId: string;
-  onChange: (tags: string[]) => void;
+  tags: TTag[];
+  selectedTags: TTagId[];
+  showSelectAll?: boolean;
+  onChange: Dispatch<SetStateAction<TTagId[]>>;
 };
 
-export const MultipleTagPicker: FC<Props> = ({ namespacedId, onChange }) => {
-  const { tags } = useTags(namespacedId);
-
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+export const MultipleTagPicker: FC<Props> = ({
+  onChange,
+  tags,
+  selectedTags,
+  showSelectAll,
+}) => {
   const [inputValue, setInputValue] = useState("");
 
   const filteredTags = tags?.filter(
@@ -31,7 +43,7 @@ export const MultipleTagPicker: FC<Props> = ({ namespacedId, onChange }) => {
     if (e.key === "Enter" && !e.nativeEvent.isComposing) {
       const tag = filteredTags?.find((tag) => tag.name === inputValue);
       if (tag) {
-        setSelectedTags((prev) => [...prev, tag.id]);
+        onChange((prev) => [...prev, tag.id]);
         setInputValue("");
       }
     } else if (
@@ -39,43 +51,32 @@ export const MultipleTagPicker: FC<Props> = ({ namespacedId, onChange }) => {
       inputValue === "" &&
       selectedTags.length > 0
     ) {
-      setSelectedTags((prev) => prev.slice(0, -1));
+      onChange((prev) => prev.slice(0, -1));
     }
   };
 
-  useEffect(() => {
-    onChange(selectedTags);
-  }, [selectedTags, onChange]);
-
   return (
     <label
-      className="p-2 rounded-2xl border-2 flex-wrap flex flex-row gap-2 relative"
+      className="p-2 rounded-xl border-2 flex-wrap flex flex-row gap-2 relative"
       htmlFor={inputId}
     >
       {selectedTags.map((tagId) => {
         const tag = tags?.find((tag) => tag.id === tagId);
+        if (!tag) return null;
         return (
-          <span
+          <TagDisplay
             key={tagId}
-            className="px-4 py-1 rounded-xl flex flex-row items-center border-2"
-          >
-            {tag?.name}
-            <button
-              className="ml-2"
-              type="button"
-              onClick={() => {
-                setSelectedTags((prev) => prev.filter((v) => v !== tagId));
-              }}
-            >
-              x
-            </button>
-          </span>
+            tag={tag}
+            onDelete={() => {
+              onChange((prev) => prev.filter((v) => v !== tagId));
+            }}
+          />
         );
       })}
       <input
         id={inputId}
         type="text"
-        className="outline-none bg-none border-none bg-transparent h-[36px] px-2 w-[50px]"
+        className="outline-none bg-none border-none bg-transparent h-[36px] px-2"
         onKeyDown={onKeyDown}
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
@@ -83,22 +84,33 @@ export const MultipleTagPicker: FC<Props> = ({ namespacedId, onChange }) => {
         onBlur={() => setTimeout(() => setIsFocused(false), 100)}
       />
       <Command
-        className={`absolute top-full max-h-[200px] ${isFocused && inputValue.length > 1 ? "block" : "hidden"} focus:block`}
+        className={`absolute top-full max-h-[300px] h-max ${
+          isFocused ? "block" : "hidden"
+        } focus:block`}
         autoFocus={false}
       >
         <CommandList>
           <CommandEmpty>No tags found.</CommandEmpty>
           <CommandGroup>
+            {showSelectAll && filteredTags.length > 0 && (
+              <CommandItem
+                onSelect={() => {
+                  onChange(tags?.map((tag) => tag.id) || []);
+                  setInputValue("");
+                }}
+              >
+                Select All
+              </CommandItem>
+            )}
             {filteredTags?.map((tag) => (
               <CommandItem
                 key={tag.id}
                 onSelect={() => {
-                  console.log("selected", tag);
-                  setSelectedTags((prev) => [...prev, tag.id]);
+                  onChange((prev) => [...prev, tag.id]);
                   setInputValue("");
                 }}
               >
-                {tag.name}
+                <TagDisplay tag={tag} />
               </CommandItem>
             ))}
           </CommandGroup>

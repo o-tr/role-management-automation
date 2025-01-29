@@ -5,7 +5,7 @@ import {
 import { MemberExternalAccountDisplay } from "@/app/ns/[nsId]/components/MemberExternalAccountDisplay";
 import { TagDisplay } from "@/app/ns/[nsId]/components/TagDisplay";
 import type { TMemberWithDiff } from "@/types/diff";
-import type { RowModel } from "@tanstack/react-table";
+import type { RowModel, Table } from "@tanstack/react-table";
 import type { FC } from "react";
 import { DIffItemDisplay } from "./DiffItemDisplay";
 
@@ -81,7 +81,7 @@ export const columns: TColumnDef<InternalTMember>[] = [
 
 export const MappingDiffList: FC<{
   data: InternalTMember[];
-  selected?: FC<{ selected: RowModel<InternalTMember> }>;
-}> = ({ data, selected }) => {
-  return <DataTable columns={columns} data={data} selected={selected} />;
+  footer?: FC<{ table: Table<InternalTMember> }>;
+}> = ({ data, footer }) => {
+  return <DataTable columns={columns} data={data} footer={footer} />;
 };

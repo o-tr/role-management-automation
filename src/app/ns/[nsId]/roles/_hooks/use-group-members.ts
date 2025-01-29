@@ -19,7 +19,7 @@ export const useGroupMembers = (
   );
 
   return {
-    members: data && data.status === "success" ? data.members : undefined,
+    members: data && data.status === "success" ? data.data : undefined,
     isLoading: !error && !data,
     isError: error,
   };

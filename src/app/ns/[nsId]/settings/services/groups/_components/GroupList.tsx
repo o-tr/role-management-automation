@@ -2,10 +2,17 @@
 import type { FC } from "react";
 
 import { Button } from "@/components/ui/button";
-import type { TExternalServiceGroupWithAccount } from "@/types/prisma";
+import type {
+  TExternalServiceGroupWithAccount,
+  TNamespaceId,
+} from "@/types/prisma";
 import type { ColumnDef } from "@tanstack/react-table";
 
-import { DataTable } from "@/app/ns/[nsId]/components/DataTable";
+import {
+  CommonCheckboxCell,
+  CommonCheckboxHeader,
+  DataTable,
+} from "@/app/ns/[nsId]/components/DataTable";
 import { Image } from "@/app/ns/[nsId]/components/Image";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useServiceGroups } from "../../../../_hooks/use-service-groups";
@@ -19,27 +26,8 @@ type InternalServiceGroup = TExternalServiceGroupWithAccount & {
 export const columns: ColumnDef<InternalServiceGroup>[] = [
   {
     id: "select",
-    header: ({ table }) => (
-      <div className={"grid place-items-center"}>
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      </div>
-    ),
-    cell: ({ row }) => (
-      <div className={"grid place-items-center"}>
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      </div>
-    ),
+    header: CommonCheckboxHeader,
+    cell: CommonCheckboxCell,
     size: 50,
     maxSize: 50,
   },
@@ -113,7 +101,7 @@ export const columns: ColumnDef<InternalServiceGroup>[] = [
 ];
 
 type Props = {
-  nsId: string;
+  nsId: TNamespaceId;
 };
 
 export const GroupList: FC<Props> = ({ nsId }) => {
@@ -130,21 +118,24 @@ export const GroupList: FC<Props> = ({ nsId }) => {
       <DataTable
         columns={columns}
         data={groups?.map((v) => ({ ...v, namespaceId: nsId })) || []}
-        selected={({ selected }) => (
-          <div>
-            <Button
-              variant="outline"
-              onClick={() => {
-                deleteServiceGroups(
-                  nsId,
-                  selected.rows.map((v) => v.original.id),
-                );
-              }}
-            >
-              選択した {selected.rows.length} 件を削除
-            </Button>
-          </div>
-        )}
+        footer={({ table }) => {
+          const selected = table.getSelectedRowModel();
+          return (
+            <div>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  deleteServiceGroups(
+                    nsId,
+                    selected.rows.map((v) => v.original.id),
+                  );
+                }}
+              >
+                選択した {selected.rows.length} 件を削除
+              </Button>
+            </div>
+          );
+        }}
       />
     </div>
   );

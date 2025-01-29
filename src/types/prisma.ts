@@ -19,6 +19,8 @@ export type TUser = {
   name: string | null;
 };
 
+export type FUser = Omit<TUser, "email">;
+
 const ZNamespaceId = z.string().uuid().brand("NamespaceId");
 export type TNamespaceId = z.infer<typeof ZNamespaceId>;
 export type TNamespace = {
@@ -31,6 +33,13 @@ export type TNamespaceWithOwnerAndAdmins = {
   name: string;
   owner: TUser;
   admins: TUser[];
+};
+export type FNamespaceWithOwnerAndAdmins = Omit<
+  TNamespaceWithOwnerAndAdmins,
+  "owner" | "admins"
+> & {
+  owner: FUser;
+  admins: FUser[];
 };
 
 export type TNamespaceWithRelation = {

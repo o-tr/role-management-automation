@@ -3,20 +3,25 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import type { TNamespaceDetailWithRelation } from "@/types/prisma";
-import { Namespace, User } from "@prisma/client";
+import { useNamespace } from "@/hooks/use-namespace";
+import type { TNamespaceId } from "@/types/prisma";
 import { useState } from "react";
 
-interface GroupDetailsProps {
-  namespace: TNamespaceDetailWithRelation;
-}
+type Props = {
+  nsId: TNamespaceId;
+};
 
-export default function GroupDetails({ namespace }: GroupDetailsProps) {
+export const GroupDetails = ({ nsId }: Props) => {
+  const { namespace } = useNamespace({ namespaceId: nsId });
   const [newOwnerEmail, setNewOwnerEmail] = useState("");
 
   const handleTransferOwnership = async () => {
     setNewOwnerEmail("");
   };
+
+  if (!namespace) {
+    return null;
+  }
 
   return (
     <div className="space-y-4 mb-6">
@@ -43,4 +48,4 @@ export default function GroupDetails({ namespace }: GroupDetailsProps) {
       )}
     </div>
   );
-}
+};

@@ -1,9 +1,10 @@
 "use client";
 import { EditNSName } from "@/app/ns/[nsId]/settings/_components/EditNSName";
 import { useNamespace } from "@/hooks/use-namespace";
+import type { TNamespaceId } from "@/types/prisma";
 import { redirect } from "next/navigation";
 import { BreadcrumbUpdater } from "../components/Breadcrumb/BreadcrumbUpdater";
-import GroupDetails from "../components/GroupDetails";
+import { GroupDetails } from "../components/GroupDetails";
 
 const paths = [
   { label: "ネームスペース設定", path: "/ns/[nsId]/settings" },
@@ -12,7 +13,7 @@ const paths = [
 
 type Props = {
   params: {
-    nsId: string;
+    nsId: TNamespaceId;
   };
 };
 
@@ -32,7 +33,7 @@ export default function GroupSettingsPage({ params: { nsId } }: Props) {
         refetch={refetch}
         key={namespace.name}
       />
-      <GroupDetails namespace={namespace} />
+      <GroupDetails nsId={nsId} />
       <BreadcrumbUpdater paths={paths} />
       {/* 
       <GroupDetails namespace={namespace} isOwner={isOwner} />

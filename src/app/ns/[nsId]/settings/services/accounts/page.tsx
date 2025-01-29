@@ -8,6 +8,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import type { TNamespaceId } from "@/types/prisma";
 import { AccountList } from "./_components/AccountList";
 import { AddAccount } from "./_components/AddAccount";
 
@@ -26,7 +27,7 @@ const paths = [
 export default function AuthenticationPage({
   params,
 }: {
-  params: { nsId: string };
+  params: { nsId: TNamespaceId };
 }) {
   return (
     <div className="space-y-4">

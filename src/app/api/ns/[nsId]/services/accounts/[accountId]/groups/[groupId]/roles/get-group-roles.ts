@@ -1,4 +1,5 @@
 import { getGuildRoles } from "@/lib/discord/requests/getGuildRoles";
+import type { DiscordGuildId } from "@/lib/discord/types/guild";
 import { getGroupRoles as getVRCGroupRoles } from "@/lib/vrchat/requests/getGroupRoles";
 import { ZDiscordCredentials } from "@/types/credentials";
 import type {
@@ -33,7 +34,10 @@ const getDiscordGroupRoles = async (
   serviceGroup: TExternalServiceGroup,
 ): Promise<TExternalServiceGroupRole[]> => {
   const data = ZDiscordCredentials.parse(JSON.parse(serviceAccount.credential));
-  const roles = await getGuildRoles(data.token, serviceGroup.groupId);
+  const roles = await getGuildRoles(
+    data.token,
+    serviceGroup.groupId as DiscordGuildId,
+  );
   return roles.map((role) => ({
     id: role.id,
     name: role.name,

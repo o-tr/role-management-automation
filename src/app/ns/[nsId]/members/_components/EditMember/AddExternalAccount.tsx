@@ -11,7 +11,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { TMemberWithRelation } from "@/types/prisma";
+import type {
+  TMemberExternalServiceAccountId,
+  TMemberWithRelation,
+} from "@/types/prisma";
 import type { ExternalServiceName } from "@prisma/client";
 import {
   type Dispatch,
@@ -40,12 +43,13 @@ export const AddExternalAccount: FC<{
     setMember((pv) => {
       const nv = structuredClone(pv);
       nv.externalAccounts.push({
-        id: crypto.randomUUID(),
+        id: crypto.randomUUID() as TMemberExternalServiceAccountId,
         service: data.service,
         serviceId: data.serviceId,
         name: data.name,
-        icon: data.icon || null,
+        icon: data.icon || undefined,
         namespaceId: member.namespaceId,
+        memberId: member.id,
       });
       return nv;
     });

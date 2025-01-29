@@ -7,17 +7,18 @@ import type {
   TTag,
   TTagId,
 } from "@/types/prisma";
-import type { ColumnDef, RowModel } from "@tanstack/react-table";
+import type {
+  ColumnDef,
+  StringOrTemplateHeader,
+  Table,
+} from "@tanstack/react-table";
 
-import { DataTable } from "@/app/ns/[nsId]/components/DataTable";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
+  CommonCheckboxCell,
+  CommonCheckboxHeader,
+  DataTable,
+} from "@/app/ns/[nsId]/components/DataTable";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -31,8 +32,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { deleteMember } from "@/requests/deleteMember";
-import { type FC, useCallback, useState } from "react";
-import { TbPlus } from "react-icons/tb";
+import { type FC, useCallback, useEffect, useMemo, useState } from "react";
+import { TbFilter, TbPlus } from "react-icons/tb";
 import { MemberExternalAccountDisplay } from "../../components/MemberExternalAccountDisplay";
 import { MultipleTagPicker } from "../../components/MultipleTagPicker";
 import { TagDisplay } from "../../components/TagDisplay";
@@ -46,30 +47,57 @@ import { useMembers } from "../_hooks/use-tags";
 import { AddTag } from "./EditMember/AddTag";
 import { EditMember } from "./EditMember/EditMember";
 
+const TagsHeader: StringOrTemplateHeader<TMemberWithRelation, unknown> = ({
+  table,
+}) => {
+  const rows = table.getCoreRowModel().rows;
+  const tags = useMemo(
+    () =>
+      rows
+        .flatMap((row) => row.original.tags)
+        .reduce<TTag[]>((acc, tag) => {
+          if (!acc.find((t) => t.id === tag.id)) {
+            acc.push(tag);
+          }
+          return acc;
+        }, [])
+        .sort((a, b) => a.name.localeCompare(b.name)),
+    [rows],
+  );
+  const [selectedTags, setSelectedTags] = useState<TTagId[]>(
+    (table.getColumn("tags")?.getFilterValue() as TTagId[] | undefined) ||
+      tags.map((tag) => tag.id),
+  );
+
+  useEffect(() => {
+    table.getColumn("tags")?.setFilterValue(selectedTags);
+  }, [selectedTags, table]);
+
+  return (
+    <div className={"flex flex-row justify-between items-center"}>
+      <span>Tags</span>
+      <Popover>
+        <PopoverTrigger>
+          <TbFilter />
+        </PopoverTrigger>
+        <PopoverContent className="p-0 border-none">
+          <MultipleTagPicker
+            selectedTags={selectedTags}
+            onChange={setSelectedTags}
+            tags={tags}
+            showSelectAll
+          />
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+};
+
 export const columns: ColumnDef<TMemberWithRelation>[] = [
   {
     id: "select",
-    header: ({ table }) => (
-      <div className={"grid place-items-center"}>
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      </div>
-    ),
-    cell: ({ row }) => (
-      <div className={"grid place-items-center"}>
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      </div>
-    ),
+    header: CommonCheckboxHeader,
+    cell: CommonCheckboxCell,
     size: 50,
     maxSize: 50,
   },
@@ -108,7 +136,7 @@ export const columns: ColumnDef<TMemberWithRelation>[] = [
   },
   {
     id: "tags",
-    header: "Tags",
+    header: TagsHeader,
     cell: ({ row }) => {
       const { patchMembers, loading } = usePatchMember(
         row.original.namespaceId,
@@ -158,6 +186,14 @@ export const columns: ColumnDef<TMemberWithRelation>[] = [
             </PopoverContent>
           </Popover>
         </div>
+      );
+    },
+    filterFn: (row, id, filterValue) => {
+      if (id !== "tags") {
+        return true;
+      }
+      return (filterValue as TTagId[]).some((filterTag) =>
+        row.original.tags.some((tag) => tag.id === filterTag),
       );
     },
   },
@@ -212,62 +248,26 @@ const deleteMembers = async (groupId: string, tagIds: string[]) => {
 
 type MemberListProps = {
   namespaceId: TNamespaceId;
+  className?: string;
 };
 
-type TagSelectorProps = {
-  namespaceId: string;
-  selectedTags: string[];
-  onChange: (tags: string[]) => void;
-};
-
-const TagSelector = ({
-  namespaceId,
-  selectedTags,
-  onChange,
-}: TagSelectorProps) => {
-  const { tags } = useTags(namespaceId);
-  const [query, setQuery] = useState("");
-  const [isFocused, setIsFocused] = useState(false);
-
-  return (
-    <div className="">
-      <input
-        className="border-none outline-none bg-none"
-        value={query}
-        onChange={(v) => setQuery(v.target.value)}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-      />
-      <Command>
-        <CommandList>
-          <CommandEmpty>No framework found.</CommandEmpty>
-          <CommandGroup>
-            {tags?.map((tag) => (
-              <CommandItem
-                key={tag.id}
-                onSelect={() => onChange([...selectedTags, tag.id])}
-              >
-                {tag.name}
-              </CommandItem>
-            ))}
-          </CommandGroup>
-        </CommandList>
-      </Command>
-    </div>
-  );
-};
-
-export function MemberList({ namespaceId }: MemberListProps) {
+export function MemberList({ namespaceId, className }: MemberListProps) {
   const { members, isPending, refetch } = useMembers(namespaceId);
 
   useOnMembersChange(refetch);
 
-  const Selected = useCallback<FC<{ selected: RowModel<TMemberWithRelation> }>>(
-    ({ selected }) => {
+  const Footer = useCallback<FC<{ table: Table<TMemberWithRelation> }>>(
+    ({ table }) => {
       const { patchMembers } = usePatchMember(namespaceId);
-      const [selectedTags, setSelectedTags] = useState<string[]>([]);
+      const { tags } = useTags(namespaceId);
+      const selected = table.getSelectedRowModel();
+      const [selectedTags, setSelectedTags] = useState<TTagId[]>([]);
+      if (!selected.rows.length) {
+        return <div className="h-[40px]">&nbsp;</div>;
+      }
+
       return (
-        <div>
+        <div className="h-[40px]">
           <Button
             variant="outline"
             onClick={async () => {
@@ -290,10 +290,13 @@ export function MemberList({ namespaceId }: MemberListProps) {
               <DialogHeader>
                 <DialogTitle>タグを追加</DialogTitle>
               </DialogHeader>
-              <MultipleTagPicker
-                namespacedId={namespaceId}
-                onChange={setSelectedTags}
-              />
+              {tags && (
+                <MultipleTagPicker
+                  tags={tags}
+                  selectedTags={selectedTags}
+                  onChange={setSelectedTags}
+                />
+              )}
               <Button
                 variant="outline"
                 onClick={async () => {
@@ -328,8 +331,8 @@ export function MemberList({ namespaceId }: MemberListProps) {
   }
 
   return (
-    <div className="mt-6">
-      <DataTable columns={columns} data={members || []} selected={Selected} />
+    <div className={className}>
+      <DataTable columns={columns} data={members || []} footer={Footer} />
     </div>
   );
 }

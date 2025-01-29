@@ -1,10 +1,13 @@
 "use client";
+import type { NamespaceDetailResponse } from "@/app/api/ns/[nsId]/route";
 import type { GetNamespacesResponse } from "@/app/api/ns/route";
 import type { TNamespace } from "@/types/prisma";
 import { useCallback, useEffect, useState } from "react";
 
 export const useNamespaces = () => {
-  const [namespaces, setNamespaces] = useState<TNamespace[] | undefined>();
+  const [namespaces, setNamespaces] = useState<
+    NamespaceDetailResponse[] | undefined
+  >();
   const [isPending, setIsPending] = useState(true);
 
   const fetchData = useCallback(async () => {

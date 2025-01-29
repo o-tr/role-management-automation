@@ -16,7 +16,7 @@ export default function InviteAdminForm({ groupId }: InviteAdminFormProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await inviteAdmin(groupId, adminEmail);
+    // await inviteAdmin(groupId, adminEmail);
     setAdminEmail("");
     router.refresh();
   };

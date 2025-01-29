@@ -36,11 +36,7 @@ export const AppSidebarContent: FC = () => {
             link={`/ns/${nsId}/members`}
             label={"メンバー管理"}
             icon={<TbUsersGroup />}
-          >
-            <SidebarMenuSub>
-              <MenuItem sub link={`/ns/${nsId}/members/add`} label={"追加"} />
-            </SidebarMenuSub>
-          </MenuItem>
+          />
           <MenuItem
             link={`/ns/${nsId}/roles/mappings`}
             label={"ロール管理"}

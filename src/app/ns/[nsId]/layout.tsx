@@ -18,7 +18,7 @@ export default function RootLayout({
     <SidebarProvider>
       <BreadcrumbProvider>
         <AppSidebar />
-        <SidebarInset>
+        <SidebarInset className="h-full flex flex-col">
           <header className="bg-background p-2 flex flex-row justify-between">
             <div className={"flex flex-row items-center justify-start"}>
               <SidebarTrigger size={"icon"} className={"w-10 h-10"} />
@@ -29,7 +29,7 @@ export default function RootLayout({
               <ModeToggle />
             </div>
           </header>
-          <main className={"px-4"}>{children}</main>
+          <main className={"px-4 flex-grow-0 overflow-hidden"}>{children}</main>
         </SidebarInset>
       </BreadcrumbProvider>
     </SidebarProvider>

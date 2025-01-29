@@ -13,7 +13,11 @@ import {
   useCallback,
   useMemo,
 } from "react";
-import { DataTable } from "../../components/DataTable";
+import {
+  CommonCheckboxCell,
+  CommonCheckboxHeader,
+  DataTable,
+} from "../../components/DataTable";
 import { MemberAccountResolveDisplay } from "../../components/MemberAccountResolveDisplay";
 import type { RowObject } from "./AddPastedMembers";
 
@@ -70,31 +74,8 @@ export const MemberPreviewTable: FC<Props> = ({
     return [
       {
         id: "select",
-        header: ({ table }) => (
-          <div className={"grid place-items-center"}>
-            <Checkbox
-              checked={
-                table.getIsAllPageRowsSelected() ||
-                (table.getIsSomePageRowsSelected() && "indeterminate")
-              }
-              onCheckedChange={(value) =>
-                table.toggleAllPageRowsSelected(!!value)
-              }
-              aria-label="Select all"
-              disabled={disabled}
-            />
-          </div>
-        ),
-        cell: ({ row }) => (
-          <div className={"grid place-items-center"}>
-            <Checkbox
-              checked={row.getIsSelected()}
-              onCheckedChange={(value) => row.toggleSelected(!!value)}
-              aria-label="Select row"
-              disabled={disabled}
-            />
-          </div>
-        ),
+        header: CommonCheckboxHeader,
+        cell: CommonCheckboxCell,
         size: 50,
         maxSize: 50,
       },
@@ -156,21 +137,24 @@ export const MemberPreviewTable: FC<Props> = ({
     <DataTable
       columns={columns}
       data={data}
-      selected={({ selected }) => (
-        <div>
-          <Button
-            variant="outline"
-            onClick={() => {
-              const selectedIndexes = selected.rows.map((row) => row.index);
-              setData((pv) =>
-                pv.filter((_, i) => !selectedIndexes.includes(i)),
-              );
-            }}
-          >
-            選択した {selected.rows.length} 件を削除
-          </Button>
-        </div>
-      )}
+      footer={({ table }) => {
+        const selected = table.getSelectedRowModel();
+        return (
+          <div>
+            <Button
+              variant="outline"
+              onClick={() => {
+                const selectedIndexes = selected.rows.map((row) => row.index);
+                setData((pv) =>
+                  pv.filter((_, i) => !selectedIndexes.includes(i)),
+                );
+              }}
+            >
+              選択した {selected.rows.length} 件を削除
+            </Button>
+          </div>
+        );
+      }}
     />
   );
 };

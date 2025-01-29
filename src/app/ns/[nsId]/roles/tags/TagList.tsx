@@ -6,7 +6,11 @@ import type { TNamespaceId, TTag } from "@/types/prisma";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useState } from "react";
 
-import { DataTable } from "@/app/ns/[nsId]/components/DataTable";
+import {
+  CommonCheckboxCell,
+  CommonCheckboxHeader,
+  DataTable,
+} from "@/app/ns/[nsId]/components/DataTable";
 import { Checkbox } from "@/components/ui/checkbox";
 import { createTag } from "@/requests/createTag";
 import { deleteTag } from "@/requests/deleteTag";
@@ -21,27 +25,8 @@ type InternalTag = TTag & { namespaceId: TNamespaceId };
 export const columns: ColumnDef<InternalTag>[] = [
   {
     id: "select",
-    header: ({ table }) => (
-      <div className={"grid place-items-center"}>
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-        />
-      </div>
-    ),
-    cell: ({ row }) => (
-      <div className={"grid place-items-center"}>
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      </div>
-    ),
+    header: CommonCheckboxHeader,
+    cell: CommonCheckboxCell,
     size: 50,
     maxSize: 50,
   },
@@ -101,21 +86,24 @@ export function TagList({ namespaceId }: TagListProps) {
       <DataTable
         columns={columns}
         data={tags?.map((v) => ({ ...v, namespaceId })) || []}
-        selected={({ selected }) => (
-          <div>
-            <Button
-              variant="outline"
-              onClick={() => {
-                deleteTags(
-                  namespaceId,
-                  selected.rows.map((v) => v.original.id),
-                );
-              }}
-            >
-              選択した {selected.rows.length} 件を削除
-            </Button>
-          </div>
-        )}
+        footer={({ table }) => {
+          const selected = table.getSelectedRowModel();
+          return (
+            <div>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  deleteTags(
+                    namespaceId,
+                    selected.rows.map((v) => v.original.id),
+                  );
+                }}
+              >
+                選択した {selected.rows.length} 件を削除
+              </Button>
+            </div>
+          );
+        }}
       />
       <form onSubmit={handleAddTag} className="mt-4 flex space-x-2">
         <Input

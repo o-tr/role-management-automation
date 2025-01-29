@@ -1,3 +1,4 @@
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -8,14 +9,24 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import {
+  type CellContext,
   type ColumnDef,
+  type ColumnDefTemplate,
+  type ColumnFiltersState,
   type Row,
   type RowModel,
+  type SortingState,
+  type StringOrTemplateHeader,
+  TableOptions,
+  type Table as TableType,
   flexRender,
   getCoreRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import type { FC } from "react";
+import { type FC, useEffect, useState } from "react";
+import styles from "./DataTable.module.css";
 
 export type TColumnDef<T> = ColumnDef<T> & {
   widthPercent?: number;
@@ -24,30 +35,48 @@ export type TColumnDef<T> = ColumnDef<T> & {
 interface DataTableProps<T> {
   columns: TColumnDef<T>[];
   data: T[];
-  selected?: FC<{ selected: RowModel<T> }>;
+  header?: FC<{ table: TableType<T> }>;
+  footer?: FC<{ table: TableType<T> }>;
   className?: string;
   calcRowClassName?: (row: Row<T>) => string;
+  getFilteredRowModel?: (data: TableType<T>) => () => RowModel<T>;
 }
 
 export function DataTable<T>({
   columns,
   data,
-  selected: Selected,
+  header: Header,
+  footer: Footer,
   className,
   calcRowClassName,
 }: DataTableProps<T>) {
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
+    onColumnFiltersChange: setColumnFilters,
+    getFilteredRowModel: getFilteredRowModel(),
+    state: {
+      sorting,
+      columnFilters,
+    },
   });
-  const selected = table.getSelectedRowModel();
 
   return (
-    <div className={cn("flex flex-col gap-2 items-start", className)}>
-      <div className="rounded-md border">
-        <Table className="table-fixed">
-          <TableHeader>
+    <div
+      className={cn(
+        "flex flex-col gap-2 items-start overflow-y-hidden h-full",
+        className,
+      )}
+    >
+      {Header && <Header table={table} />}
+      <div className="rounded-md border overflow-y-hidden">
+        <Table className="table-fixed overflow-y-auto">
+          <TableHeader className={`sticky top-0 z-10 ${styles.rowSeparator}`}>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
@@ -68,6 +97,7 @@ export function DataTable<T>({
                         width: size || sizePercent,
                         maxWidth: maxSize,
                       }}
+                      className={styles.colSeparator}
                     >
                       {header.isPlaceholder
                         ? null
@@ -112,7 +142,40 @@ export function DataTable<T>({
           </TableBody>
         </Table>
       </div>
-      {selected.rows.length > 0 && Selected && <Selected selected={selected} />}
+      {Footer && <Footer table={table} />}
     </div>
   );
 }
+
+// biome-ignore lint/suspicious/noExplicitAny: tmp;
+export const CommonCheckboxHeader: StringOrTemplateHeader<any, any> = ({
+  table,
+}) => {
+  return (
+    <div className={"grid place-items-center"}>
+      <Checkbox
+        checked={
+          table.getIsAllPageRowsSelected() ||
+          (table.getIsSomePageRowsSelected() && "indeterminate")
+        }
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+      />
+    </div>
+  );
+};
+
+export const CommonCheckboxCell: ColumnDefTemplate<
+  // biome-ignore lint/suspicious/noExplicitAny: tmp;
+  CellContext<any, any>
+> = ({ row }) => {
+  return (
+    <div className={"grid place-items-center"}>
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+      />
+    </div>
+  );
+};

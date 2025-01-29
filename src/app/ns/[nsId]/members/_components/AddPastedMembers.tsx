@@ -1,5 +1,5 @@
 import type { ResolveResult } from "@/app/api/ns/[nsId]/members/resolve/[type]/[serviceId]/route";
-import type { AddMembersBody } from "@/app/api/ns/[nsId]/members/route";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,9 +9,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import type { TCreateOrUpdateMembers } from "@/lib/prisma/createOrUpdateMember";
 import { ZVRCUserId } from "@/lib/vrchat/types/brand";
+import type { TNamespaceId, TTagId } from "@/types/prisma";
 import { type FC, useState } from "react";
 import { MultipleTagPicker } from "../../components/MultipleTagPicker";
+import { useTags } from "../../roles/_hooks/use-tags";
 import {
   onMembersChange,
   useOnMembersChange,
@@ -24,7 +27,7 @@ import { OverwriteConfirm } from "./OverwriteConfirm";
 import { PastedTable } from "./PastedTable";
 
 type Props = {
-  nsId: string;
+  nsId: TNamespaceId;
 };
 
 type TKeys =
@@ -59,8 +62,9 @@ export const AddPastedMembers: FC<Props> = ({ nsId }) => {
   const [tmpPastedKeys, setTmpPastedKeys] = useState<TKeys[]>([]);
   const [keys, setKeys] = useState<TKeys[]>([]);
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<TTagId[]>([]);
   const { createMembers, loading } = useCreateMembers(nsId);
+  const { tags, isPending } = useTags(nsId);
   useOnPaste((e) => {
     const pasted = parseClipboard(e);
     if (!pasted) return;
@@ -97,7 +101,7 @@ export const AddPastedMembers: FC<Props> = ({ nsId }) => {
 
   const register = async () => {
     const tags = selectedTags.map((tagId) => tagId);
-    const data: AddMembersBody = members.map((row) => {
+    const data: TCreateOrUpdateMembers = members.map((row) => {
       const services = row.data
         .map((val) => ("data" in val ? val.data : undefined))
         .filter((v) => !!v)
@@ -121,12 +125,47 @@ export const AddPastedMembers: FC<Props> = ({ nsId }) => {
 
   return (
     <div className="flex flex-col space-y-2 items-start">
-      <PastedTable
-        data={members}
-        keys={keys}
-        setData={setMembers}
-        setKeys={setKeys}
-      />
+      <Dialog open={members.length !== 0} onOpenChange={() => setMembers([])}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>メンバーを追加</DialogTitle>
+          </DialogHeader>
+          <PastedTable
+            data={members}
+            keys={keys}
+            setData={setMembers}
+            setKeys={setKeys}
+          />
+          <Dialog open={confirmModalOpen} onOpenChange={setConfirmModalOpen}>
+            <DialogTrigger asChild>
+              <Button disabled={loading}>確認</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-7xl max-h-full overflow-y-scroll">
+              <DialogHeader>
+                <DialogTitle>確認</DialogTitle>
+              </DialogHeader>
+              <MemberPreviewTable
+                data={members}
+                keys={keys}
+                setData={setMembers}
+                nsId={nsId}
+              />
+              {tags && !isPending && (
+                <MultipleTagPicker
+                  tags={tags}
+                  selectedTags={selectedTags}
+                  onChange={setSelectedTags}
+                />
+              )}
+              <DialogFooter>
+                <Button disabled={loading} onClick={register}>
+                  登録
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </DialogContent>
+      </Dialog>
       <OverwriteConfirm
         open={!!tmpPasted}
         onOpenChange={() => setTmpPasted(undefined)}
@@ -136,28 +175,6 @@ export const AddPastedMembers: FC<Props> = ({ nsId }) => {
           setTmpPasted(undefined);
         }}
       />
-      <Dialog open={confirmModalOpen} onOpenChange={setConfirmModalOpen}>
-        <DialogTrigger asChild>
-          <Button disabled={loading}>確認</Button>
-        </DialogTrigger>
-        <DialogContent className="max-w-7xl max-h-full overflow-y-scroll">
-          <DialogHeader>
-            <DialogTitle>確認</DialogTitle>
-          </DialogHeader>
-          <MemberPreviewTable
-            data={members}
-            keys={keys}
-            setData={setMembers}
-            nsId={nsId}
-          />
-          <MultipleTagPicker namespacedId={nsId} onChange={setSelectedTags} />
-          <DialogFooter>
-            <Button disabled={loading} onClick={register}>
-              登録
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
