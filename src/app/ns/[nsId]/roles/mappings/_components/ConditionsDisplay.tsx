@@ -5,6 +5,7 @@ import type {
   TMappingKey,
 } from "@/types/conditions";
 import type { FC } from "react";
+import { TagDisplay } from "../../../components/TagDisplay";
 import { useTags } from "../../_hooks/use-tags";
 
 type Props = {
@@ -27,16 +28,17 @@ export const ConditionsDisplay: FC<Props> = ({ conditions, nsId }) => {
     const tag = tags?.find((t) => t.id === conditions.value);
 
     return (
-      <Card className="p-2">
+      <Card className="p-2 space-x-1 flex-row items-center">
         <span>{keysLabel[conditions.key]}</span>
         {tag ? (
-          <span>{tag.name}</span>
+          <TagDisplay tag={tag} display="inline" />
         ) : isPending ? (
           <span>loading...</span>
         ) : (
           <span className="text-red-600">[削除されたタグ]</span>
         )}
-        を<span>{comparatorsLabel[conditions.comparator]}</span>
+        <span>を</span>
+        <span>{comparatorsLabel[conditions.comparator]}</span>
       </Card>
     );
   }

@@ -5,6 +5,7 @@ import { createTag } from "@/lib/prisma/createTag";
 import { formatTTag } from "@/lib/prisma/format/formatTTag";
 import { getTags } from "@/lib/prisma/getTags";
 import { validatePermission } from "@/lib/validatePermission";
+import { ZColorCode } from "@/types/brand";
 import type { TNamespaceId, TTag } from "@/types/prisma";
 import { getServerSession } from "next-auth/next";
 import { type NextRequest, NextResponse } from "next/server";
@@ -32,6 +33,7 @@ export type GetTagsResponse =
 
 const createTagSchema = z.object({
   name: z.string().min(1, "Name is required"),
+  color: ZColorCode.optional(),
 });
 
 export const POST = api(
@@ -48,9 +50,9 @@ export const POST = api(
       throw new BadRequestException("Invalid request body");
     }
 
-    const { name } = result.data;
+    const { name, color } = result.data;
 
-    const tag = await createTag(params.nsId, { name });
+    const tag = await createTag(params.nsId, { name, color });
 
     return {
       status: "success",

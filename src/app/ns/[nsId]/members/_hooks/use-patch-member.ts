@@ -1,7 +1,5 @@
-import type {
-  UpdateMemberBody,
-  UpdateMemberResponse,
-} from "@/app/api/ns/[nsId]/members/[memberId]/route";
+import type { UpdateMemberResponse } from "@/app/api/ns/[nsId]/members/[memberId]/route";
+import type { TMemberUpdateInput } from "@/lib/prisma/updateMember";
 import { useState } from "react";
 
 export const usePatchMember = (nsId: string) => {
@@ -9,7 +7,7 @@ export const usePatchMember = (nsId: string) => {
 
   const patchMembers = async (
     memberId: string,
-    body: UpdateMemberBody,
+    body: TMemberUpdateInput,
   ): Promise<UpdateMemberResponse> => {
     setLoading(true);
     const response = await fetch(`/api/ns/${nsId}/members/${memberId}`, {

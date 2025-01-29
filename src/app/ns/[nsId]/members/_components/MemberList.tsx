@@ -1,7 +1,12 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import type { TMemberWithRelation, TNamespaceId, TTagId } from "@/types/prisma";
+import type {
+  TMemberWithRelation,
+  TNamespaceId,
+  TTag,
+  TTagId,
+} from "@/types/prisma";
 import type { ColumnDef, RowModel } from "@tanstack/react-table";
 
 import { DataTable } from "@/app/ns/[nsId]/components/DataTable";
@@ -20,10 +25,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { deleteMember } from "@/requests/deleteMember";
 import { type FC, useCallback, useState } from "react";
+import { TbPlus } from "react-icons/tb";
 import { MemberExternalAccountDisplay } from "../../components/MemberExternalAccountDisplay";
 import { MultipleTagPicker } from "../../components/MultipleTagPicker";
+import { TagDisplay } from "../../components/TagDisplay";
 import { useTags } from "../../roles/_hooks/use-tags";
 import {
   onMembersChange,
@@ -31,6 +43,7 @@ import {
 } from "../_hooks/on-members-change";
 import { usePatchMember } from "../_hooks/use-patch-member";
 import { useMembers } from "../_hooks/use-tags";
+import { AddTag } from "./EditMember/AddTag";
 import { EditMember } from "./EditMember/EditMember";
 
 export const columns: ColumnDef<TMemberWithRelation>[] = [
@@ -97,16 +110,53 @@ export const columns: ColumnDef<TMemberWithRelation>[] = [
     id: "tags",
     header: "Tags",
     cell: ({ row }) => {
+      const { patchMembers, loading } = usePatchMember(
+        row.original.namespaceId,
+      );
+
+      const onDelete = async (deleteTag: TTag) => {
+        row.original.tags = row.original.tags.filter(
+          (tag) => deleteTag.id !== tag.id,
+        );
+        await patchMembers(row.original.id, row.original);
+        onMembersChange();
+      };
+
+      const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
       return (
-        <div className="flex flex-wrap">
+        <div className="flex flex-wrap gap-1">
           {row.original.tags.map((tag) => (
-            <span
+            <TagDisplay
               key={tag.id}
-              className="bg-gray-200 px-2 py-1 rounded-full text-sm font-semibold text-gray-700 mr-2"
-            >
-              {tag.name}
-            </span>
+              tag={tag}
+              variant="outline"
+              onDelete={onDelete}
+            />
           ))}
+          <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+            <PopoverTrigger asChild>
+              <button className="border rounded-md px-2 h-[22px]" type="button">
+                <TbPlus />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent>
+              <AddTag
+                member={row.original}
+                onConfirm={async (tag) => {
+                  const member = { ...row.original };
+                  member.tags.push({
+                    ...tag,
+                    namespaceId: row.original.namespaceId,
+                  });
+                  await patchMembers(member.id, member);
+                  onMembersChange();
+                  setIsPopoverOpen(false);
+                }}
+                disabled={loading}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
       );
     },

@@ -2,6 +2,7 @@ import { ZVRCGroupId } from "@/lib/vrchat/types/brand";
 import type { ExternalServiceName } from "@prisma/client";
 import { z } from "zod";
 import type { TMappingAction } from "./actions";
+import { ZColorCode } from "./brand";
 import type { TMappingCondition } from "./conditions";
 
 export const ZExternalServiceName = z.union([
@@ -47,6 +48,7 @@ export const ZTag = z.object({
   id: ZTagId,
   namespaceId: ZNamespaceId,
   name: z.string(),
+  color: ZColorCode.optional(),
 });
 export type TTag = z.infer<typeof ZTag>;
 

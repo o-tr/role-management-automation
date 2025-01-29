@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import type { TTag } from "@/types/prisma";
+import type { TNamespaceId, TTag } from "@/types/prisma";
 import type { ColumnDef } from "@tanstack/react-table";
 import { useState } from "react";
 
@@ -10,10 +10,13 @@ import { DataTable } from "@/app/ns/[nsId]/components/DataTable";
 import { Checkbox } from "@/components/ui/checkbox";
 import { createTag } from "@/requests/createTag";
 import { deleteTag } from "@/requests/deleteTag";
+import { TbTag } from "react-icons/tb";
+import { TagDisplay } from "../../components/TagDisplay";
 import { onTagsChange } from "../_hooks/on-tags-change";
 import { useTags } from "../_hooks/use-tags";
+import { EditTag } from "./EditTag";
 
-type InternalTag = TTag & { namespaceId: string };
+type InternalTag = TTag & { namespaceId: TNamespaceId };
 
 export const columns: ColumnDef<InternalTag>[] = [
   {
@@ -45,22 +48,26 @@ export const columns: ColumnDef<InternalTag>[] = [
   {
     accessorKey: "name",
     header: "Name",
+    cell: ({ row }) => <TagDisplay tag={row.original} variant="ghost" />,
     size: -1,
   },
   {
     id: "actions",
     cell: ({ row }) => (
-      <Button
-        variant="outline"
-        onClick={async () => {
-          await deleteTag(row.original.namespaceId, row.original.id);
-          onTagsChange();
-        }}
-      >
-        削除
-      </Button>
+      <div className="flex space-x-2">
+        <EditTag nsId={row.original.namespaceId} tag={row.original} />
+        <Button
+          variant="outline"
+          onClick={async () => {
+            await deleteTag(row.original.namespaceId, row.original.id);
+            onTagsChange();
+          }}
+        >
+          削除
+        </Button>
+      </div>
     ),
-    size: 100,
+    size: 150,
   },
 ];
 
@@ -70,7 +77,7 @@ const deleteTags = async (groupId: string, tagIds: string[]) => {
 };
 
 type TagListProps = {
-  namespaceId: string;
+  namespaceId: TNamespaceId;
 };
 
 export function TagList({ namespaceId }: TagListProps) {
