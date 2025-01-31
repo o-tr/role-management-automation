@@ -5,6 +5,7 @@ import { deleteTag } from "@/lib/prisma/deleteTag";
 import { getTag } from "@/lib/prisma/getTag";
 import { ZUpdateTagInput, updateTag } from "@/lib/prisma/updateTag";
 import { validatePermission } from "@/lib/validatePermission";
+import type { ErrorResponseType } from "@/types/api";
 import type { TNamespaceId, TTag, TTagId } from "@/types/prisma";
 import { type NextRequest, NextResponse } from "next/server";
 
@@ -12,20 +13,14 @@ export type DeleteTagResponse =
   | {
       status: "success";
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 
 export type UpdateTagResponse =
   | {
       status: "success";
       tag: TTag;
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 
 export const DELETE = api(
   async (

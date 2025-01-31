@@ -32,6 +32,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { deleteMember } from "@/requests/deleteMember";
+import { redirect } from "next/navigation";
 import { type FC, useCallback, useEffect, useMemo, useState } from "react";
 import { TbFilter, TbPlus } from "react-icons/tb";
 import { MemberExternalAccountDisplay } from "../../components/MemberExternalAccountDisplay";
@@ -249,7 +250,7 @@ type MemberListProps = {
 };
 
 export function MemberList({ namespaceId, className }: MemberListProps) {
-  const { members, isPending } = useMembers(namespaceId);
+  const { members, isPending, responseError } = useMembers(namespaceId);
 
   const Footer = useCallback<FC<{ table: Table<TMemberWithRelation> }>>(
     ({ table }) => {
@@ -323,6 +324,16 @@ export function MemberList({ namespaceId, className }: MemberListProps) {
 
   if (isPending) {
     return <div>loading...</div>;
+  }
+
+  if (responseError) {
+    if (responseError.code === 401) {
+      redirect("/");
+    }
+    if (responseError.code === 403 || responseError.code === 404) {
+      redirect("/ns/");
+    }
+    return <div>{responseError.error}</div>;
   }
 
   return (

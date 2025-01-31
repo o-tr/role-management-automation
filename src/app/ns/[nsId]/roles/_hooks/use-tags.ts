@@ -18,7 +18,8 @@ export const useTags = (nsId: string) => {
   useOnTagsChange(mutate);
 
   return {
-    tags: data && data.status === "success" ? data.tags : undefined,
+    tags: data?.status === "success" ? data.tags : undefined,
+    responseError: data?.status === "error" ? data : undefined,
     isPending: !error && !data,
     refetch: mutate,
   };

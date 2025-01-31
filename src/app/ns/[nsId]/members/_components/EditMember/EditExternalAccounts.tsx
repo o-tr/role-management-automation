@@ -43,7 +43,7 @@ export const EditExternalAccounts: FC<Props> = ({
       <AddExternalAccount
         member={member}
         setMember={setMember}
-        disabled={disabled}
+        disabled={!!disabled}
       />
     </div>
   );

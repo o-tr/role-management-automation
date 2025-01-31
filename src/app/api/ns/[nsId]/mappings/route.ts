@@ -6,6 +6,7 @@ import { getExternalServiceGroupRoleMappingsByNamespaceId } from "@/lib/prisma/g
 import { getTag } from "@/lib/prisma/getTag";
 import { validatePermission } from "@/lib/validatePermission";
 import { type TMappingAction, ZMappingAction } from "@/types/actions";
+import type { ErrorResponseType } from "@/types/api";
 import { type TMappingCondition, ZMappingCondition } from "@/types/conditions";
 import type {
   TExternalServiceAccountId,
@@ -23,20 +24,14 @@ export type CreateMappingResponse =
       status: "success";
       mapping: TSerializedMapping;
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 
 export type GetSerializedMappingsResponse =
   | {
       status: "success";
       mappings: TSerializedMapping[];
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 
 const createMappingSchema = z.object({
   conditions: ZMappingCondition,

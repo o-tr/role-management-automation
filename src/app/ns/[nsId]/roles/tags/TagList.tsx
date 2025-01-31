@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { createTag } from "@/requests/createTag";
 import { deleteTag } from "@/requests/deleteTag";
+import { redirect } from "next/navigation";
 import { TbTag } from "react-icons/tb";
 import { TagDisplay } from "../../components/TagDisplay";
 import { onTagsChange } from "../_hooks/on-tags-change";
@@ -77,7 +78,7 @@ type TagListProps = {
 };
 
 export function TagList({ namespaceId }: TagListProps) {
-  const { tags, refetch, isPending } = useTags(namespaceId);
+  const { tags, refetch, isPending, responseError } = useTags(namespaceId);
   const [newTagName, setNewTagName] = useState("");
 
   const handleAddTag = async (e: React.FormEvent) => {
@@ -89,6 +90,16 @@ export function TagList({ namespaceId }: TagListProps) {
 
   if (isPending) {
     return <div>loading...</div>;
+  }
+
+  if (responseError) {
+    if (responseError.code === 401) {
+      redirect("/");
+    }
+    if (responseError.code === 403 || responseError.code === 404) {
+      redirect("/ns/");
+    }
+    return <div>{responseError.error}</div>;
   }
 
   return (

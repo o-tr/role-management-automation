@@ -18,6 +18,7 @@ import { getMemberExternalServiceAccountByUsername } from "@/lib/prisma/getMembe
 import { validatePermission } from "@/lib/validatePermission";
 import { getUserById as getVRCUserById } from "@/lib/vrchat/requests/getUserById";
 import type { VRCUserId } from "@/lib/vrchat/types/brand";
+import type { ErrorResponseType } from "@/types/api";
 import { ZDiscordCredentials, ZGithubCredentials } from "@/types/credentials";
 import type {
   TExternalServiceAccount,
@@ -42,10 +43,7 @@ export type ResolveResponse =
       status: "success";
       item: ResolveResult;
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 
 export const GET = api(
   async (

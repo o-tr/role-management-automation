@@ -20,12 +20,6 @@ export default function GroupTagsPage({
 }: {
   params: { nsId: TNamespaceId };
 }) {
-  const { namespace, isPending } = useNamespace({ namespaceId: params.nsId });
-
-  if (isPending || !namespace) {
-    return <div>Loading...</div>;
-  }
-
   return (
     <div className="h-full flex flex-col overflow-y-hidden gap-2">
       <div className="flex flex-row justify-end items-center gap-2">

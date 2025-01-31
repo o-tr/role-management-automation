@@ -7,6 +7,7 @@ import { getExternalServiceGroupRoleMappingsByNamespaceId } from "@/lib/prisma/g
 import { getExternalServiceGroups } from "@/lib/prisma/getExternalServiceGroups";
 import { getMembersWithRelation } from "@/lib/prisma/getMembersWithRelation";
 import { validatePermission } from "@/lib/validatePermission";
+import type { ErrorResponseType } from "@/types/api";
 import { type TMemberWithDiff, ZMemberWithDiff } from "@/types/diff";
 import type { TNamespaceId } from "@/types/prisma";
 import type { NextRequest } from "next/server";
@@ -19,10 +20,7 @@ export type ApplyMappingRequestResponse =
       status: "success";
       result: ApplyDiffResult[];
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 
 const ZApplyMappingSchema = z.array(ZMemberWithDiff);
 export type TApplyMappingRequestBody = z.infer<typeof ZApplyMappingSchema>;

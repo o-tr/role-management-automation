@@ -5,6 +5,7 @@ import { isBelongToNamespace } from "@/lib/isBelongToNamespace";
 import { getNamespaceInvitationWithRelationByToken } from "@/lib/prisma/getNamespaceInvitationWithRelationByToken";
 import { getNamespaceWithOwnerAndAdmins } from "@/lib/prisma/getNamespaceWithOwnerAndAdmin";
 import { requireLoggedIn } from "@/lib/validatePermission";
+import type { ErrorResponseType } from "@/types/api";
 import {
   type TNamespaceInvitationToken,
   type TNamespaceInvitationWithRelation,
@@ -18,10 +19,7 @@ export type GetNamespaceInvitationResponse =
       status: "success";
       invitation: TNamespaceInvitationWithRelation;
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 
 export const GET = api(
   async (

@@ -22,5 +22,11 @@ export const useMappings = (nsId: string) => {
 
   useOnServiceGroupMappingChange(mutate);
 
-  return { mappings, isPending: isLoading, error, refetch: mutate };
+  return {
+    mappings,
+    responseError: data?.status === "error" ? data : undefined,
+    isPending: isLoading,
+    error,
+    refetch: mutate,
+  };
 };

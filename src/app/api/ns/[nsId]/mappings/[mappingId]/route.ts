@@ -5,6 +5,7 @@ import { getExternalServiceGroupRoleMapping } from "@/lib/prisma/getExternalServ
 import { updateExternalServiceGroupRoleMapping } from "@/lib/prisma/updateExternalServiceGroupRoleMapping";
 import { validatePermission } from "@/lib/validatePermission";
 import { ZMappingAction } from "@/types/actions";
+import type { ErrorResponseType } from "@/types/api";
 import { ZMappingCondition } from "@/types/conditions";
 import type {
   TMappingId,
@@ -18,20 +19,14 @@ export type DeleteExternalServiceGroupMappingResponse =
   | {
       status: "success";
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 
 export type UpdateExternalServiceGroupMappingResponse =
   | {
       status: "success";
       mapping: TSerializedMapping;
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 const updateMappingSchema = z.object({
   conditions: ZMappingCondition,
   actions: z.array(ZMappingAction),

@@ -2,6 +2,7 @@ import { api } from "@/lib/api";
 import { NotFoundException } from "@/lib/exceptions/NotFoundException";
 import { getExternalServiceGroup } from "@/lib/prisma/getExternalServiceGroup";
 import { validatePermission } from "@/lib/validatePermission";
+import type { ErrorResponseType } from "@/types/api";
 import type {
   TExternalServiceAccountId,
   TExternalServiceGroupId,
@@ -16,10 +17,7 @@ export type GetExternalServiceGroupRolesResponse =
       status: "success";
       serviceRoles: TExternalServiceGroupRole[];
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 
 export const GET = api(
   async (

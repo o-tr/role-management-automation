@@ -18,7 +18,8 @@ export const useMembers = (nsId: string) => {
   useOnMembersChange(mutate);
 
   return {
-    members: data && data.status === "success" ? data.members : undefined,
+    members: data?.status === "success" ? data.members : undefined,
+    responseError: data?.status === "error" ? data : undefined,
     isPending: !error && !data,
     refetch: mutate,
   };

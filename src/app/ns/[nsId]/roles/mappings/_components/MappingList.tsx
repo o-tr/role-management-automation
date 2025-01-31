@@ -25,6 +25,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { redirect } from "next/navigation";
 import { useState } from "react";
 import { EditMapping } from "./EditMapping";
 
@@ -116,9 +117,23 @@ type TagListProps = {
 };
 
 export function MappingList({ namespaceId }: TagListProps) {
-  const { mappings, isPending } = useMappings(namespaceId);
+  const { mappings, isPending, responseError } = useMappings(namespaceId);
 
-  if (isPending || !mappings) return <div>Loading...</div>;
+  if (isPending) return <div>Loading...</div>;
+
+  if (responseError) {
+    if (responseError.code === 401) {
+      redirect("/");
+    }
+    if (responseError.code === 403 || responseError.code === 404) {
+      redirect("/ns/");
+    }
+    return <div>Error: {responseError.error}</div>;
+  }
+
+  if (!mappings) {
+    return <div>割り当てがありません</div>;
+  }
 
   return (
     <div className="overflow-y-hidden">

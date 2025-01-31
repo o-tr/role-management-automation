@@ -3,6 +3,7 @@ import { BadRequestException } from "@/lib/exceptions/BadRequestException";
 import { createTag } from "@/lib/prisma/createTag";
 import { getTags } from "@/lib/prisma/getTags";
 import { validatePermission } from "@/lib/validatePermission";
+import type { ErrorResponseType } from "@/types/api";
 import { ZColorCode } from "@/types/brand";
 import type { TNamespaceId, TTag } from "@/types/prisma";
 import type { NextRequest } from "next/server";
@@ -13,20 +14,14 @@ export type CreateTagResponse =
       status: "success";
       tag: TTag;
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 
 export type GetTagsResponse =
   | {
       status: "success";
       tags: TTag[];
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 
 const createTagSchema = z.object({
   name: z.string().min(1, "Name is required"),

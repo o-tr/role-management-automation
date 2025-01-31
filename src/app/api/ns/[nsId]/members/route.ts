@@ -5,6 +5,7 @@ import {
 } from "@/lib/prisma/createOrUpdateMember";
 import { getMembersWithRelation } from "@/lib/prisma/getMembersWithRelation";
 import { validatePermission } from "@/lib/validatePermission";
+import type { ErrorResponseType } from "@/types/api";
 import type { TMemberWithRelation, TNamespaceId } from "@/types/prisma";
 import { type NextRequest, NextResponse } from "next/server";
 
@@ -15,20 +16,14 @@ export type AddMembersResponse =
         id: string;
       }[];
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 
 export type GetMembersResponse =
   | {
       status: "success";
       members: TMemberWithRelation[];
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 
 export const POST = api(
   async (

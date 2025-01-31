@@ -4,6 +4,7 @@ import { deleteMember } from "@/lib/prisma/deleteMember";
 import { getMember } from "@/lib/prisma/getMember";
 import { ZMemberUpdateInput, updateMember } from "@/lib/prisma/updateMember";
 import { validatePermission } from "@/lib/validatePermission";
+import type { ErrorResponseType } from "@/types/api";
 import type {
   TMemberId,
   TMemberWithRelation,
@@ -15,20 +16,14 @@ export type DeleteMemberResponse =
   | {
       status: "success";
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 
 export type UpdateMemberResponse =
   | {
       status: "success";
       member: TMemberWithRelation;
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 
 export const DELETE = api(
   async (

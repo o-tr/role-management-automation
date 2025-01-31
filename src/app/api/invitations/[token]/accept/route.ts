@@ -7,6 +7,7 @@ import { formatTNamespace } from "@/lib/prisma/format/formatTNamespace";
 import { getNamespaceInvitationWithRelationByToken } from "@/lib/prisma/getNamespaceInvitationWithRelationByToken";
 import { getNamespaceWithOwnerAndAdmins } from "@/lib/prisma/getNamespaceWithOwnerAndAdmin";
 import { requireLoggedIn } from "@/lib/validatePermission";
+import type { ErrorResponseType } from "@/types/api";
 import type { TNamespace, TNamespaceInvitationToken } from "@/types/prisma";
 import type { NextRequest } from "next/server";
 
@@ -15,10 +16,7 @@ export type PostAcceptInvitationResponse =
       status: "success";
       namespace: TNamespace;
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 
 export const POST = api(
   async (

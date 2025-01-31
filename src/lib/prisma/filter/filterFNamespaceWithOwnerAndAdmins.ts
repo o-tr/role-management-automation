@@ -10,6 +10,7 @@ export const filterFNamespaceWithOwnerAndAdmins = (
   return {
     id: namespace.id,
     name: namespace.name,
+    ownerId: namespace.ownerId,
     owner: filterFUser(namespace.owner),
     admins: namespace.admins.map(filterFUser),
   };
