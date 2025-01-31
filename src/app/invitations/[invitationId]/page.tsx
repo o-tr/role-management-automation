@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import type { TNamespaceInvitationId } from "@/types/prisma";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
+import { signIn } from "next-auth/react";
 import Link from "next/link";
 import { redirect, useRouter } from "next/navigation";
 import { useAcceptInvitation } from "../_hooks/useAcceptInvitation";
@@ -30,7 +31,7 @@ export default function GroupTagsPage({
   }
 
   if (responseError) {
-    if (responseError === "already_belongs") {
+    if (responseError.error === "already_belongs") {
       return (
         <div className="grid place-items-center min-h-screen">
           <div>
@@ -42,11 +43,17 @@ export default function GroupTagsPage({
         </div>
       );
     }
+    if (responseError.code === 401) {
+      signIn("discord", {
+        callbackUrl: `/invitations/${params.invitationId}`,
+      });
+      return null;
+    }
     return (
       <div className="grid place-items-center min-h-screen">
         <div>
           <h2>エラーが発生しました</h2>
-          <p>{responseError}</p>
+          <p>{responseError.error}</p>
           <p>発生したエラーが解決しない場合は管理者にお問い合わせください</p>
         </div>
       </div>

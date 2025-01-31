@@ -24,7 +24,7 @@ export const useInvitation = (invitationId: TNamespaceInvitationId) => {
           }
         : undefined,
     error: error ? error.message : undefined,
-    responseError: data && data.status === "error" ? data.error : undefined,
+    responseError: data && data.status === "error" ? data : undefined,
     isPending: !error && !data,
     refetch: mutate,
   };

@@ -8,6 +8,7 @@ import { User } from "@prisma/client";
 import { getServerSession } from "next-auth/next";
 import { ForbiddenException } from "./exceptions/ForbiddenException";
 import { NotFoundException } from "./exceptions/NotFoundException";
+import { UnauthorizedException } from "./exceptions/UnauthorizedException";
 import { getNamespaceWithOwnerAndAdmins } from "./prisma/getNamespaceWithOwnerAndAdmin";
 import { getUserByEmail } from "./prisma/getUserByEmail";
 import { UnauthorizedError } from "./vrchat/retry";
@@ -16,11 +17,11 @@ export const requireLoggedIn = async (): Promise<TUser> => {
   const session = await getServerSession();
   const email = session?.user?.email;
   if (!email) {
-    throw new UnauthorizedError("Not authenticated");
+    throw new UnauthorizedException("Not authenticated");
   }
   const user = await getUserByEmail(email);
   if (!user) {
-    throw new UnauthorizedError("User not found");
+    throw new UnauthorizedException("User not found");
   }
   return user;
 };
