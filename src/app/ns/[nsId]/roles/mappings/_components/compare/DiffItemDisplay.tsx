@@ -1,12 +1,31 @@
+import type {
+  ApplyDiffResultItem,
+  ApplyDiffResultStatus,
+} from "@/app/api/ns/[nsId]/mappings/apply/applyDiff";
 import { ServiceGroupDisplay } from "@/app/ns/[nsId]/components/ServiceGroupDisplay";
 import { ServiceGroupRoleDisplay } from "@/app/ns/[nsId]/components/ServiceGroupRoleDisplay";
 import type { TDiffItem } from "@/types/diff";
 import type { FC } from "react";
-import { TbCheck, TbX } from "react-icons/tb";
+import { TbCheck, TbMinus, TbX } from "react-icons/tb";
 import { useGroupRoles } from "../../../_hooks/use-group-roles";
 
+const statusMap = {
+  error: {
+    color: "text-red-500",
+    icon: <TbX />,
+  },
+  success: {
+    color: "text-green-500",
+    icon: <TbCheck />,
+  },
+  skipped: {
+    color: "text-gray-500",
+    icon: <TbMinus />,
+  },
+} as Record<ApplyDiffResultStatus, { color: string; icon: JSX.Element }>;
+
 type Props = {
-  item: TDiffItem & { success?: boolean; reason?: string };
+  item: ApplyDiffResultItem | TDiffItem;
 };
 
 export const DIffItemDisplay: FC<Props> = ({ item }) => {
@@ -16,35 +35,44 @@ export const DIffItemDisplay: FC<Props> = ({ item }) => {
     item.serviceGroup.id,
   );
   const textColor = (() => {
-    if (item.success === undefined) {
+    if (!("status" in item)) {
       if (item.ignore) return "text-gray-500";
       return "";
     }
-    if (item.success) return "text-green-500";
-    return "text-red-500";
+    return statusMap[item.status].color;
   })();
 
   const role = roles?.find((role) => role.id === item.roleId);
 
   return (
-    <div className="flex flex-col gap-1">
-      <div
-        className={`flex flex-row gap-2 overflow-hidden w-full flex-wrap ${textColor} items-center`}
-      >
-        {item.success !== undefined && (item.success ? <TbCheck /> : <TbX />)}
-        <ServiceGroupDisplay group={item.serviceGroup} />
-        <div>{item.type}</div>
-        <div>
-          {role ? (
-            <ServiceGroupRoleDisplay role={role} />
-          ) : (
-            <div>ロールが見つかりません</div>
-          )}
+    <div className={`flex flex-row gap-1 ${textColor}`}>
+      {("status" in item && (
+        <div className="h-[24px] w-[24px] grid place-items-center">
+          {statusMap[item.status].icon}
         </div>
+      )) ||
+        null}
+
+      <div className="flex flex-col gap-1">
+        <div
+          className={
+            "flex flex-row gap-2 overflow-hidden w-full flex-wrap items-center"
+          }
+        >
+          <ServiceGroupDisplay group={item.serviceGroup} />
+          <div>{item.type}</div>
+          <div>
+            {role ? (
+              <ServiceGroupRoleDisplay role={role} />
+            ) : (
+              <div>ロールが見つかりません</div>
+            )}
+          </div>
+        </div>
+        {"reason" in item && (
+          <div className="text-sm text-gray-500">{item.reason}</div>
+        )}
       </div>
-      {item.reason && (
-        <div className="text-sm text-gray-500">{item.reason}</div>
-      )}
     </div>
   );
 };
