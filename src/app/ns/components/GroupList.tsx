@@ -35,7 +35,7 @@ export const GroupList = () => {
           </div>
         </Link>
       ))}
-      {namespaces.length === 0 && <p>グループがありません</p>}
+      {namespaces.length === 0 && <p>ネームスペースがありません</p>}
     </div>
   );
 };
