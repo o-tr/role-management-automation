@@ -3,9 +3,7 @@ import type {
   DiscordGuildId,
   DiscordGuildMember,
 } from "@/lib/discord/types/guild";
-import { generateJWT } from "@/lib/github/generateJWT";
-import { createInstallationAccessTokenForApp } from "@/lib/github/requests/createInstallationAccessTokenForApp";
-import { getInstallationForAuthenticatedApp } from "@/lib/github/requests/getInstallationForAuthenticatedApp";
+import { generateInstallationAccessToken } from "@/lib/github/generateInstallationAccessToken";
 import { listOrganizationMembers } from "@/lib/github/requests/listOrganizationMembers";
 import { listTeamMembers } from "@/lib/github/requests/listTeamMembers";
 import { listTeams } from "@/lib/github/requests/listTeams";
@@ -15,7 +13,7 @@ import type {
   GitHubOrganizationId,
 } from "@/lib/github/types/Account";
 import type { GitHubTeamSlug } from "@/lib/github/types/Team";
-import { ZGitHubGroupId } from "@/lib/github/types/groupId";
+import { type GitHubRoleId, ZGitHubGroupId } from "@/lib/github/types/encoded";
 import { getAuthUser } from "@/lib/vrchat/requests/getAuthUser";
 import { getGroup } from "@/lib/vrchat/requests/getGroup";
 import { getGroupRoles } from "@/lib/vrchat/requests/getGroupRoles";
@@ -155,16 +153,12 @@ const getDiscordMembers = async (
 const getGitHubMembers = async (
   group: TExternalServiceGroupWithAccount,
 ): Promise<TExternalServiceGroupMember[]> => {
-  const credentials = ZGithubCredentials.parse(
-    JSON.parse(group.account.credential),
-  );
-  const jwt = generateJWT(credentials.clientId, credentials.privateKey);
   const { installationId, accountId } = ZGitHubGroupId.parse(
     JSON.parse(group.groupId),
   );
   const organizationId = accountId as GitHubOrganizationId;
-  const { token } = await createInstallationAccessTokenForApp(
-    jwt,
+  const token = await generateInstallationAccessToken(
+    group.account,
     installationId,
   );
   const teams = await listTeams(token, organizationId);
@@ -188,7 +182,12 @@ const getGitHubMembers = async (
     serviceUsername: member.login,
     roleIds: teamMembers
       .filter((team) => team.memberIds.includes(member.id))
-      .map((team) => `${team.id}`),
+      .map((team) =>
+        JSON.stringify({
+          teamId: team.id,
+          teamSlug: team.slug,
+        } satisfies GitHubRoleId),
+      ),
     isEditable: true,
   }));
 };

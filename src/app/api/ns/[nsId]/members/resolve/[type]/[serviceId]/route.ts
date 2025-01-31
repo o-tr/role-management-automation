@@ -3,15 +3,14 @@ import { getSearchGuildMembers } from "@/lib/discord/requests/getSearchGuildMemb
 import { getUser } from "@/lib/discord/requests/getUser";
 import type { DiscordGuildId } from "@/lib/discord/types/guild";
 import type { DiscordUserId, DiscordUsername } from "@/lib/discord/types/user";
-import { generateJWT } from "@/lib/github/generateJWT";
-import { createInstallationAccessTokenForApp } from "@/lib/github/requests/createInstallationAccessTokenForApp";
+import { generateInstallationAccessToken } from "@/lib/github/generateInstallationAccessToken";
 import { getUserById as getGitHubUserById } from "@/lib/github/requests/getUserById";
 import { getUserByUsername as getGitHubUserByUsername } from "@/lib/github/requests/getUserByUsername";
 import type {
   GitHubAccountId,
   GitHubAccountUsername,
 } from "@/lib/github/types/Account";
-import { ZGitHubGroupId } from "@/lib/github/types/groupId";
+import { ZGitHubGroupId } from "@/lib/github/types/encoded";
 import { getExternalServiceAccountByServiceName } from "@/lib/prisma/getExternalServiceAccountByServiceName";
 import { getExternalServiceGroupsByAccountId } from "@/lib/prisma/getExternalServiceGroupsByAccountId";
 import { getMemberExternalServiceAccount } from "@/lib/prisma/getMemberExternalServiceAccount";
@@ -213,13 +212,9 @@ const resolveGitHubUserId = async (
     )
   )?.[0];
   if (!group) throw new Error("Group not found");
-  const credential = ZGithubCredentials.parse(
-    JSON.parse(serviceAccount.credential),
-  );
-  const jwt = generateJWT(credential.clientId, credential.privateKey);
   const { installationId } = ZGitHubGroupId.parse(JSON.parse(group.groupId));
-  const { token } = await createInstallationAccessTokenForApp(
-    jwt,
+  const token = await generateInstallationAccessToken(
+    serviceAccount,
     installationId,
   );
   const user = await getGitHubUserById(token, serviceId);
@@ -243,13 +238,9 @@ const resolveGitHubUsername = async (
     )
   )?.[0];
   if (!group) throw new Error("Group not found");
-  const credential = ZGithubCredentials.parse(
-    JSON.parse(serviceAccount.credential),
-  );
-  const jwt = generateJWT(credential.clientId, credential.privateKey);
   const { installationId } = ZGitHubGroupId.parse(JSON.parse(group.groupId));
-  const { token } = await createInstallationAccessTokenForApp(
-    jwt,
+  const token = await generateInstallationAccessToken(
+    serviceAccount,
     installationId,
   );
   const user = await getGitHubUserByUsername(token, serviceId);

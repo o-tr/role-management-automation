@@ -5,6 +5,15 @@ import type {
   DiscordGuildRoleId,
 } from "@/lib/discord/types/guild";
 import type { DiscordUserId } from "@/lib/discord/types/user";
+import { generateInstallationAccessToken } from "@/lib/github/generateInstallationAccessToken";
+import { addOrUpdateTeammembershipForUser } from "@/lib/github/requests/addOrUpdateTeamMembershipForUser";
+import { removeTeamMembershipForUser } from "@/lib/github/requests/removeTeamMembershipForUser";
+import type {
+  GitHubAccountUsername,
+  GitHubOrganizationId,
+} from "@/lib/github/types/Account";
+import type { GitHubTeamSlug } from "@/lib/github/types/Team";
+import { ZGitHubGroupId, ZGitHubRoleId } from "@/lib/github/types/encoded";
 import { getExternalServiceAccountByServiceName } from "@/lib/prisma/getExternalServiceAccountByServiceName";
 import { addRoleToGroupMember } from "@/lib/vrchat/requests/addRoleToGroupMember";
 import { removeRoleFromGroupMember } from "@/lib/vrchat/requests/removeRoleFromGroupMember";
@@ -17,8 +26,10 @@ import { ZDiscordCredentials } from "@/types/credentials";
 import type { TDiffItem, TMemberWithDiff } from "@/types/diff";
 import type { TNamespaceId } from "@/types/prisma";
 
+export type ApplyDiffResultStatus = "success" | "error" | "skipped";
+
 export type ApplyDiffResultItem = TDiffItem & {
-  success: boolean;
+  status: ApplyDiffResultStatus;
   reason?: string;
 };
 
@@ -35,11 +46,11 @@ export const applyDiff = async (
       return {
         member,
         diff: await Promise.all(
-          diff.map(async (diff) => {
+          diff.map<Promise<ApplyDiffResultItem>>(async (diff) => {
             if (diff.ignore) {
               return {
                 ...diff,
-                success: false,
+                status: "skipped",
                 reason: "Ignored",
               };
             }
@@ -71,7 +82,7 @@ const applyVRChatDiff = async (
   if (!serviceAccount) {
     return {
       ...diff,
-      success: false,
+      status: "error",
       reason: "Service account not found",
     };
   }
@@ -86,19 +97,20 @@ const applyVRChatDiff = async (
     }
     return {
       ...diff,
-      success: true,
+      status: "success",
     };
   } catch (e) {
     if (e instanceof Error) {
       return {
         ...diff,
-        success: false,
+        status: "error",
         reason: e.message,
       };
     }
     return {
       ...diff,
-      success: false,
+      status: "error",
+      reason: "Unknown error",
     };
   }
 };
@@ -114,7 +126,7 @@ const applyDiscordDiff = async (
   if (!serviceAccount) {
     return {
       ...diff,
-      success: false,
+      status: "error",
       reason: "Service account not found",
     };
   }
@@ -124,7 +136,7 @@ const applyDiscordDiff = async (
   if (!credentials.success) {
     return {
       ...diff,
-      success: false,
+      status: "error",
       reason: "Invalid credential",
     };
   }
@@ -140,19 +152,20 @@ const applyDiscordDiff = async (
     }
     return {
       ...diff,
-      success: true,
+      status: "success",
     };
   } catch (e) {
     if (e instanceof Error) {
       return {
         ...diff,
-        success: false,
+        status: "error",
         reason: e.message,
       };
     }
     return {
       ...diff,
-      success: false,
+      status: "error",
+      reason: "Unknown error",
     };
   }
 };
@@ -168,13 +181,52 @@ const applyGitHubDiff = async (
   if (!serviceAccount) {
     return {
       ...diff,
-      success: false,
+      status: "error",
       reason: "Service account not found",
     };
   }
-  return {
-    ...diff,
-    success: false,
-    reason: "Not implemented",
-  };
+  try {
+    const { accountId, installationId } = ZGitHubGroupId.parse(
+      JSON.parse(diff.serviceGroup.groupId),
+    );
+    const token = await generateInstallationAccessToken(
+      serviceAccount,
+      installationId,
+    );
+    const organizationId = accountId as GitHubOrganizationId;
+    const { teamSlug } = ZGitHubRoleId.parse(JSON.parse(diff.roleId));
+    const username = diff.groupMember.serviceUsername as GitHubAccountUsername;
+    if (diff.type === "add") {
+      await addOrUpdateTeammembershipForUser(
+        token,
+        organizationId,
+        teamSlug as GitHubTeamSlug,
+        username,
+      );
+    } else if (diff.type === "remove") {
+      await removeTeamMembershipForUser(
+        token,
+        organizationId,
+        teamSlug as GitHubTeamSlug,
+        username,
+      );
+    }
+    return {
+      ...diff,
+      status: "success",
+    };
+  } catch (e) {
+    if (e instanceof Error) {
+      return {
+        ...diff,
+        status: "error",
+        reason: e.message,
+      };
+    }
+    return {
+      ...diff,
+      status: "error",
+      reason: "Unknown error",
+    };
+  }
 };

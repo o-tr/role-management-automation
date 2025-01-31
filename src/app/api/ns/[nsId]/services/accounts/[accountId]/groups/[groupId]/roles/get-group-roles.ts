@@ -1,10 +1,9 @@
 import { getGuildRoles } from "@/lib/discord/requests/getGuildRoles";
 import type { DiscordGuildId } from "@/lib/discord/types/guild";
-import { generateJWT } from "@/lib/github/generateJWT";
-import { createInstallationAccessTokenForApp } from "@/lib/github/requests/createInstallationAccessTokenForApp";
+import { generateInstallationAccessToken } from "@/lib/github/generateInstallationAccessToken";
 import { listTeams } from "@/lib/github/requests/listTeams";
 import type { GitHubOrganizationId } from "@/lib/github/types/Account";
-import { ZGitHubGroupId } from "@/lib/github/types/groupId";
+import { type GitHubRoleId, ZGitHubGroupId } from "@/lib/github/types/encoded";
 import { getGroupRoles as getVRCGroupRoles } from "@/lib/vrchat/requests/getGroupRoles";
 import { ZDiscordCredentials, ZGithubCredentials } from "@/types/credentials";
 import type {
@@ -68,17 +67,19 @@ const getGitHubGuildTeams = async (
   serviceAccount: TExternalServiceAccount,
   serviceGroup: TExternalServiceGroup,
 ): Promise<TExternalServiceGroupRole[]> => {
-  const data = ZGithubCredentials.parse(JSON.parse(serviceAccount.credential));
-  const jwt = generateJWT(data.clientId, data.privateKey);
   const { installationId, accountId } = ZGitHubGroupId.parse(
     JSON.parse(serviceGroup.groupId),
   );
-  const token = await createInstallationAccessTokenForApp(jwt, installationId);
-  const teams = await listTeams(token.token, accountId as GitHubOrganizationId);
-  console.log(teams);
-
+  const token = await generateInstallationAccessToken(
+    serviceAccount,
+    installationId,
+  );
+  const teams = await listTeams(token, accountId as GitHubOrganizationId);
   return teams.map((team) => ({
-    id: `${team.id}`,
+    id: JSON.stringify({
+      teamId: team.id,
+      teamSlug: team.slug,
+    } satisfies GitHubRoleId),
     name: team.name,
   }));
 };

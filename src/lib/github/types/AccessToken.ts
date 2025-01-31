@@ -11,6 +11,7 @@ export type GitHubInstallationAccessToken = z.infer<
 
 export const ZGitHubInstallationAccess = z.object({
   token: ZGitHubInstallationAccessToken,
+  expires_at: z.string().transform((v) => new Date(v)),
 });
 export type GitHubInstallationAccess = z.infer<
   typeof ZGitHubInstallationAccess

@@ -4,7 +4,7 @@ import { generateJWT } from "@/lib/github/generateJWT";
 import { getInstallationForAuthenticatedApp } from "@/lib/github/requests/getInstallationForAuthenticatedApp";
 
 import type { GitHubAppInstallationId } from "@/lib/github/types/AppInstallation";
-import type { GitHubGroupId } from "@/lib/github/types/groupId";
+import type { GitHubGroupId } from "@/lib/github/types/encoded";
 import { getGroup } from "@/lib/vrchat/requests/getGroup";
 import { ZDiscordCredentials, ZGithubCredentials } from "@/types/credentials";
 import type { TExternalServiceAccount } from "@/types/prisma";
