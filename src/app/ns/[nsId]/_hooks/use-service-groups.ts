@@ -15,7 +15,8 @@ export const useServiceGroups = (nsId: string) => {
   );
 
   return {
-    groups: data && data.status === "success" ? data.serviceGroups : undefined,
+    groups: data?.status === "success" ? data.serviceGroups : undefined,
+    responseError: data?.status === "error" ? data : undefined,
     isPending: !error && !data,
     refetch: mutate,
   };

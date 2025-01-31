@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import type { TNamespaceId, TNamespaceInvitation } from "@/types/prisma";
+import { redirect } from "next/navigation";
 import { useState } from "react";
 import { TbCopy, TbCopyCheck, TbCopyX } from "react-icons/tb";
 import { DataTable, type TColumnDef } from "../../../../components/DataTable";
@@ -77,14 +78,30 @@ type Props = {
 };
 
 export const InvitationsList = ({ nsId }: Props) => {
-  const { invitations, isPending } = useInvitations(nsId);
+  const { invitations, isPending, responseError } = useInvitations(nsId);
 
   if (isPending) {
     return <p>Loading...</p>;
   }
 
+  if (responseError) {
+    if (responseError.code === 401) {
+      redirect("/");
+      return null;
+    }
+    if (responseError.code === 404) {
+      redirect("/ns");
+      return null;
+    }
+    if (responseError.code === 403) {
+      redirect(`/ns/${nsId}/`);
+      return null;
+    }
+    return <p>エラーが発生しました</p>;
+  }
+
   if (!invitations) {
-    return <p>Failed to load invitations</p>;
+    return <p>招待がありません</p>;
   }
 
   return (

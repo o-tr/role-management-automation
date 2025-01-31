@@ -2,9 +2,18 @@
 import { Badge } from "@/components/ui/badge";
 import { useNamespaces } from "@/hooks/use-namespaces";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 export const GroupList = () => {
-  const { namespaces, isPending } = useNamespaces();
+  const { namespaces, isPending, responseError } = useNamespaces();
+
+  if (responseError) {
+    if (responseError.code === 401) {
+      redirect("/");
+      return null;
+    }
+    return <p>エラーが発生しました</p>;
+  }
 
   if (isPending || !namespaces) {
     return <p>Loading...</p>;

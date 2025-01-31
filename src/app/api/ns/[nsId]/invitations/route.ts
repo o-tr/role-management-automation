@@ -3,6 +3,7 @@ import { BadRequestException } from "@/lib/exceptions/BadRequestException";
 import { createNamespaceInvitation } from "@/lib/prisma/createNamespaceInvitation";
 import { getNamespaceInvitations } from "@/lib/prisma/getNamespaceInvitations";
 import { validatePermission } from "@/lib/validatePermission";
+import type { ErrorResponseType } from "@/types/api";
 import type { TNamespaceId, TNamespaceInvitation } from "@/types/prisma";
 import type { NextRequest } from "next/server";
 import { z } from "zod";
@@ -12,10 +13,7 @@ export type CreateNamespaceInvitationResponse =
       status: "success";
       invitation: TNamespaceInvitation;
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 
 export const createNamespaceInvitationSchema = z.object({
   expires: z.string().datetime(),
@@ -29,7 +27,7 @@ export const POST = api(
     req: NextRequest,
     { params }: { params: { nsId: TNamespaceId } },
   ): Promise<CreateNamespaceInvitationResponse> => {
-    await validatePermission(params.nsId, "admin");
+    await validatePermission(params.nsId, "owner");
 
     const body = createNamespaceInvitationSchema.safeParse(await req.json());
 
@@ -61,17 +59,14 @@ export type GetNamespaceInvitationsResponse =
       status: "success";
       invitations: TNamespaceInvitation[];
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 
 export const GET = api(
   async (
     req: NextRequest,
     { params }: { params: { nsId: TNamespaceId } },
   ): Promise<GetNamespaceInvitationsResponse> => {
-    await validatePermission(params.nsId, "admin");
+    await validatePermission(params.nsId, "owner");
 
     const invitations = await getNamespaceInvitations(params.nsId);
 

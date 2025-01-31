@@ -122,6 +122,11 @@ export function TagList({ namespaceId }: TagListProps) {
         data={tags?.map((v) => ({ ...v, namespaceId })) || []}
         footer={({ table }) => {
           const selected = table.getSelectedRowModel();
+
+          if (selected.rows.length === 0) {
+            return <div className="h-[40px]">&nbsp;</div>;
+          }
+
           return (
             <div>
               <Button

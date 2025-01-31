@@ -38,7 +38,7 @@ export const validatePermission = async (
   }
   if (requiredPermission === "owner") {
     if (namespace.owner.email !== user.email) {
-      throw new ForbiddenException("Not authorized");
+      throw new ForbiddenException("Forbidden");
     }
     return {
       ...namespace,
@@ -51,7 +51,7 @@ export const validatePermission = async (
       !namespace.admins.find((admin) => admin.email === user.email) &&
       namespace.owner.email !== user.email
     ) {
-      throw new ForbiddenException("Not authorized");
+      throw new ForbiddenException("Forbidden");
     }
     return {
       ...namespace,

@@ -4,6 +4,7 @@ import { createExternalServiceAccount } from "@/lib/prisma/createExternalService
 import { filterFExternalServiceAccount } from "@/lib/prisma/filter/filterFExternalServiceAccount";
 import { getExternalServiceAccounts } from "@/lib/prisma/getExternalServiceAccounts";
 import { validatePermission } from "@/lib/validatePermission";
+import type { ErrorResponseType } from "@/types/api";
 import {
   type FExternalServiceAccount,
   type TNamespaceId,
@@ -23,20 +24,14 @@ export type CreateExternalServiceAccountResponse =
         icon?: string;
       };
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 
 export type GetExternalServiceAccountsResponse =
   | {
       status: "success";
       serviceAccounts: FExternalServiceAccount[];
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 
 const createServiceAccountSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -49,7 +44,7 @@ export const GET = api(
     req: NextRequest,
     { params }: { params: { nsId: TNamespaceId } },
   ): Promise<GetExternalServiceAccountsResponse> => {
-    await validatePermission(params.nsId, "admin");
+    await validatePermission(params.nsId, "owner");
 
     const serviceAccounts = (await getExternalServiceAccounts(params.nsId)).map(
       filterFExternalServiceAccount,
@@ -67,7 +62,7 @@ export const POST = api(
     req: NextRequest,
     { params }: { params: { nsId: TNamespaceId } },
   ): Promise<CreateExternalServiceAccountResponse> => {
-    await validatePermission(params.nsId, "admin");
+    await validatePermission(params.nsId, "owner");
 
     const body = await req.json();
     const result = createServiceAccountSchema.safeParse(body);

@@ -6,8 +6,8 @@ import { InvitationsList } from "./_components/InvitationsList";
 
 const paths = [
   { label: "ネームスペース設定", path: "/ns/[nsId]/settings" },
-  { label: "管理者", path: "/ns/[nsId]/admins" },
-  { label: "招待", path: "/ns/[nsId]/admins/invitations" },
+  { label: "管理者", path: "/ns/[nsId]/settings/admins" },
+  { label: "招待", path: "/ns/[nsId]/settings/admins/invitations" },
 ];
 
 type Props = {

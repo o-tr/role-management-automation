@@ -3,6 +3,7 @@ import { BadRequestException } from "@/lib/exceptions/BadRequestException";
 import { NotFoundException } from "@/lib/exceptions/NotFoundException";
 import { updateNamespace } from "@/lib/prisma/updateNamespace";
 import { validatePermission } from "@/lib/validatePermission";
+import type { ErrorResponseType } from "@/types/api";
 import type { TNamespaceId, TUserId } from "@/types/prisma";
 import type { NextRequest } from "next/server";
 
@@ -10,10 +11,7 @@ export type PostTransferNamespaceOwnerResponse =
   | {
       status: "success";
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 
 export const POST = api(
   async (

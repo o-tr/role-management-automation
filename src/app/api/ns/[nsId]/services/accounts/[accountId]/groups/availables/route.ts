@@ -2,6 +2,7 @@ import { api } from "@/lib/api";
 import { NotFoundException } from "@/lib/exceptions/NotFoundException";
 import { getExternalServiceAccount } from "@/lib/prisma/getExternalServiceAccount";
 import { validatePermission } from "@/lib/validatePermission";
+import type { ErrorResponseType } from "@/types/api";
 import type {
   TAvailableGroup,
   TExternalServiceAccountId,
@@ -15,10 +16,7 @@ export type GetAvailableGroupsResponse =
       status: "success";
       groups: TAvailableGroup[];
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 
 export const GET = api(
   async (
@@ -27,7 +25,7 @@ export const GET = api(
       params,
     }: { params: { nsId: TNamespaceId; accountId: TExternalServiceAccountId } },
   ): Promise<GetAvailableGroupsResponse> => {
-    await validatePermission(params.nsId, "admin");
+    await validatePermission(params.nsId, "owner");
 
     const serviceAccount = await getExternalServiceAccount(
       params.nsId,

@@ -21,7 +21,8 @@ export const useAdmins = (nsId: TNamespaceId) => {
   useOnAdminsChange(mutate);
 
   return {
-    data,
+    data: data?.status === "success" ? data.admins : undefined,
+    responseError: data?.status === "error" ? data : undefined,
     error,
     isLoading: !data && !error,
   };

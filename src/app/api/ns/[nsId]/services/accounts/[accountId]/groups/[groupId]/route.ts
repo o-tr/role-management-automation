@@ -3,6 +3,7 @@ import { NotFoundException } from "@/lib/exceptions/NotFoundException";
 import { deleteExternalServiceGroup } from "@/lib/prisma/deleteExternalServiceGroup";
 import { getExternalServiceGroup } from "@/lib/prisma/getExternalServiceGroup";
 import { validatePermission } from "@/lib/validatePermission";
+import type { ErrorResponseType } from "@/types/api";
 import type {
   TExternalServiceAccountId,
   TExternalServiceGroupId,
@@ -14,10 +15,7 @@ export type DeleteExternalServiceGroupResponse =
   | {
       status: "success";
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 
 export const DELETE = api(
   async (
@@ -32,7 +30,7 @@ export const DELETE = api(
       };
     },
   ): Promise<DeleteExternalServiceGroupResponse> => {
-    await validatePermission(params.nsId, "admin");
+    await validatePermission(params.nsId, "owner");
 
     const serviceGroup = await getExternalServiceGroup(
       params.nsId,

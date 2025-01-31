@@ -8,6 +8,7 @@ import {
   updateExternalServiceAccount,
 } from "@/lib/prisma/updateExternalServiceAccount";
 import { validatePermission } from "@/lib/validatePermission";
+import type { ErrorResponseType } from "@/types/api";
 import type { TExternalServiceAccountId, TNamespaceId } from "@/types/prisma";
 import type { NextRequest } from "next/server";
 
@@ -15,10 +16,7 @@ export type DeleteExternalServiceAccountResponse =
   | {
       status: "success";
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 
 export type UpdateExternalServiceAccountResponse =
   | {
@@ -30,10 +28,7 @@ export type UpdateExternalServiceAccountResponse =
         icon?: string;
       };
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 
 export const DELETE = api(
   async (
@@ -42,7 +37,7 @@ export const DELETE = api(
       params,
     }: { params: { nsId: TNamespaceId; accountId: TExternalServiceAccountId } },
   ): Promise<DeleteExternalServiceAccountResponse> => {
-    await validatePermission(params.nsId, "admin");
+    await validatePermission(params.nsId, "owner");
 
     const serviceAccount = await getExternalServiceAccount(
       params.nsId,
@@ -68,7 +63,7 @@ export const PATCH = api(
       params,
     }: { params: { nsId: TNamespaceId; accountId: TExternalServiceAccountId } },
   ): Promise<UpdateExternalServiceAccountResponse> => {
-    await validatePermission(params.nsId, "admin");
+    await validatePermission(params.nsId, "owner");
     const serviceAccount = await getExternalServiceAccount(
       params.nsId,
       params.accountId,

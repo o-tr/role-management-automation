@@ -1,6 +1,7 @@
 import { api } from "@/lib/api";
 import { getExternalServiceGroups } from "@/lib/prisma/getExternalServiceGroups";
 import { validatePermission } from "@/lib/validatePermission";
+import type { ErrorResponseType } from "@/types/api";
 import type {
   TExternalServiceGroupWithAccount,
   TNamespaceId,
@@ -12,17 +13,14 @@ export type GetExternalServiceGroupsResponse =
       status: "success";
       serviceGroups: TExternalServiceGroupWithAccount[];
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 
 export const GET = api(
   async (
     req: NextRequest,
     { params }: { params: { nsId: TNamespaceId } },
   ): Promise<GetExternalServiceGroupsResponse> => {
-    await validatePermission(params.nsId, "admin");
+    await validatePermission(params.nsId, "owner");
 
     const serviceGroups = await getExternalServiceGroups(params.nsId);
 

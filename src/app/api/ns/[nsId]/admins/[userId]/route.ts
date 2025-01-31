@@ -3,6 +3,7 @@ import { BadRequestException } from "@/lib/exceptions/BadRequestException";
 import { NotFoundException } from "@/lib/exceptions/NotFoundException";
 import { disconnectUserAndNamespace } from "@/lib/prisma/disconnectUserAndNamespace";
 import { validatePermission } from "@/lib/validatePermission";
+import type { ErrorResponseType } from "@/types/api";
 import type { TNamespaceId, TUserId } from "@/types/prisma";
 import type { NextRequest } from "next/server";
 
@@ -10,10 +11,7 @@ export type DeleteAdminResponse =
   | {
       status: "success";
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 
 export const DELETE = api(
   async (

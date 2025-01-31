@@ -15,6 +15,7 @@ import {
 } from "@/app/ns/[nsId]/components/DataTable";
 import { Image } from "@/app/ns/[nsId]/components/Image";
 import { Checkbox } from "@/components/ui/checkbox";
+import { redirect } from "next/navigation";
 import { useServiceGroups } from "../../../../_hooks/use-service-groups";
 import { useOnServiceGroupChange } from "../../_hooks/on-groups-change";
 import { useDeleteServiceGroup } from "../../_hooks/use-delete-service-group";
@@ -105,7 +106,7 @@ type Props = {
 };
 
 export const GroupList: FC<Props> = ({ nsId }) => {
-  const { groups, isPending, refetch } = useServiceGroups(nsId);
+  const { groups, isPending, refetch, responseError } = useServiceGroups(nsId);
   useOnServiceGroupChange(() => {
     void refetch();
   });
@@ -113,6 +114,23 @@ export const GroupList: FC<Props> = ({ nsId }) => {
   if (isPending) {
     return <div>Loading...</div>;
   }
+
+  if (responseError) {
+    if (responseError.code === 401) {
+      redirect("/");
+      return null;
+    }
+    if (responseError.code === 403) {
+      redirect(`/ns/${nsId}`);
+      return null;
+    }
+    if (responseError.code === 404) {
+      redirect("/ns");
+      return null;
+    }
+    return <div>エラーが発生しました</div>;
+  }
+
   return (
     <div>
       <DataTable

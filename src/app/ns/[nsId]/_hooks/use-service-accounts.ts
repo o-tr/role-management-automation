@@ -15,8 +15,8 @@ export const useServiceAccounts = (nsId: string) => {
   );
 
   return {
-    accounts:
-      data && data.status === "success" ? data.serviceAccounts : undefined,
+    accounts: data?.status === "success" ? data.serviceAccounts : undefined,
+    responseError: data?.status === "error" ? data : undefined,
     isPending: !error && !data,
     refetch: mutate,
   };

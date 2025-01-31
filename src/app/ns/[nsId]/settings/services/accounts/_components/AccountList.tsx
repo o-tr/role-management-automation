@@ -14,6 +14,7 @@ import {
 } from "@/app/ns/[nsId]/components/DataTable";
 import { Image } from "@/app/ns/[nsId]/components/Image";
 import { useDeleteServiceAccount } from "@/app/ns/[nsId]/settings/services/_hooks/use-delete-service-accounts";
+import { redirect } from "next/navigation";
 
 type InternalServiceAccount = FExternalServiceAccount & { namespaceId: string };
 
@@ -78,7 +79,8 @@ type Props = {
 };
 
 export const AccountList: FC<Props> = ({ nsId }) => {
-  const { accounts, isPending, refetch } = useServiceAccounts(nsId);
+  const { accounts, responseError, isPending, refetch } =
+    useServiceAccounts(nsId);
   useOnServiceAccountChange(() => {
     void refetch();
   });
@@ -86,6 +88,23 @@ export const AccountList: FC<Props> = ({ nsId }) => {
   if (isPending) {
     return <div>Loading...</div>;
   }
+
+  if (responseError) {
+    if (responseError.code === 401) {
+      redirect("/");
+      return null;
+    }
+    if (responseError.code === 403) {
+      redirect(`/ns/${nsId}`);
+      return null;
+    }
+    if (responseError.code === 404) {
+      redirect("/ns");
+      return null;
+    }
+    return <div>Error</div>;
+  }
+
   return (
     <div>
       <DataTable

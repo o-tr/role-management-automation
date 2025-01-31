@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { createNamespace } from "@/lib/prisma/createNamespace";
 import { filterFNamespaceWithOwnerAndAdmins } from "@/lib/prisma/filter/filterFNamespaceWithOwnerAndAdmins";
 import { getNamespacesWithOwnerAndAdmins } from "@/lib/prisma/getNamespacesWithOwnerAndAdmins";
+import type { ErrorResponseType } from "@/types/api";
 import { FNamespaceWithOwnerAndAdmins } from "@/types/prisma";
 import { getServerSession } from "next-auth/next";
 import { type NextRequest, NextResponse } from "next/server";
@@ -13,10 +14,7 @@ export type GetNamespacesResponse =
       status: "success";
       namespaces: NamespaceDetailResponse[];
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 
 export async function GET(
   req: NextRequest,
@@ -27,7 +25,7 @@ export async function GET(
 
   if (!email) {
     return NextResponse.json(
-      { status: "error", error: "Not authenticated" },
+      { status: "error", error: "Not authenticated", code: 401 },
       { status: 401 },
     );
   }
@@ -53,10 +51,7 @@ export type CreateNamespaceResponse =
       status: "success";
       namespace: NamespaceDetailResponse;
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 
 const createNamespaceSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -71,7 +66,7 @@ export async function POST(
 
   if (!email) {
     return NextResponse.json(
-      { status: "error", error: "Not authenticated" },
+      { status: "error", error: "Not authenticated", code: 401 },
       { status: 401 },
     );
   }
@@ -81,7 +76,7 @@ export async function POST(
 
   if (!result.success) {
     return NextResponse.json(
-      { status: "error", error: result.error.errors[0].message },
+      { status: "error", error: result.error.errors[0].message, code: 400 },
       { status: 400 },
     );
   }

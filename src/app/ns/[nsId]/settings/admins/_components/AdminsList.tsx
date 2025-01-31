@@ -9,7 +9,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import type { TNamespaceId } from "@/types/prisma";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import type { FC } from "react";
 import { DataTable, type TColumnDef } from "../../../components/DataTable";
 import { UserDisplay } from "../../../components/UserDisplay";
@@ -141,15 +141,27 @@ const columns: TColumnDef<AdminItem>[] = [
 ];
 
 export const AdminsList: FC<Props> = ({ nsId }) => {
-  const { data, isLoading } = useAdmins(nsId);
+  const { data, isLoading, responseError } = useAdmins(nsId);
 
   if (isLoading) {
     return <div>Loading...</div>;
   }
 
-  if (!data || data.status !== "success") {
-    return <div>Failed to load admins</div>;
+  if (responseError) {
+    if (responseError.code === 401) {
+      redirect("/");
+      return null;
+    }
+    if (responseError.code === 404) {
+      redirect("/ns");
+      return null;
+    }
+    if (responseError.code === 403) {
+      redirect(`/ns/${nsId}/`);
+      return <div>アクセス権限がありません</div>;
+    }
+    return <div>エラーが発生しました</div>;
   }
 
-  return <DataTable columns={columns} data={data?.admins || []} />;
+  return <DataTable columns={columns} data={data || []} />;
 };

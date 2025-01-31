@@ -5,6 +5,7 @@ import { onNsChange } from "@/events/on-ns-change";
 import { useNamespace } from "@/hooks/use-namespace";
 import { useSetNamespaceName } from "@/hooks/use-set-namespace-name";
 import type { TNamespaceId } from "@/types/prisma";
+import { redirect } from "next/navigation";
 import { type FC, useEffect, useId, useState } from "react";
 
 type Props = {
@@ -12,7 +13,7 @@ type Props = {
 };
 
 export const EditNSName: FC<Props> = ({ nsId }) => {
-  const { namespace, refetch } = useNamespace({ namespaceId: nsId });
+  const { namespace, isPending, refetch } = useNamespace({ namespaceId: nsId });
   const { setNamespaceName, isLoading } = useSetNamespaceName(nsId);
   const [name, setName] = useState("");
 
@@ -26,6 +27,15 @@ export const EditNSName: FC<Props> = ({ nsId }) => {
   };
 
   useEffect(() => setName(namespace?.name ?? ""), [namespace]);
+
+  if (!namespace || isPending) {
+    return <p>Loading...</p>;
+  }
+
+  if (namespace.isOwner === false) {
+    redirect(`/ns/${nsId}`);
+    return null;
+  }
 
   return (
     <form onSubmit={handleSubmit}>

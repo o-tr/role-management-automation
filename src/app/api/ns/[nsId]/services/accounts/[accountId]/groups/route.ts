@@ -5,6 +5,7 @@ import { createExternalServiceGroup } from "@/lib/prisma/createExternalServiceGr
 import { getExternalServiceAccount } from "@/lib/prisma/getExternalServiceAccount";
 import { getExternalServiceGroupByGroupId } from "@/lib/prisma/getExternalServiceGroupByGroupId";
 import { validatePermission } from "@/lib/validatePermission";
+import type { ErrorResponseType } from "@/types/api";
 import type { TExternalServiceAccountId, TNamespaceId } from "@/types/prisma";
 import type { NextRequest } from "next/server";
 import { z } from "zod";
@@ -20,10 +21,7 @@ export type CreateExternalServiceGroupResponse =
         icon?: string;
       };
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 
 const createGroupSchema = z.object({
   groupId: z.string().min(1, "GroupId is required"),
@@ -36,7 +34,7 @@ export const POST = api(
       params,
     }: { params: { nsId: TNamespaceId; accountId: TExternalServiceAccountId } },
   ): Promise<CreateExternalServiceGroupResponse> => {
-    await validatePermission(params.nsId, "admin");
+    await validatePermission(params.nsId, "owner");
 
     const body = await req.json();
     const result = createGroupSchema.safeParse(body);

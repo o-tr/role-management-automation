@@ -3,6 +3,7 @@ import { BadRequestException } from "@/lib/exceptions/BadRequestException";
 import { filterFNamespaceWithOwnerAndAdmins } from "@/lib/prisma/filter/filterFNamespaceWithOwnerAndAdmins";
 import { updateNamespace } from "@/lib/prisma/updateNamespace";
 import { validatePermission } from "@/lib/validatePermission";
+import type { ErrorResponseType } from "@/types/api";
 import type {
   FNamespaceWithOwnerAndAdmins,
   TNamespaceId,
@@ -19,10 +20,7 @@ export type GetNamespaceDetailResponse =
       status: "success";
       namespace: NamespaceDetailResponse;
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 
 export const GET = api(
   async (
@@ -53,7 +51,7 @@ export const PATCH = api(
     req: NextRequest,
     { params }: { params: { nsId: TNamespaceId } },
   ): Promise<GetNamespaceDetailResponse> => {
-    const namespace = await validatePermission(params.nsId, "admin");
+    const namespace = await validatePermission(params.nsId, "owner");
 
     const body = await req.json();
     const result = patchNamespaceSchema.safeParse(body);

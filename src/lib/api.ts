@@ -1,11 +1,10 @@
+import type { ErrorResponseType } from "@/types/api";
 import { type NextRequest, NextResponse } from "next/server";
 import { BaseException } from "./exceptions/BaseException";
 
 export const api = <
   T extends [NextRequest, { params: Record<string, string> }],
-  U extends
-    | { [key: string]: unknown; status: "success" }
-    | { status: "error"; error: string },
+  U extends { [key: string]: unknown; status: "success" } | ErrorResponseType,
 >(
   func: (...args: T) => Promise<U>,
 ) => {
@@ -18,7 +17,7 @@ export const api = <
     } catch (error) {
       if (error instanceof BaseException) {
         return NextResponse.json(
-          { status: "error", error: error.message },
+          { status: "error", error: error.message, code: error.statusCode },
           { status: error.statusCode },
         );
       }

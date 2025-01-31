@@ -11,7 +11,7 @@ export const AppSidebar: FC = async () => {
         <NamespaceSwitcher />
       </SidebarHeader>
       <AppSidebarContent />
-      <SidebarFooter>Footer</SidebarFooter>
+      {/* <SidebarFooter>Footer</SidebarFooter> */}
     </Sidebar>
   );
 };

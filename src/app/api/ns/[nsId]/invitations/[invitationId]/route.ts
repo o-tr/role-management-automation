@@ -4,6 +4,7 @@ import { deleteNamespaceInvitation } from "@/lib/prisma/deleteNamespaceInvitatio
 import { getNamespaceInvitation } from "@/lib/prisma/getNamespaceInvitation";
 import { getNamespaceInvitationWithRelationByToken } from "@/lib/prisma/getNamespaceInvitationWithRelationByToken";
 import { validatePermission } from "@/lib/validatePermission";
+import type { ErrorResponseType } from "@/types/api";
 import type {
   TNamespaceId,
   TNamespaceInvitation,
@@ -17,10 +18,7 @@ export type DeleteNamespaceInvitationResponse =
   | {
       status: "success";
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 
 export const DELETE = api(
   async (
@@ -29,7 +27,7 @@ export const DELETE = api(
       params,
     }: { params: { nsId: TNamespaceId; invitationId: TNamespaceInvitationId } },
   ): Promise<DeleteNamespaceInvitationResponse> => {
-    await validatePermission(params.nsId, "admin");
+    await validatePermission(params.nsId, "owner");
 
     await deleteNamespaceInvitation(params.nsId, params.invitationId);
 

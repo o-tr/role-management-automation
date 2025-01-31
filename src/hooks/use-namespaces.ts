@@ -3,27 +3,24 @@ import type { NamespaceDetailResponse } from "@/app/api/ns/[nsId]/route";
 import type { GetNamespacesResponse } from "@/app/api/ns/route";
 import type { TNamespace } from "@/types/prisma";
 import { useCallback, useEffect, useState } from "react";
+import useSWR from "swr";
+
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export const useNamespaces = () => {
-  const [namespaces, setNamespaces] = useState<
-    NamespaceDetailResponse[] | undefined
-  >();
-  const [isPending, setIsPending] = useState(true);
+  const { data, isLoading, mutate } = useSWR<GetNamespacesResponse>(
+    "/api/ns",
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    },
+  );
 
-  const fetchData = useCallback(async () => {
-    const response = (await fetch("/api/ns").then((res) =>
-      res.json(),
-    )) as GetNamespacesResponse;
-    if (response.status === "error") {
-      throw new Error(response.error);
-    }
-    setNamespaces(response.namespaces);
-    setIsPending(false);
-  }, []);
-
-  useEffect(() => {
-    void fetchData();
-  }, [fetchData]);
-
-  return { namespaces, isPending, refetch: fetchData };
+  return {
+    namespaces: data?.status === "success" ? data.namespaces : undefined,
+    responseError: data?.status === "error" ? data : undefined,
+    isPending: isLoading,
+    refetch: mutate,
+  };
 };

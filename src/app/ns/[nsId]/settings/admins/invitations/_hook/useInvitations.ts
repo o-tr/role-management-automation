@@ -21,6 +21,8 @@ export const useInvitations = (nsId: TNamespaceId) => {
   return {
     invitations:
       data && data.status === "success" ? data.invitations : undefined,
+    responseError: data && data.status === "error" ? data : undefined,
+    error,
     isPending: !error && !data,
     refetch: mutate,
   };

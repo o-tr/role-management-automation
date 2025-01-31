@@ -1,6 +1,7 @@
 import { api } from "@/lib/api";
 import { filterFUser } from "@/lib/prisma/filter/filterFUser";
 import { validatePermission } from "@/lib/validatePermission";
+import type { ErrorResponseType } from "@/types/api";
 import { type FUser, type TNamespaceId, TUser } from "@/types/prisma";
 import type { NextRequest } from "next/server";
 
@@ -14,10 +15,7 @@ export type GetAdminsResponse =
       status: "success";
       admins: AdminItem[];
     }
-  | {
-      status: "error";
-      error: string;
-    };
+  | ErrorResponseType;
 
 export const GET = api(
   async (
