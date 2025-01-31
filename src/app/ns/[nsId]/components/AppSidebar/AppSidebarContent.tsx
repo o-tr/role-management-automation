@@ -23,6 +23,7 @@ import {
   TbTool,
   TbUserCode,
   TbUserHexagon,
+  TbUserShield,
   TbUsersGroup,
 } from "react-icons/tb";
 
@@ -89,15 +90,18 @@ export const AppSidebarContent: FC = () => {
             </SidebarMenuSub>
           </MenuItem>
           <MenuItem
-            link={`/ns/${nsId}/settings/invitations`}
-            label={"招待"}
-            icon={<TbMailShare />}
-          />
-          <MenuItem
             link={`/ns/${nsId}/settings/admins`}
             label={"管理者"}
             icon={<TbTool />}
-          />
+          >
+            <SidebarMenuSub>
+              <MenuItem
+                link={`/ns/${nsId}/settings/admins/invitations`}
+                label={"招待"}
+                icon={<TbMailShare />}
+              />
+            </SidebarMenuSub>
+          </MenuItem>
         </SidebarMenu>
       </SidebarGroup>
     </SidebarContent>

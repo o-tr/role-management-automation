@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import type { TNamespaceId, TNamespaceInvitation } from "@/types/prisma";
 import { useState } from "react";
 import { TbCopy, TbCopyCheck, TbCopyX } from "react-icons/tb";
-import { DataTable, type TColumnDef } from "../../../components/DataTable";
+import { DataTable, type TColumnDef } from "../../../../components/DataTable";
 import { useDeleteInvitation } from "../_hook/useDeleteInvitation";
 import { useInvitations } from "../_hook/useInvitations";
 
@@ -31,9 +31,9 @@ const columns: TColumnDef<TNamespaceInvitation>[] = [
             {copySuccess === undefined ? (
               <TbCopy />
             ) : copySuccess ? (
-              <TbCopyCheck />
+              <TbCopyCheck color="lightgreen" />
             ) : (
-              <TbCopyX />
+              <TbCopyX color="red" />
             )}
           </Button>
         </div>
@@ -89,7 +89,6 @@ export const InvitationsList = ({ nsId }: Props) => {
 
   return (
     <div>
-      <h2>Invitations</h2>
       <DataTable columns={columns} data={invitations} />
     </div>
   );

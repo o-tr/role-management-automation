@@ -6,5 +6,6 @@ export const formatTUser = (input: User): TUser => {
     id: input.id as TUserId,
     email: input.email,
     name: input.name,
+    icon: input.image,
   };
 };

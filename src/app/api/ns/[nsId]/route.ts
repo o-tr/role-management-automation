@@ -64,7 +64,7 @@ export const PATCH = api(
 
     const { name } = result.data;
 
-    const updatedNamespace = await updateNamespace(params.nsId, name);
+    const updatedNamespace = await updateNamespace(params.nsId, { name });
 
     return {
       status: "success",

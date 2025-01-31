@@ -3,20 +3,27 @@ import type {
   TNamespaceId,
   TNamespaceWithRelation,
   TTagId,
+  TUserId,
 } from "@/types/prisma";
 import { prisma } from "../prisma";
 import { formatTNamespaceWithRelation } from "./format/formatTNamespaceWithRelation";
 
+export type TUpdateNamespaceInput = {
+  name?: string;
+  ownerId?: TUserId;
+};
+
 export const updateNamespace = async (
   nsId: TNamespaceId,
-  name: string,
+  { name, ownerId }: TUpdateNamespaceInput,
 ): Promise<TNamespaceWithRelation> => {
   const result = await prisma.namespace.update({
     where: {
       id: nsId,
     },
     data: {
-      name: name,
+      name,
+      ownerId,
     },
     include: {
       owner: true,

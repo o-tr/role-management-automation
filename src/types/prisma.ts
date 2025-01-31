@@ -19,6 +19,7 @@ export type TUser = {
   id: TUserId;
   email: string | null;
   name: string | null;
+  icon: string | null;
 };
 
 export type FUser = Omit<TUser, "email">;
