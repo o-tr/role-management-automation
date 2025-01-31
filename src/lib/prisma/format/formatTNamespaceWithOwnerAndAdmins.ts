@@ -1,6 +1,7 @@
 import type {
   TNamespaceId,
   TNamespaceWithOwnerAndAdmins,
+  TUserId,
 } from "@/types/prisma";
 import type { Namespace, User } from "@prisma/client";
 import { formatTUser } from "./formatTUser";
@@ -15,6 +16,7 @@ export const formatTNamespaceWithOwnerAndAdmins = (
     id: input.id as TNamespaceId,
     name: input.name,
     owner: formatTUser(input.owner),
+    ownerId: input.ownerId as TUserId,
     admins: input.admins.map(formatTUser),
   };
 };

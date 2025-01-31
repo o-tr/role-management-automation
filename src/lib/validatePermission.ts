@@ -12,12 +12,7 @@ import { getNamespaceWithOwnerAndAdmins } from "./prisma/getNamespaceWithOwnerAn
 import { getUserByEmail } from "./prisma/getUserByEmail";
 import { UnauthorizedError } from "./vrchat/retry";
 
-export const validatePermission = async (
-  nsId: TNamespaceId,
-  requiredPermission: "owner" | "admin" | "logged-in",
-): Promise<
-  TNamespaceWithOwnerAndAdmins & { isOwner: boolean; user: TUser }
-> => {
+export const requireLoggedIn = async (): Promise<TUser> => {
   const session = await getServerSession();
   const email = session?.user?.email;
   if (!email) {
@@ -27,19 +22,22 @@ export const validatePermission = async (
   if (!user) {
     throw new UnauthorizedError("User not found");
   }
+  return user;
+};
+
+export const validatePermission = async (
+  nsId: TNamespaceId,
+  requiredPermission: "owner" | "admin",
+): Promise<
+  TNamespaceWithOwnerAndAdmins & { isOwner: boolean; user: TUser }
+> => {
+  const user = await requireLoggedIn();
   const namespace = await getNamespaceWithOwnerAndAdmins(nsId);
   if (!namespace) {
     throw new NotFoundException("Namespace not found");
   }
-  if (requiredPermission === "logged-in") {
-    return {
-      ...namespace,
-      user,
-      isOwner: false,
-    };
-  }
   if (requiredPermission === "owner") {
-    if (namespace.owner.email !== email) {
+    if (namespace.owner.email !== user.email) {
       throw new ForbiddenException("Not authorized");
     }
     return {
@@ -50,15 +48,15 @@ export const validatePermission = async (
   }
   if (requiredPermission === "admin") {
     if (
-      !namespace.admins.find((admin) => admin.email === email) &&
-      namespace.owner.email !== email
+      !namespace.admins.find((admin) => admin.email === user.email) &&
+      namespace.owner.email !== user.email
     ) {
       throw new ForbiddenException("Not authorized");
     }
     return {
       ...namespace,
       user,
-      isOwner: namespace.owner.email === email,
+      isOwner: namespace.owner.email === user.email,
     };
   }
   throw new Error("Invalid permission");

@@ -34,6 +34,7 @@ export type TNamespaceWithOwnerAndAdmins = {
   id: TNamespaceId;
   name: string;
   owner: TUser;
+  ownerId: TUserId;
   admins: TUser[];
 };
 export type FNamespaceWithOwnerAndAdmins = Omit<
@@ -44,11 +45,7 @@ export type FNamespaceWithOwnerAndAdmins = Omit<
   admins: FUser[];
 };
 
-export type TNamespaceWithRelation = {
-  id: TNamespaceId;
-  name: string;
-  owner: TUser;
-  admins: TUser[];
+export type TNamespaceWithRelation = TNamespaceWithOwnerAndAdmins & {
   members: TMember[];
   tags: TTag[];
 };
@@ -58,11 +55,19 @@ export const ZNamespaceInvitationId = z
   .uuid()
   .brand<"NamespaceInvitationId">("NamespaceInvitationId");
 export type TNamespaceInvitationId = z.infer<typeof ZNamespaceInvitationId>;
+export const ZNamespaceInvitationToken = z.string().min(1);
+export type TNamespaceInvitationToken = z.infer<
+  typeof ZNamespaceInvitationToken
+>;
 export type TNamespaceInvitation = {
   id: TNamespaceInvitationId;
   namespaceId: TNamespaceId;
-  token: string;
+  token: TNamespaceInvitationToken;
   expires: Date;
+};
+
+export type TNamespaceInvitationWithRelation = TNamespaceInvitation & {
+  namespace: TNamespace;
 };
 
 export const ZTagId = z.string().uuid().brand("TagId");

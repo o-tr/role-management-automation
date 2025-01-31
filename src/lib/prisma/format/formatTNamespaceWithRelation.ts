@@ -5,6 +5,7 @@ import {
 } from "@/types/prisma";
 import type { Member, Namespace, Tag, User } from "@prisma/client";
 import { formatTMember } from "./formatTMember";
+import { formatTNamespaceWithOwnerAndAdmins } from "./formatTNamespaceWithOwnerAndAdmins";
 import { formatTTag } from "./formatTTag";
 import { formatTUser } from "./formatTUser";
 
@@ -17,10 +18,7 @@ export const formatTNamespaceWithRelation = (
   },
 ): TNamespaceWithRelation => {
   return {
-    id: input.id as TNamespaceId,
-    name: input.name,
-    owner: formatTUser(input.owner),
-    admins: input.admins.map(formatTUser),
+    ...formatTNamespaceWithOwnerAndAdmins(input),
     members: input.members.map(formatTMember),
     tags: input.tags.map(formatTTag),
   };
