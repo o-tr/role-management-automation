@@ -2,18 +2,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { onNsChange } from "@/events/on-ns-change";
+import { useNamespace } from "@/hooks/use-namespace";
 import { useSetNamespaceName } from "@/hooks/use-set-namespace-name";
-import type { TNamespace } from "@/types/prisma";
-import { type FC, useId, useState } from "react";
+import type { TNamespaceId } from "@/types/prisma";
+import { type FC, useEffect, useId, useState } from "react";
 
 type Props = {
-  namespace: TNamespace;
-  refetch: () => void;
+  nsId: TNamespaceId;
 };
 
-export const EditNSName: FC<Props> = ({ namespace, refetch }) => {
-  const [name, setName] = useState(namespace.name);
-  const { setNamespaceName, isLoading } = useSetNamespaceName(namespace.id);
+export const EditNSName: FC<Props> = ({ nsId }) => {
+  const { namespace, refetch } = useNamespace({ namespaceId: nsId });
+  const { setNamespaceName, isLoading } = useSetNamespaceName(nsId);
+  const [name, setName] = useState("");
 
   const inputId = useId();
 
@@ -23,6 +24,8 @@ export const EditNSName: FC<Props> = ({ namespace, refetch }) => {
     onNsChange();
     refetch();
   };
+
+  useEffect(() => setName(namespace?.name ?? ""), [namespace]);
 
   return (
     <form onSubmit={handleSubmit}>
@@ -35,7 +38,7 @@ export const EditNSName: FC<Props> = ({ namespace, refetch }) => {
           placeholder="新しいネームスペース名"
           disabled={isLoading}
         />
-        <Button disabled={isLoading}>変更</Button>
+        <Button disabled={isLoading || namespace?.name === name}>変更</Button>
       </div>
     </form>
   );

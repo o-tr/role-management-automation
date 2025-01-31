@@ -1,5 +1,5 @@
 import { useServiceGroups } from "@/app/ns/[nsId]/_hooks/use-service-groups";
-import { useMembers } from "@/app/ns/[nsId]/members/_hooks/use-tags";
+import { useMembers } from "@/app/ns/[nsId]/members/_hooks/use-members";
 import { calculateDiff, extractTargetGroups } from "@/lib/mapping/memberDiff";
 import type { TNamespaceId } from "@/types/prisma";
 import { useMemo } from "react";

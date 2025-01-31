@@ -6,7 +6,6 @@ import { validatePermission } from "@/lib/validatePermission";
 import type {
   FNamespaceWithOwnerAndAdmins,
   TNamespaceId,
-  TNamespaceWithOwnerAndAdmins,
 } from "@/types/prisma";
 import type { NextRequest } from "next/server";
 import { z } from "zod";

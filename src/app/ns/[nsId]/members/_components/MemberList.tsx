@@ -42,8 +42,8 @@ import {
   onMembersChange,
   useOnMembersChange,
 } from "../_hooks/on-members-change";
+import { useMembers } from "../_hooks/use-members";
 import { usePatchMember } from "../_hooks/use-patch-member";
-import { useMembers } from "../_hooks/use-tags";
 import { AddTag } from "./EditMember/AddTag";
 import { EditMember } from "./EditMember/EditMember";
 
@@ -249,9 +249,7 @@ type MemberListProps = {
 };
 
 export function MemberList({ namespaceId, className }: MemberListProps) {
-  const { members, isPending, refetch } = useMembers(namespaceId);
-
-  useOnMembersChange(refetch);
+  const { members, isPending } = useMembers(namespaceId);
 
   const Footer = useCallback<FC<{ table: Table<TMemberWithRelation> }>>(
     ({ table }) => {

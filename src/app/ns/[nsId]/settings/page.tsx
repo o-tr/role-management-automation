@@ -4,7 +4,6 @@ import { useNamespace } from "@/hooks/use-namespace";
 import type { TNamespaceId } from "@/types/prisma";
 import { redirect } from "next/navigation";
 import { BreadcrumbUpdater } from "../components/Breadcrumb/BreadcrumbUpdater";
-import { GroupDetails } from "../components/GroupDetails";
 
 const paths = [
   { label: "ネームスペース設定", path: "/ns/[nsId]/settings" },
@@ -28,17 +27,8 @@ export default function GroupSettingsPage({ params: { nsId } }: Props) {
   }
   return (
     <div>
-      <EditNSName
-        namespace={namespace}
-        refetch={refetch}
-        key={namespace.name}
-      />
-      <GroupDetails nsId={nsId} />
+      <EditNSName nsId={nsId} />
       <BreadcrumbUpdater paths={paths} />
-      {/* 
-      <GroupDetails namespace={namespace} isOwner={isOwner} />
-      {/*<ExternalProviderList groupId={namespace.id} externalProviders={group.externalProviders} />*/}
-      {/* {isOwner && <InviteAdminForm groupId={namespace.id} />} */}
     </div>
   );
 }

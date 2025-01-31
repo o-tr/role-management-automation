@@ -12,15 +12,7 @@ const handler = NextAuth({
       clientSecret: DISCORD_CLIENT_SECRET,
     }),
   ],
-  callbacks: {
-    async session({ session, user }) {
-      if (session?.user) {
-        // @ts-expect-error
-        session.user.id = user.id;
-      }
-      return session;
-    },
-  },
+  callbacks: {},
   session: {
     strategy: "jwt",
   },

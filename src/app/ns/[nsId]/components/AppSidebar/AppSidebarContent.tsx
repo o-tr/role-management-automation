@@ -16,6 +16,7 @@ import type { FC, ReactNode } from "react";
 import {
   TbBuildings,
   TbCloudCode,
+  TbMailShare,
   TbPlugConnected,
   TbSettings,
   TbTags,
@@ -87,6 +88,11 @@ export const AppSidebarContent: FC = () => {
               />
             </SidebarMenuSub>
           </MenuItem>
+          <MenuItem
+            link={`/ns/${nsId}/settings/invitations`}
+            label={"招待"}
+            icon={<TbMailShare />}
+          />
           <MenuItem
             link={`/ns/${nsId}/settings/admins`}
             label={"管理者"}

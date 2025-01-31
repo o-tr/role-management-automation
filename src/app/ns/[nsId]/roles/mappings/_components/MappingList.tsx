@@ -116,8 +116,7 @@ type TagListProps = {
 };
 
 export function MappingList({ namespaceId }: TagListProps) {
-  const { mappings, isPending, refetch } = useMappings(namespaceId);
-  useOnServiceGroupMappingChange(() => refetch());
+  const { mappings, isPending } = useMappings(namespaceId);
 
   if (isPending || !mappings) return <div>Loading...</div>;
 

@@ -53,6 +53,18 @@ export type TNamespaceWithRelation = {
   tags: TTag[];
 };
 
+export const ZNamespaceInvitationId = z
+  .string()
+  .uuid()
+  .brand<"NamespaceInvitationId">("NamespaceInvitationId");
+export type TNamespaceInvitationId = z.infer<typeof ZNamespaceInvitationId>;
+export type TNamespaceInvitation = {
+  id: TNamespaceInvitationId;
+  namespaceId: TNamespaceId;
+  token: string;
+  expires: Date;
+};
+
 export const ZTagId = z.string().uuid().brand("TagId");
 export type TTagId = z.infer<typeof ZTagId>;
 export const ZTag = z.object({

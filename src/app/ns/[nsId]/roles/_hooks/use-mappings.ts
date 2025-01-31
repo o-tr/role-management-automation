@@ -4,6 +4,7 @@ import { convertTSerializedMappingToTMapping } from "@/lib/prisma/convert/conver
 import type { TMapping } from "@/types/prisma";
 import { useMemo } from "react";
 import useSWR from "swr";
+import { useOnServiceGroupMappingChange } from "./on-mappings-change";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -18,6 +19,8 @@ export const useMappings = (nsId: string) => {
     if (data?.status !== "success") return undefined;
     return data.mappings.map<TMapping>(convertTSerializedMappingToTMapping);
   }, [data]);
+
+  useOnServiceGroupMappingChange(mutate);
 
   return { mappings, isPending: isLoading, error, refetch: mutate };
 };

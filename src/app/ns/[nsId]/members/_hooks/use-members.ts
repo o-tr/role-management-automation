@@ -1,5 +1,6 @@
 import type { GetMembersResponse } from "@/app/api/ns/[nsId]/members/route";
 import useSWR from "swr";
+import { useOnMembersChange } from "./on-members-change";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -13,6 +14,8 @@ export const useMembers = (nsId: string) => {
       revalidateOnReconnect: false,
     },
   );
+
+  useOnMembersChange(mutate);
 
   return {
     members: data && data.status === "success" ? data.members : undefined,
