@@ -1,66 +1,77 @@
-import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth/next";
+"use client";
+import { Button } from "@/components/ui/button";
+import { useNamespace } from "@/hooks/use-namespace";
+import type { TNamespaceId } from "@/types/prisma";
+import Link from "next/link";
 import { redirect } from "next/navigation";
+import { DescriptionImage } from "./_assets/description.svg";
 
-export default async function GroupPage({
+export default function GroupPage({
   params,
 }: {
-  params: { nsId: string };
+  params: { nsId: TNamespaceId };
 }) {
-  const session = await getServerSession();
-
-  if (!session) {
-    redirect("/api/auth/signin");
-  }
-
-  const groupId = params.nsId;
-  const group = await prisma.namespace.findUnique({
-    where: { id: groupId },
-    include: {
-      owner: true,
-      admins: true,
-      members: {
-        include: {
-          tags: true,
-        },
-      },
-      tags: true,
-    },
+  const { namespace, responseError, isPending } = useNamespace({
+    namespaceId: params.nsId,
   });
 
-  if (!group) {
-    return <div>Group not found</div>;
+  if (isPending) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        Loading...
+      </div>
+    );
   }
 
-  // const currentUser = await prisma.user.findUnique({
-  //   where: { email: session.user?.email! },
-  // });
+  if (responseError) {
+    if (responseError.code === 401) {
+      redirect("/");
+      return null;
+    }
+    if (responseError.code === 404) {
+      redirect("/ns");
+      return null;
+    }
+    return (
+      <div className="grid place-items-center min-h-screen">
+        <div>
+          <h2>エラーが発生しました</h2>
+          <p>{responseError.error}</p>
+          <p>発生したエラーが解決しない場合は管理者にお問い合わせください</p>
+        </div>
+      </div>
+    );
+  }
+  if (!namespace) {
+    return (
+      <div className="grid place-items-center min-h-screen">
+        <div>
+          <h2>ネームスペースが見つかりませんでした</h2>
+          <p>ネームスペースが削除された可能性があります</p>
+        </div>
+      </div>
+    );
+  }
 
-  // if (!currentUser) {
-  //   return <div>User not found</div>;
-  // }
-
-  // const isOwner = group.ownerId === currentUser.id;
-  // const isAdmin =
-  //   group.admins.some((admin) => admin.id === currentUser.id) || isOwner;
-
-  // if (!isAdmin) {
-  //   redirect("/groups");
-  // }
-
-  // return (
-  //   <div>
-  //     <h1 className="text-2xl font-bold mb-5">グループ: {group.name}</h1>
-  //     <div className="flex justify-between items-center mb-6">
-  //       <Link href={`/groups/${groupId}/settings`}>
-  //         <Button variant="outline">設定</Button>
-  //       </Link>
-  //     </div>
-  //     <MemberList
-  //       members={group.members}
-  //       groupId={group.id}
-  //       tags={group.tags}
-  //     />
-  //   </div>
-  // );
+  return (
+    <div className="grid place-items-center min-h-screen">
+      <div className="flex flex-col items-center gap-2">
+        <p>
+          タグに各グループのロールを紐づけることで、各メンバーに一括でロールを付与することができます
+        </p>
+        <DescriptionImage />
+        <div className="flex flex-row gap-2">
+          <Link href={`/ns/${namespace.id}/members`}>
+            <Button>メンバーの管理</Button>
+          </Link>
+          <Link href={`/ns/${namespace.id}/roles/tags`}>
+            <Button>タグの管理</Button>
+          </Link>
+          <Link href={`/ns/${namespace.id}/roles/mappings`}>
+            <Button>割り当ての管理</Button>
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
 }
