@@ -20,7 +20,7 @@ export const GET = api(
     req: NextRequest,
     { params }: { params: { nsId: TNamespaceId } },
   ): Promise<GetExternalServiceGroupsResponse> => {
-    await validatePermission(params.nsId, "owner");
+    await validatePermission(params.nsId, "admin");
 
     const serviceGroups = await getExternalServiceGroups(params.nsId);
 

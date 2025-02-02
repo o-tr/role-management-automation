@@ -44,7 +44,7 @@ export const GET = api(
     req: NextRequest,
     { params }: { params: { nsId: TNamespaceId } },
   ): Promise<GetExternalServiceAccountsResponse> => {
-    await validatePermission(params.nsId, "owner");
+    await validatePermission(params.nsId, "admin");
 
     const serviceAccounts = (await getExternalServiceAccounts(params.nsId)).map(
       filterFExternalServiceAccount,
