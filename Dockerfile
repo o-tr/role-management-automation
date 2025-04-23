@@ -22,7 +22,7 @@ COPY --from=builder /app ./
 
 RUN npm run build
 
-RUN chmod +x ./start.sh
+RUN chmod +x ./init.sh
 
 # Copy artifacts
-CMD ["./start.sh"]
+CMD ["./init.sh"]
