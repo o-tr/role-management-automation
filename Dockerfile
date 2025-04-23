@@ -18,9 +18,11 @@ RUN chmod +x ./init.sh
 # Run phase
 FROM node:$NODE_VERSION AS runner
 
-WORKDIR /app
-
 COPY --from=builder /app ./
 
+RUN npm run build
+
+RUN chmod +x ./start.sh
+
 # Copy artifacts
-CMD ./init.sh
+CMD ["./start.sh"]
