@@ -1,3 +1,4 @@
+import { AccountNotFoundError } from "@/lib/exceptions/AccountNotFoundError";
 import { requests } from "@/lib/requests";
 import { discordLimit } from "../plimit";
 import type { DiscordToken } from "../types/token";
@@ -12,7 +13,14 @@ export const getUser = async (token: DiscordToken, userId: DiscordUserId) => {
     }),
   );
   if (!response.ok) {
-    throw new Error(`Failed to get guild: ${response.statusText}`);
+    if (response.status === 404) {
+      throw new AccountNotFoundError(
+        "DISCORD",
+        userId,
+        `Discord user not found: ${userId}`,
+      );
+    }
+    throw new Error(`Failed to get user: ${response.statusText}`);
   }
   const data = ZDiscordUser.safeParse(await response.json());
   if (!data.success) {

@@ -1,3 +1,4 @@
+import { AccountNotFoundError } from "@/lib/exceptions/AccountNotFoundError";
 import { requests } from "@/lib/requests";
 import { ZVRChatCredentials } from "@/types/credentials";
 import type { TExternalServiceAccount } from "@/types/prisma";
@@ -27,6 +28,13 @@ export const getUserById = retry(
       if (response.status === 401) {
         throw new UnauthorizedError(
           `Failed to get user: ${response.statusText}`,
+        );
+      }
+      if (response.status === 404) {
+        throw new AccountNotFoundError(
+          "VRCHAT",
+          userId,
+          `VRChat user not found: ${userId}`,
         );
       }
       throw new Error(`Failed to get user: ${response.statusText}`);

@@ -13,6 +13,11 @@ enum ExternalServiceName {
   GITHUB
 }
 
+enum ExternalAccountStatus {
+  ACTIVE
+  DELETED
+}
+
 model User {
   id              String      @id @default(uuid())
   name            String?
@@ -83,6 +88,7 @@ model MemberExternalServiceAccount {
   serviceId  String
   serviceUsername String?
   icon       String?
+  status     ExternalAccountStatus @default(ACTIVE)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

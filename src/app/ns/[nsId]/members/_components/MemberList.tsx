@@ -18,7 +18,6 @@ import {
   CommonCheckboxHeader,
   DataTable,
 } from "@/app/ns/[nsId]/components/DataTable";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -106,7 +105,7 @@ export const columns: ColumnDef<TMemberWithRelation>[] = [
       const account = row.original.externalAccounts.find(
         (account) => account.service === "VRCHAT",
       );
-      if (!account) return null;
+      if (!account) return <span className="text-gray-400 text-sm">なし</span>;
       return <MemberExternalAccountDisplay data={account} />;
     },
   },
@@ -117,7 +116,7 @@ export const columns: ColumnDef<TMemberWithRelation>[] = [
       const account = row.original.externalAccounts.find(
         (account) => account.service === "DISCORD",
       );
-      if (!account) return null;
+      if (!account) return <span className="text-gray-400 text-sm">なし</span>;
       return <MemberExternalAccountDisplay data={account} />;
     },
   },
@@ -128,7 +127,7 @@ export const columns: ColumnDef<TMemberWithRelation>[] = [
       const account = row.original.externalAccounts.find(
         (account) => account.service === "GITHUB",
       );
-      if (!account) return null;
+      if (!account) return <span className="text-gray-400 text-sm">なし</span>;
       return <MemberExternalAccountDisplay data={account} />;
     },
   },
@@ -251,6 +250,21 @@ type MemberListProps = {
 
 export function MemberList({ namespaceId, className }: MemberListProps) {
   const { members, isPending, responseError } = useMembers(namespaceId);
+  const [showDeletedAccounts, setShowDeletedAccounts] = useState(false);
+
+  // フィルタリングされたメンバーデータ
+  const filteredMembers = useMemo(() => {
+    if (!members) return [];
+
+    if (showDeletedAccounts) {
+      return members; // 削除されたアカウントも含めて全て表示
+    }
+
+    // 削除されたアカウントのみのメンバーを除外し、アクティブなアカウントを持つメンバーのみ表示
+    return members.filter((member) =>
+      member.externalAccounts.some((account) => account.status === "ACTIVE"),
+    );
+  }, [members, showDeletedAccounts]);
 
   const Footer = useCallback<FC<{ table: Table<TMemberWithRelation> }>>(
     ({ table }) => {
@@ -338,7 +352,7 @@ export function MemberList({ namespaceId, className }: MemberListProps) {
 
   return (
     <div className={className}>
-      <DataTable columns={columns} data={members || []} footer={Footer} />
+      <DataTable columns={columns} data={filteredMembers} footer={Footer} />
     </div>
   );
 }
