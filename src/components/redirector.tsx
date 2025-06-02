@@ -5,9 +5,11 @@ import { redirect } from "next/navigation";
 export const Redirector = () => {
   const { namespaces } = useNamespaces();
 
-  if (namespaces) {
-    redirect("/ns/");
-  }
+  useEffect(() => {
+    if (namespaces) {
+      redirect("/ns/");
+    }
+  }, [namespaces]); // Add namespaces to the dependency array
 
   return null;
 };
