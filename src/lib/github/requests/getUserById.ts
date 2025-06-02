@@ -1,3 +1,4 @@
+import { AccountNotFoundError } from "@/lib/exceptions/AccountNotFoundError";
 import { requests } from "@/lib/requests";
 import { githubLimit } from "../plimit";
 import type { GitHubInstallationAccessToken } from "../types/AccessToken";
@@ -22,7 +23,11 @@ export const getUserById = async (
   );
   if (!response.ok) {
     if (response.status === 404) {
-      throw new Error(`User not found: ${response.statusText}`);
+      throw new AccountNotFoundError(
+        "GITHUB",
+        id.toString(),
+        `GitHub user not found: ${id}`,
+      );
     }
     console.log(await response.json());
     throw new Error(`Failed to fetch user: ${response.statusText}`);

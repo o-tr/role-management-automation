@@ -1,3 +1,4 @@
+import { AccountNotFoundError } from "@/lib/exceptions/AccountNotFoundError";
 import { requests } from "@/lib/requests";
 import { discordLimit } from "../plimit";
 import type { DiscordToken } from "../types/token";
@@ -13,7 +14,11 @@ export const getUser = async (token: DiscordToken, userId: DiscordUserId) => {
   );
   if (!response.ok) {
     if (response.status === 404) {
-      throw new Error(`User not found: ${response.statusText}`);
+      throw new AccountNotFoundError(
+        "DISCORD",
+        userId,
+        `Discord user not found: ${userId}`,
+      );
     }
     throw new Error(`Failed to get user: ${response.statusText}`);
   }

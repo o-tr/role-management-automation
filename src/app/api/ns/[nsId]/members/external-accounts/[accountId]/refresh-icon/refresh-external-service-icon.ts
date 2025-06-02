@@ -1,5 +1,6 @@
 import { getUser } from "@/lib/discord/requests/getUser";
 import type { DiscordUserId } from "@/lib/discord/types/user";
+import { AccountNotFoundError } from "@/lib/exceptions/AccountNotFoundError";
 import { generateInstallationAccessToken } from "@/lib/github/generateInstallationAccessToken";
 import { getUserById } from "@/lib/github/requests/getUserById";
 import type { GitHubAccountId } from "@/lib/github/types/Account";
@@ -36,8 +37,8 @@ export const refreshExternalServiceAccountIcon = async (
         throw new Error(`Unsupported service: ${memberAccount.service}`);
     }
   } catch (error) {
-    // アカウントが存在しない場合（404エラーやその他のアクセス不可エラー）はstatusをDELETEDに更新
-    if (isAccountNotFoundError(error)) {
+    // アカウントが存在しない場合（AccountNotFoundError）はstatusをDELETEDに更新
+    if (error instanceof AccountNotFoundError) {
       await updateMemberExternalServiceAccountStatus(
         memberAccount.namespaceId,
         memberAccount.id,
@@ -49,20 +50,7 @@ export const refreshExternalServiceAccountIcon = async (
   }
 };
 
-const isAccountNotFoundError = (error: unknown): boolean => {
-  if (error instanceof Error) {
-    const message = error.message.toLowerCase();
-    // 各サービスで「ユーザーが見つからない」ことを示すエラーメッセージをチェック
-    return (
-      message.includes("404") ||
-      message.includes("not found") ||
-      message.includes("user not found") ||
-      message.includes("unknown user") ||
-      message.includes("invalid user")
-    );
-  }
-  return false;
-};
+// 古い文字列ベースのエラーチェック関数は削除（もはや不要）
 
 const refreshDiscordIcon = async (
   serviceAccount: TExternalServiceAccount,
