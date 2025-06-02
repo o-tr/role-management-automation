@@ -19,7 +19,8 @@ grep -E '^[A-Za-z_][A-Za-z0-9_]*=' .env.placeholder | while IFS='=' read -r ENV_
   fi
   
   # Find all the places where our intermediate values are set and replace them using actual values
-  find .next -type f -exec sed -i "s|_${ENV_KEY}_|${ENV_VALUE}|g" {} \;
+  ESCAPED_ENV_VALUE=$(echo "$ENV_VALUE" | sed -e 's/\\/\\\\/g' -e 's/|/\\|/g')
+  find .next -type f -exec sed -i "s|_${ENV_KEY}_|${ESCAPED_ENV_VALUE}|g" {} \;
 done
 
 # Execute the application main command
