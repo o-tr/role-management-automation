@@ -44,9 +44,13 @@ export const MemberExternalAccountDisplay: FC<Props> = ({
     return undefined;
   }, [data, enableIconRefresh]);
 
+  const isDeleted = data.status === "DELETED";
+
   return (
-    <div className="flex flex-row items-center">
-      {currentIcon && (
+    <div
+      className={`flex flex-row items-center ${isDeleted ? "opacity-50" : ""}`}
+    >
+      {currentIcon && !isDeleted && (
         <Image
           src={currentIcon}
           key={currentIcon}
@@ -58,7 +62,17 @@ export const MemberExternalAccountDisplay: FC<Props> = ({
           onError={handleIconRefresh}
         />
       )}
-      <span className="truncate">{data.name}</span>
+      {isDeleted && (
+        <div className="w-6 h-6 mr-2 bg-red-300 rounded-full flex items-center justify-center flex-shrink-0">
+          <span className="text-xs text-gray-600">✕</span>
+        </div>
+      )}
+      <span
+        className={`truncate ${isDeleted ? "line-through text-red-500" : ""}`}
+      >
+        {data.name}
+        {isDeleted && <span className="ml-1 text-xs">(削除済み)</span>}
+      </span>
     </div>
   );
 };
