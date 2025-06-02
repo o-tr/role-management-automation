@@ -1,22 +1,61 @@
 import { Image } from "@/app/ns/[nsId]/components/Image";
 import type { TMemberExternalServiceAccount } from "@/types/prisma";
 import type { FC } from "react";
+import { useCallback, useState } from "react";
 
 type Props = {
   data: TMemberExternalServiceAccount;
+  enableIconRefresh?: boolean;
 };
 
-export const MemberExternalAccountDisplay: FC<Props> = ({ data }) => {
+export const MemberExternalAccountDisplay: FC<Props> = ({
+  data,
+  enableIconRefresh = true,
+}) => {
+  const [currentIcon, setCurrentIcon] = useState(data.icon);
+
+  const handleIconRefresh = useCallback(async (): Promise<
+    string | undefined
+  > => {
+    console.log("Refreshing icon for", data);
+    if (!data.namespaceId || !enableIconRefresh) return undefined;
+
+    try {
+      const response = await fetch(
+        `/api/ns/${data.namespaceId}/members/external-accounts/${data.id}/refresh-icon`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      const result = await response.json();
+
+      if (result.status === "success" && result.icon) {
+        setCurrentIcon(result.icon);
+        return result.icon;
+      }
+    } catch (error) {
+      console.error("Failed to refresh icon:", error);
+    }
+
+    return undefined;
+  }, [data, enableIconRefresh]);
+
   return (
     <div className="flex flex-row items-center">
-      {data.icon && (
+      {currentIcon && (
         <Image
-          src={data.icon}
+          src={currentIcon}
+          key={currentIcon}
           alt={data.name}
           className="w-6 h-6 mr-2 rounded-full"
           referrerPolicy="no-referrer"
           width={24}
           height={24}
+          onError={handleIconRefresh}
         />
       )}
       <span className="truncate">{data.name}</span>
