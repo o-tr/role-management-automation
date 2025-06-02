@@ -16,6 +16,7 @@ import Link from "next/link";
 import { redirect, useParams, usePathname } from "next/navigation";
 import type { FC, ReactNode } from "react";
 import {
+  TbBook,
   TbBuildings,
   TbCloudCode,
   TbMailShare,

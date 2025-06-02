@@ -16,10 +16,19 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
       <div className="container mx-auto px-4 py-8">
         {/* ヘッダーアクション */}
-        <div className="flex justify-center gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row justify-center gap-4 mb-8">
           <Link href="/api/auth/signin">
-            <Button size="lg" className="px-8 py-3">
+            <Button size="lg" className="px-8 py-3 w-full sm:w-auto">
               Get Started
+            </Button>
+          </Link>
+          <Link href="/user-guide">
+            <Button
+              variant="outline"
+              size="lg"
+              className="px-8 py-3 w-full sm:w-auto"
+            >
+              📖 ユーザーガイド
             </Button>
           </Link>
           <Link
@@ -27,7 +36,11 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
             target="_blank"
             rel="noopener noreferrer"
           >
-            <Button variant="outline" size="lg" className="px-8 py-3">
+            <Button
+              variant="outline"
+              size="lg"
+              className="px-8 py-3 w-full sm:w-auto"
+            >
               <FaGithub className="mr-2 h-5 w-5" />
               GitHub
             </Button>
