@@ -1,7 +1,8 @@
 import { MarkdownRenderer } from "@/components/markdown-renderer";
+import { Redirector } from "@/components/redirector";
+import { useNamespaces } from "@/hooks/use-namespaces";
 import { getReadmeContent } from "@/lib/readme";
 import type { Metadata } from "next";
-import { getServerSession } from "next-auth/next";
 import { redirect } from "next/navigation";
 
 // 静的生成を有効にし、READMEが変更された場合に再生成
@@ -40,14 +41,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
-  const session = await getServerSession();
-
-  if (session) {
-    redirect("/ns");
-  }
-
   // ビルド時に事前生成されたコンテンツを使用
   const readmeContent = await getStaticReadmeContent();
 
-  return <MarkdownRenderer content={readmeContent} />;
+  return (
+    <>
+      <Redirector />
+      <MarkdownRenderer content={readmeContent} />
+    </>
+  );
 }
