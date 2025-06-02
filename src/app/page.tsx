@@ -1,10 +1,9 @@
 import { MarkdownRenderer } from "@/components/markdown-renderer";
+import { Redirector } from "@/components/redirector";
 import { Button } from "@/components/ui/button";
 import { getReadmeContent } from "@/lib/readme";
 import type { Metadata } from "next";
-import { getServerSession } from "next-auth/next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { FaGithub } from "react-icons/fa";
 
 // 静的生成を有効にし、READMEが変更された場合に再生成
@@ -43,17 +42,12 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function Home() {
-  const session = await getServerSession();
-
-  if (session) {
-    redirect("/ns");
-  }
-
   // ビルド時に事前生成されたコンテンツを使用
   const readmeContent = await getStaticReadmeContent();
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 p-8">
+      <Redirector />
       {/* ヘッダーアクション */}
       <div className="flex flex-col sm:flex-row justify-center gap-4 mb-8">
         <Link href="/api/auth/signin">
