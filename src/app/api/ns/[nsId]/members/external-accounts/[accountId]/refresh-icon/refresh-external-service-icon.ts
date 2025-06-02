@@ -5,6 +5,7 @@ import { getUserById } from "@/lib/github/requests/getUserById";
 import type { GitHubAccountId } from "@/lib/github/types/Account";
 import { ZGitHubGroupId } from "@/lib/github/types/encoded";
 import { getExternalServiceGroupsByAccountId } from "@/lib/prisma/getExternalServiceGroupsByAccountId";
+import { updateMemberExternalServiceAccountStatus } from "@/lib/prisma/updateMemberExternalServiceAccountStatus";
 import { getUserById as getVRCUserById } from "@/lib/vrchat/requests/getUserById";
 import type { VRCUserId } from "@/lib/vrchat/types/brand";
 import { ZDiscordCredentials, ZGithubCredentials } from "@/types/credentials";
@@ -17,22 +18,50 @@ export const refreshExternalServiceAccountIcon = async (
   serviceAccount: TExternalServiceAccount,
   memberAccount: TMemberExternalServiceAccount,
 ): Promise<string | undefined> => {
-  switch (memberAccount.service) {
-    case "DISCORD":
-      return refreshDiscordIcon(
-        serviceAccount,
-        memberAccount.serviceId as DiscordUserId,
+  try {
+    switch (memberAccount.service) {
+      case "DISCORD":
+        return await refreshDiscordIcon(
+          serviceAccount,
+          memberAccount.serviceId as DiscordUserId,
+        );
+      case "VRCHAT":
+        return await refreshVRChatIcon(
+          serviceAccount,
+          memberAccount.serviceId as VRCUserId,
+        );
+      case "GITHUB":
+        return await refreshGitHubIcon(serviceAccount, memberAccount.serviceId);
+      default:
+        throw new Error(`Unsupported service: ${memberAccount.service}`);
+    }
+  } catch (error) {
+    // アカウントが存在しない場合（404エラーやその他のアクセス不可エラー）はstatusをDELETEDに更新
+    if (isAccountNotFoundError(error)) {
+      await updateMemberExternalServiceAccountStatus(
+        memberAccount.namespaceId,
+        memberAccount.id,
+        "DELETED",
       );
-    case "VRCHAT":
-      return refreshVRChatIcon(
-        serviceAccount,
-        memberAccount.serviceId as VRCUserId,
-      );
-    case "GITHUB":
-      return refreshGitHubIcon(serviceAccount, memberAccount.serviceId);
-    default:
-      throw new Error(`Unsupported service: ${memberAccount.service}`);
+      return undefined;
+    }
+    throw error;
   }
+};
+
+const isAccountNotFoundError = (error: unknown): boolean => {
+  if (error instanceof Error) {
+    const message = error.message.toLowerCase();
+    // 各サービスで「ユーザーが見つからない」ことを示すエラーメッセージをチェック
+    return (
+      message.includes("404") ||
+      message.includes("not found") ||
+      message.includes("user not found") ||
+      message.includes("unknown user") ||
+      message.includes("invalid user")
+    );
+  }
+  return false;
 };
 
 const refreshDiscordIcon = async (

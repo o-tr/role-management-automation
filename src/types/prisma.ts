@@ -191,6 +191,7 @@ export const ZMemberExternalServiceAccount = z.object({
   serviceUsername: z.string().optional(),
   name: z.string(),
   icon: z.string().optional(),
+  status: z.enum(["ACTIVE", "DELETED"]).default("ACTIVE"),
   memberId: ZMemberId,
   namespaceId: ZNamespaceId,
 });

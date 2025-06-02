@@ -19,6 +19,7 @@ export const formatTMemberExternalServiceAccount = (
     serviceUsername: input.serviceUsername || undefined,
     name: input.name,
     icon: input.icon || undefined,
+    status: input.status,
     memberId: input.memberId as TMemberId,
     namespaceId: input.namespaceId as TNamespaceId,
   };

@@ -21,6 +21,9 @@ export const getUserById = async (
     }),
   );
   if (!response.ok) {
+    if (response.status === 404) {
+      throw new Error(`User not found: ${response.statusText}`);
+    }
     console.log(await response.json());
     throw new Error(`Failed to fetch user: ${response.statusText}`);
   }

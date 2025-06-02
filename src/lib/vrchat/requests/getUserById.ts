@@ -29,6 +29,9 @@ export const getUserById = retry(
           `Failed to get user: ${response.statusText}`,
         );
       }
+      if (response.status === 404) {
+        throw new Error(`User not found: ${response.statusText}`);
+      }
       throw new Error(`Failed to get user: ${response.statusText}`);
     }
     const json = await response.json();

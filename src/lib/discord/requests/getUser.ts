@@ -12,7 +12,10 @@ export const getUser = async (token: DiscordToken, userId: DiscordUserId) => {
     }),
   );
   if (!response.ok) {
-    throw new Error(`Failed to get guild: ${response.statusText}`);
+    if (response.status === 404) {
+      throw new Error(`User not found: ${response.statusText}`);
+    }
+    throw new Error(`Failed to get user: ${response.statusText}`);
   }
   const data = ZDiscordUser.safeParse(await response.json());
   if (!data.success) {
