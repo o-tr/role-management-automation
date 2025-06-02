@@ -3,7 +3,7 @@
 set -e
 
 # Get environment variables and filter NEXT_PUBLIC_ ones.
-printenv | grep NEXT_PUBLIC_ | while read -r ENV_LINE ; do
+printenv | while read -r ENV_LINE ; do
   # Separate the key and value parts from the found lines.
   ENV_KEY=$(echo $ENV_LINE | cut -d "=" -f1)
   ENV_VALUE=$(echo $ENV_LINE | cut -d "=" -f2)
