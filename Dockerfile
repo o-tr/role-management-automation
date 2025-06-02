@@ -27,8 +27,9 @@ RUN npm run build
 
 COPY ./docker/env-replacer.sh ./
 
-RUN chmod +x ./env-replacer.sh
-RUN chmod +x ./start.sh
+RUN chmod +x ./env-replacer.sh && \
+    chmod +x ./start.sh && \
+    cp .env .env.replacer
 ENTRYPOINT [ "/app/env-replacer.sh" ]
 
 # Copy artifacts
