@@ -87,20 +87,77 @@ const getMemberWithDiffWithProgress = async (
     onProgress({
       type: "progress",
       stage: "fetching_members",
-      services: {},
+      services: {
+        database: {
+          status: "in_progress",
+          current: 0,
+          total: 4,
+          message: "データベースからの初期データ取得中...",
+        },
+      },
     });
 
     // メンバー取得
+    onProgress({
+      type: "progress",
+      stage: "fetching_members",
+      services: {
+        database: {
+          status: "in_progress",
+          current: 1,
+          total: 4,
+          message: "メンバー情報を取得中...",
+        },
+      },
+    });
     const members = await getMembersWithRelation(nsId);
 
     // マッピング取得
+    onProgress({
+      type: "progress",
+      stage: "fetching_members",
+      services: {
+        database: {
+          status: "in_progress",
+          current: 2,
+          total: 4,
+          message: "ロールマッピング情報を取得中...",
+        },
+      },
+    });
     const mappings = (
       await getExternalServiceGroupRoleMappingsByNamespaceId(nsId)
     ).map(convertTSerializedMappingToTMapping);
 
     // グループ取得
+    onProgress({
+      type: "progress",
+      stage: "fetching_members",
+      services: {
+        database: {
+          status: "in_progress",
+          current: 3,
+          total: 4,
+          message: "外部サービスグループ情報を取得中...",
+        },
+      },
+    });
     const groups = await getExternalServiceGroups(nsId);
     const targetGroups = extractTargetGroups(groups, mappings);
+
+    // 初期データ取得完了
+    onProgress({
+      type: "progress",
+      stage: "fetching_members",
+      services: {
+        database: {
+          status: "completed",
+          current: 4,
+          total: 4,
+          message: "初期データ取得完了",
+        },
+      },
+    });
 
     // サービス別グループメンバー取得の準備
     const serviceGroups: { [service: string]: typeof targetGroups } = {};
@@ -119,7 +176,7 @@ const getMemberWithDiffWithProgress = async (
       }
     }
 
-    // 各サービスの初期進捗状態を設定
+    // 各サービスの初期進捗状態を設定（データベースの進捗も含める）
     const progressState: {
       [key: string]: {
         status: "pending" | "in_progress" | "completed" | "error";
@@ -128,7 +185,15 @@ const getMemberWithDiffWithProgress = async (
         message: string;
         error?: string;
       };
-    } = {};
+    } = {
+      database: {
+        status: "completed",
+        current: 4,
+        total: 4,
+        message: "初期データ取得完了",
+      },
+    };
+
     for (const [serviceName] of Object.entries(serviceGroups)) {
       progressState[serviceName] = {
         status: "pending",
@@ -227,13 +292,45 @@ const getMemberWithDiffWithProgress = async (
     );
 
     // 差分計算の報告
+    const calculatingState: {
+      [key: string]: {
+        status: "pending" | "in_progress" | "completed" | "error";
+        current: number;
+        total: number | "unknown";
+        message: string;
+        error?: string;
+      };
+    } = {
+      ...progressState,
+      calculation: {
+        status: "in_progress",
+        current: 0,
+        total: 1,
+        message: "差分を計算中...",
+      },
+    };
+
     onProgress({
       type: "progress",
       stage: "calculating_diff",
-      services: progressState,
+      services: calculatingState,
     });
 
     const result = calculateDiff(members, mappings, groupMembers, groups);
+
+    // 計算完了
+    calculatingState.calculation = {
+      status: "completed",
+      current: 1,
+      total: 1,
+      message: `差分計算完了（${result.length}件の差分を検出）`,
+    };
+
+    onProgress({
+      type: "progress",
+      stage: "calculating_diff",
+      services: calculatingState,
+    });
 
     // 完了の報告
     onProgress({
