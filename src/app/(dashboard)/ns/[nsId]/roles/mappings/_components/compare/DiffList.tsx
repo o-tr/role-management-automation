@@ -1,47 +1,85 @@
-import { DataTable } from "@/app/(dashboard)/ns/[nsId]/components/DataTable";
-import { MemberExternalAccountDisplay } from "@/app/(dashboard)/ns/[nsId]/components/MemberExternalAccountDisplay";
 import type { ApplyDiffResult } from "@/app/api/ns/[nsId]/mappings/apply/applyDiff";
 import { Button } from "@/components/ui/button";
-import { TMemberWithDiff } from "@/types/diff";
 import type { TNamespaceId } from "@/types/prisma";
-import type { ColumnDef, RowModel } from "@tanstack/react-table";
-import { type FC, useCallback, useState } from "react";
-import { DIffItemDisplay } from "./DiffItemDisplay";
+import { type FC, useCallback, useEffect } from "react";
 import { MappingDiffList } from "./MappingDiffList";
-import { useApplyDiff } from "./_hooks/use-apply-diff";
-import { useCompare } from "./_hooks/useCompare";
+import { ProgressDisplay } from "./ProgressDisplay";
+import { useApplyDiffSSE } from "./_hooks/use-apply-diff-sse";
+import { useCompareSSE } from "./_hooks/use-compare-sse";
 
 type Props = {
   nsId: TNamespaceId;
   onApplyResult?: (result: ApplyDiffResult[]) => void;
+  isOpen: boolean;
 };
 
-export const DiffList: FC<Props> = ({ nsId, onApplyResult }) => {
-  const { isPending, diff, refetch } = useCompare(nsId);
-  const { applyDiff, isPending: isApplying } = useApplyDiff(nsId);
+export const DiffList: FC<Props> = ({ nsId, onApplyResult, isOpen }) => {
+  const compareState = useCompareSSE(nsId);
+  const applyState = useApplyDiffSSE(nsId);
+
+  // モーダルが開いたときに差分取得を開始
+  useEffect(() => {
+    if (isOpen && !compareState.isPending && compareState.diff.length === 0) {
+      compareState.startCompare();
+    }
+  }, [
+    isOpen,
+    compareState.isPending,
+    compareState.diff.length,
+    compareState.startCompare,
+  ]);
 
   const onButtonClick = useCallback(async () => {
-    const result = await applyDiff(diff);
-    if (result.status === "success") {
+    const result = await applyState.applyDiff(compareState.diff);
+    if (result.status === "success" && result.result) {
       onApplyResult?.(result.result);
-      refetch();
+      // 適用完了後に差分を再取得
+      compareState.refetch();
     }
-  }, [diff, refetch, onApplyResult, applyDiff]);
+  }, [
+    compareState.diff,
+    compareState.refetch,
+    onApplyResult,
+    applyState.applyDiff,
+  ]);
 
-  if (isPending) {
-    return <div>Loading...</div>;
+  if (compareState.isPending) {
+    return (
+      <div className="flex flex-col gap-4">
+        <div>差分を計算しています...</div>
+        {compareState.progress && (
+          <ProgressDisplay progress={compareState.progress} title="差分取得" />
+        )}
+      </div>
+    );
+  }
+
+  if (compareState.isError) {
+    return (
+      <div className="flex flex-col gap-2">
+        <div className="text-red-500">
+          エラーが発生しました: {compareState.error}
+        </div>
+        <Button onClick={compareState.refetch}>再試行</Button>
+      </div>
+    );
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      <MappingDiffList data={diff} />
+    <div className="flex flex-col gap-4">
+      {applyState.isPending && applyState.progress && (
+        <ProgressDisplay progress={applyState.progress} title="変更適用" />
+      )}
+
+      <MappingDiffList data={compareState.diff} />
+
       <div>
         <Button
           type="button"
           onClick={onButtonClick}
-          disabled={isApplying || diff.length === 0}
+          disabled={applyState.isPending || compareState.diff.length === 0}
         >
-          {isApplying ? "反映しています..." : "反映"}
+          {applyState.isPending ? "反映しています..." : "反映"}
         </Button>
       </div>
     </div>

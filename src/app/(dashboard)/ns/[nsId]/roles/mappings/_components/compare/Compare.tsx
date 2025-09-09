@@ -38,7 +38,11 @@ export const Compare: FC<Props> = ({ nsId }) => {
           </DialogHeader>
           <div className="p-4 overflow-y-auto h-full">
             {isDiffModalOpen && (
-              <DiffList nsId={nsId} onApplyResult={onApplyResult} />
+              <DiffList
+                nsId={nsId}
+                onApplyResult={onApplyResult}
+                isOpen={isDiffModalOpen}
+              />
             )}
           </div>
         </DialogContent>

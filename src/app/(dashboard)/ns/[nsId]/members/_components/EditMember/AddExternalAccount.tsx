@@ -48,6 +48,7 @@ export const AddExternalAccount: FC<{
         serviceId: data.serviceId,
         name: data.name,
         icon: data.icon || undefined,
+        status: "ACTIVE",
         namespaceId: member.namespaceId,
         memberId: member.id,
       });

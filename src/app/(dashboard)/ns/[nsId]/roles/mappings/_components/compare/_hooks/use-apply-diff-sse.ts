@@ -1,0 +1,137 @@
+import type { ApplyProgressUpdate } from "@/app/api/ns/[nsId]/mappings/apply/applyDiffWithProgress";
+import type { TMemberWithDiff } from "@/types/diff";
+import type { TNamespaceId } from "@/types/prisma";
+import { useCallback, useEffect, useRef, useState } from "react";
+
+export type ApplyDiffSSEState = {
+  isPending: boolean;
+  isError: boolean;
+  error?: string;
+  result?:
+    | { status: "success"; result: unknown }
+    | { status: "error"; error: string };
+  progress?: ApplyProgressUpdate;
+};
+
+export const useApplyDiffSSE = (nsId: TNamespaceId) => {
+  const [state, setState] = useState<ApplyDiffSSEState>({
+    isPending: false,
+    isError: false,
+  });
+
+  const eventSourceRef = useRef<EventSource | null>(null);
+
+  const applyDiff = useCallback(
+    async (diff: TMemberWithDiff[]) => {
+      // 既存の接続があれば閉じる
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+      }
+
+      setState({
+        isPending: true,
+        isError: false,
+        result: undefined,
+        progress: undefined,
+      });
+
+      try {
+        // まずPOSTリクエストを送信
+        const response = await fetch(`/api/ns/${nsId}/mappings/apply`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(diff),
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        // SSEストリームを読み取り
+        if (!response.body) {
+          throw new Error("No response body");
+        }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+
+            if (done) break;
+
+            const chunk = decoder.decode(value);
+            const lines = chunk.split("\n");
+
+            for (const line of lines) {
+              if (line.startsWith("data: ")) {
+                try {
+                  const data: ApplyProgressUpdate = JSON.parse(line.slice(6));
+
+                  if (data.type === "progress") {
+                    setState((prev) => ({
+                      ...prev,
+                      progress: data,
+                    }));
+                  } else if (data.type === "complete") {
+                    setState({
+                      isPending: false,
+                      isError: false,
+                      result: { status: "success", result: data.result },
+                      progress: data,
+                    });
+                    return { status: "success", result: data.result };
+                  } else if (data.type === "error") {
+                    setState({
+                      isPending: false,
+                      isError: true,
+                      error: data.error,
+                      result: undefined,
+                      progress: data,
+                    });
+                    return { status: "error", error: data.error };
+                  }
+                } catch (error) {
+                  console.error("Failed to parse SSE data:", error);
+                }
+              }
+            }
+          }
+        } finally {
+          reader.releaseLock();
+        }
+
+        return { status: "success", result: [] };
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error";
+        setState({
+          isPending: false,
+          isError: true,
+          error: errorMessage,
+          result: undefined,
+          progress: undefined,
+        });
+        return { status: "error", error: errorMessage };
+      }
+    },
+    [nsId],
+  );
+
+  // クリーンアップ
+  useEffect(() => {
+    return () => {
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+      }
+    };
+  }, []);
+
+  return {
+    ...state,
+    applyDiff,
+  };
+};

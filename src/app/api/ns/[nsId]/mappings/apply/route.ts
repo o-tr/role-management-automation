@@ -1,4 +1,3 @@
-import { api } from "@/lib/api";
 import { BadRequestException } from "@/lib/exceptions/BadRequestException";
 import { compareDiff } from "@/lib/mapping/compareDiff";
 import { calculateDiff, extractTargetGroups } from "@/lib/mapping/memberDiff";
@@ -7,29 +6,24 @@ import { getExternalServiceGroupRoleMappingsByNamespaceId } from "@/lib/prisma/g
 import { getExternalServiceGroups } from "@/lib/prisma/getExternalServiceGroups";
 import { getMembersWithRelation } from "@/lib/prisma/getMembersWithRelation";
 import { validatePermission } from "@/lib/validatePermission";
-import type { ErrorResponseType } from "@/types/api";
 import { type TMemberWithDiff, ZMemberWithDiff } from "@/types/diff";
 import type { TNamespaceId } from "@/types/prisma";
 import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { getMembers } from "../../services/accounts/[accountId]/groups/[groupId]/members/getMembers";
-import { type ApplyDiffResult, applyDiff } from "./applyDiff";
-
-export type ApplyMappingRequestResponse =
-  | {
-      status: "success";
-      result: ApplyDiffResult[];
-    }
-  | ErrorResponseType;
+import {
+  type ApplyProgressUpdate,
+  applyDiffWithProgress,
+} from "./applyDiffWithProgress";
 
 const ZApplyMappingSchema = z.array(ZMemberWithDiff);
 export type TApplyMappingRequestBody = z.infer<typeof ZApplyMappingSchema>;
 
-export const POST = api(
-  async (
-    req: NextRequest,
-    { params }: { params: { nsId: TNamespaceId } },
-  ): Promise<ApplyMappingRequestResponse> => {
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { nsId: TNamespaceId } },
+) {
+  try {
     await validatePermission(params.nsId, "admin");
 
     const body = ZApplyMappingSchema.safeParse(await req.json());
@@ -46,14 +40,42 @@ export const POST = api(
       throw new BadRequestException("Invalid request body");
     }
 
-    const result = await applyDiff(params.nsId, requestBody);
+    const stream = new ReadableStream({
+      start(controller) {
+        applyDiffWithProgress(params.nsId, requestBody, (progress) => {
+          const data = `data: ${JSON.stringify(progress)}\n\n`;
+          controller.enqueue(new TextEncoder().encode(data));
 
-    return {
-      status: "success",
-      result,
-    };
-  },
-);
+          if (progress.type === "complete" || progress.type === "error") {
+            controller.close();
+          }
+        }).catch((error) => {
+          const errorData = `data: ${JSON.stringify({
+            type: "error",
+            error: error.message,
+          } satisfies ApplyProgressUpdate)}\n\n`;
+          controller.enqueue(new TextEncoder().encode(errorData));
+          controller.close();
+        });
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      },
+    });
+  } catch (error) {
+    return new Response(
+      JSON.stringify({
+        error: error instanceof Error ? error.message : "Unknown error",
+      }),
+      { status: 500, headers: { "Content-Type": "application/json" } },
+    );
+  }
+}
 
 const getMemberWithDiff = async (
   nsId: TNamespaceId,
