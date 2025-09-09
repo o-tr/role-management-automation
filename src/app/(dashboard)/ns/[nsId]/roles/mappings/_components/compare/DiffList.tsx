@@ -101,6 +101,11 @@ export const DiffList: FC<Props> = ({ nsId, onApplyResult, isOpen }) => {
         ) {
           // completed but no success/errors: treat as success
           out.status = "success";
+        } else if (svc.status === "skipped") {
+          out.status = "skipped";
+          // provide message or error as reason if available
+          if (svc.error) out.reason = svc.error;
+          else if (svc.message) out.reason = svc.message;
         } else if (svc.status === "pending") {
           // leave as-is
         } else if (svc.status === "in_progress") {
