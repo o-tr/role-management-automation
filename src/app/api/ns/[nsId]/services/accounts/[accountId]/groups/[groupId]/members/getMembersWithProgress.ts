@@ -1,3 +1,4 @@
+import { getGuild } from "@/lib/discord/requests/getGuild";
 import { listGuildMembers } from "@/lib/discord/requests/listGuildMembers";
 import type {
   DiscordGuildId,
@@ -137,13 +138,19 @@ const getDiscordMembersWithProgress = async (
   const token = ZDiscordCredentials.parse(
     JSON.parse(group.account.credential),
   ).token;
+
+  // まずGuild情報を取得してapproximate_member_countを取得
+  const guild = await getGuild(token, group.groupId as DiscordGuildId);
+  const approximateMemberCount = guild.approximate_member_count || undefined;
+
   const members: DiscordGuildMember[] = [];
   let maxUserId = 0;
   let requestResult: DiscordGuildMember[];
   const processedUserIds = new Set<string>();
   let totalFetched = 0;
 
-  onProgress?.(0);
+  // 初期進捗（概算メンバー数がわかっている場合はそれを使用）
+  onProgress?.(0, approximateMemberCount);
 
   do {
     requestResult = await listGuildMembers(
@@ -165,8 +172,8 @@ const getDiscordMembersWithProgress = async (
     }
     maxUserId = Math.max(...members.map((member) => Number(member.user.id)));
 
-    // 進捗報告
-    onProgress?.(totalFetched);
+    // 進捗報告（概算メンバー数と比較）
+    onProgress?.(totalFetched, approximateMemberCount);
   } while (requestResult.length > 0);
 
   const result = members.map((member) => ({

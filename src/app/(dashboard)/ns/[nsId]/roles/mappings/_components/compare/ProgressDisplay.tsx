@@ -49,8 +49,11 @@ export const ProgressDisplay: FC<Props> = ({ progress, title }) => {
                 ? serviceProgress.status === "completed"
                   ? 100
                   : 0
-                : Math.round(
-                    (serviceProgress.current / serviceProgress.total) * 100,
+                : Math.min(
+                    100,
+                    Math.round(
+                      (serviceProgress.current / serviceProgress.total) * 100,
+                    ),
                   );
 
             const getStatusIcon = () => {
@@ -98,8 +101,16 @@ export const ProgressDisplay: FC<Props> = ({ progress, title }) => {
                     {serviceProgress.status === "in_progress" && (
                       <>
                         {serviceProgress.current}
-                        {serviceProgress.total !== "unknown" &&
-                          `/${serviceProgress.total}`}
+                        {serviceProgress.total !== "unknown" && (
+                          <>
+                            /{serviceProgress.total}
+                            {serviceName === "discord" && (
+                              <span className="text-xs text-gray-500">
+                                (概算)
+                              </span>
+                            )}
+                          </>
+                        )}
                         {/* 適用時は成功/失敗数を表示 */}
                         {"success" in serviceProgress && (
                           <span className="ml-2">
@@ -112,8 +123,16 @@ export const ProgressDisplay: FC<Props> = ({ progress, title }) => {
                     {serviceProgress.status === "completed" && (
                       <>
                         完了 ({serviceProgress.current}
-                        {serviceProgress.total !== "unknown" &&
-                          `/${serviceProgress.total}`}
+                        {serviceProgress.total !== "unknown" && (
+                          <>
+                            /{serviceProgress.total}
+                            {serviceName === "discord" && (
+                              <span className="text-xs text-gray-500">
+                                (概算)
+                              </span>
+                            )}
+                          </>
+                        )}
                         )
                         {"success" in serviceProgress && (
                           <span className="ml-2">
