@@ -92,7 +92,9 @@ const getVRChatMembersWithProgress = async (
     vrcGroup.myMember.roleIds,
   )?.order;
 
-  if (!serviceAccountOrder) {
+  // serviceAccountOrder may be 0 (valid value, typically owner), so only
+  // throw when it's null or undefined, not when it's falsy.
+  if (serviceAccountOrder == null) {
     throw new Error("Service account has no role in the group");
   }
 
