@@ -19,13 +19,14 @@ export const useApplyDiffSSE = (nsId: TNamespaceId) => {
     isError: false,
   });
 
-  const eventSourceRef = useRef<EventSource | null>(null);
+  // AbortController ref for cancelling fetch requests
+  const controllerRef = useRef<AbortController | null>(null);
 
   const applyDiff = useCallback(
     async (diff: TMemberWithDiff[]) => {
-      // 既存の接続があれば閉じる
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
+      // 既存の接続があれば中止する
+      if (controllerRef.current) {
+        controllerRef.current.abort();
       }
 
       setState({
@@ -37,12 +38,16 @@ export const useApplyDiffSSE = (nsId: TNamespaceId) => {
 
       try {
         // まずPOSTリクエストを送信
+        const controller = new AbortController();
+        controllerRef.current = controller;
+
         const response = await fetch(`/api/ns/${nsId}/mappings/apply`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify(diff),
+          signal: controller.signal,
         });
 
         if (!response.ok) {
@@ -152,7 +157,13 @@ export const useApplyDiffSSE = (nsId: TNamespaceId) => {
             }
           }
         } finally {
-          reader.releaseLock();
+          try {
+            reader.releaseLock();
+          } catch (e) {
+            // ignore
+          }
+          // clear controller reference
+          controllerRef.current = null;
         }
 
         return { status: "success", result: [] };
@@ -172,11 +183,11 @@ export const useApplyDiffSSE = (nsId: TNamespaceId) => {
     [nsId],
   );
 
-  // クリーンアップ
+  // クリーンアップ: 進行中の fetch を中止
   useEffect(() => {
     return () => {
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
+      if (controllerRef.current) {
+        controllerRef.current.abort();
       }
     };
   }, []);
