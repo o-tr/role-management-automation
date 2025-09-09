@@ -1,7 +1,7 @@
 import type { ApplyDiffResult } from "@/app/api/ns/[nsId]/mappings/apply/applyDiffWithProgress";
 import { Button } from "@/components/ui/button";
 import type { TNamespaceId } from "@/types/prisma";
-import { type FC, useCallback, useEffect } from "react";
+import { type FC, type MutableRefObject, useCallback, useEffect } from "react";
 import { MappingDiffList } from "./MappingDiffList";
 import { ProgressDisplay } from "./ProgressDisplay";
 import { useApplyDiffSSE } from "./_hooks/use-apply-diff-sse";
@@ -11,11 +11,26 @@ type Props = {
   nsId: TNamespaceId;
   onApplyResult?: (result: ApplyDiffResult[]) => void;
   isOpen: boolean;
+  busyRef?: React.MutableRefObject<boolean | undefined>;
 };
 
-export const DiffList: FC<Props> = ({ nsId, onApplyResult, isOpen }) => {
+export const DiffList: FC<Props> = ({
+  nsId,
+  onApplyResult,
+  isOpen,
+  busyRef,
+}) => {
   const compareState = useCompareSSE(nsId);
   const applyState = useApplyDiffSSE(nsId);
+  // busyRef が渡されていれば apply の状態を反映
+  useEffect(() => {
+    if (!busyRef) return;
+    busyRef.current = applyState.isPending;
+    return () => {
+      // unmount 時は undefined に戻す
+      busyRef.current = undefined;
+    };
+  }, [applyState.isPending, busyRef]);
 
   // モーダルが開いたときに差分取得を開始
   useEffect(() => {
