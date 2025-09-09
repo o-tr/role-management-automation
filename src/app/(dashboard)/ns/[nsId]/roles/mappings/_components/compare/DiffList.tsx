@@ -65,11 +65,68 @@ export const DiffList: FC<Props> = ({ nsId, onApplyResult, isOpen }) => {
     );
   }
 
+  // applyState.progress から taskKey ベースでステータスを compareState.diff に注入する
+  const getMappingDataWithProgress = () => {
+    if (!applyState.progress || applyState.progress.type !== "progress") {
+      return compareState.diff;
+    }
+
+    const services = applyState.progress.services;
+
+    return compareState.diff.map((memberWithDiff, mi) => {
+      const newDiff = memberWithDiff.diff.map((d, di) => {
+        const key = `${mi}-${di}-${d.serviceGroup.service}-${String(
+          d.serviceGroup.groupId,
+        )}-${String(
+          d.groupMember?.serviceId ?? d.groupMember?.serviceUsername ?? "",
+        )}-${String(d.roleId)}`;
+
+        const svc = services[key];
+        if (!svc) return d;
+
+        // Apply status and reason if available
+        const out: typeof d & { status?: string; reason?: string } = {
+          ...d,
+        };
+        if (svc.status === "completed" && svc.success && svc.success > 0) {
+          out.status = "success";
+        } else if (svc.status === "error") {
+          out.status = "error";
+          if (svc.error) out.reason = svc.error;
+        } else if (
+          svc.status === "completed" &&
+          svc.current === 1 &&
+          !svc.success &&
+          !svc.errors
+        ) {
+          // completed but no success/errors: treat as success
+          out.status = "success";
+        } else if (svc.status === "pending") {
+          // leave as-is
+        } else if (svc.status === "in_progress") {
+          // in progress - don't set final status
+        }
+
+        return out as typeof d & { status?: string; reason?: string };
+      });
+      return { ...memberWithDiff, diff: newDiff };
+    });
+  };
+
   return (
     <div className="flex flex-col gap-4">
       {applyState.isPending ? (
         applyState.progress ? (
-          <ProgressDisplay progress={applyState.progress} title="変更適用" />
+          // applyState.progress の stage によって表示を切り替える
+          applyState.progress.type === "progress" &&
+          (applyState.progress.stage === "fetching_members" ||
+            applyState.progress.stage === "calculating_diff") ? (
+            // getMemberWithDiffWithProgress 実行中は従来の ProgressDisplay を表示
+            <ProgressDisplay progress={applyState.progress} title="差分取得" />
+          ) : (
+            // それ以外（主に applying_changes）は差分リストに適用状況を注入して表示
+            <MappingDiffList data={getMappingDataWithProgress()} />
+          )
         ) : (
           <div className="flex flex-col gap-4">
             <div>差分を適用しています...</div>

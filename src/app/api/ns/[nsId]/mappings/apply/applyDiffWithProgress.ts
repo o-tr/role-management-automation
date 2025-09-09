@@ -43,7 +43,7 @@ export type ApplyProgressUpdate =
       stage: "fetching_members" | "calculating_diff" | "applying_changes";
       services: {
         [key: string]: {
-          status: "pending" | "in_progress" | "completed" | "error";
+          status: "pending" | "in_progress" | "completed" | "error" | "skipped";
           current: number;
           total: number | "unknown";
           success?: number;
@@ -96,7 +96,7 @@ export const applyDiffWithProgress = async (
     // 初期進捗（タスク単位）
     const servicesState: {
       [taskKey: string]: {
-        status: "pending" | "in_progress" | "completed" | "error";
+        status: "pending" | "in_progress" | "completed" | "error" | "skipped";
         current: number;
         total: number | "unknown";
         success?: number;
@@ -172,7 +172,7 @@ export const applyDiffWithProgress = async (
         memberResult.diff.push(skipped);
         servicesState[key] = {
           ...servicesState[key],
-          status: "completed",
+          status: "skipped",
           current: 1,
           message: `${servicesState[key].message} (skipped)`,
         };
@@ -230,7 +230,7 @@ export const applyDiffWithProgress = async (
       } else if (resultItem.status === "skipped") {
         servicesState[key] = {
           ...servicesState[key],
-          status: "completed",
+          status: "skipped",
           current: 1,
           message: `${diffItem.serviceGroup.service} はスキップ`,
         };
