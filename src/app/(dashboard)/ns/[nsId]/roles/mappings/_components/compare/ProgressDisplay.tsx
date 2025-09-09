@@ -104,7 +104,8 @@ export const ProgressDisplay: FC<Props> = ({ progress, title }) => {
                         {serviceProgress.total !== "unknown" && (
                           <>
                             /{serviceProgress.total}
-                            {serviceName === "discord" && (
+                            {(serviceName === "discord" ||
+                              serviceName === "vrchat") && (
                               <span className="text-xs text-gray-500">
                                 (概算)
                               </span>
@@ -126,7 +127,8 @@ export const ProgressDisplay: FC<Props> = ({ progress, title }) => {
                         {serviceProgress.total !== "unknown" && (
                           <>
                             /{serviceProgress.total}
-                            {serviceName === "discord" && (
+                            {(serviceName === "discord" ||
+                              serviceName === "vrchat") && (
                               <span className="text-xs text-gray-500">
                                 (概算)
                               </span>

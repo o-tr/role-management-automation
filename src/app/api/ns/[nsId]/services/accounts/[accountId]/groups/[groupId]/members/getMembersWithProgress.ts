@@ -55,12 +55,18 @@ const getVRChatMembersWithProgress = async (
   onProgress?: ProgressCallback,
 ): Promise<TExternalServiceGroupMember[]> => {
   const groupId = ZVRCGroupId.parse(group.groupId);
+
+  // まずVRCGroup情報を取得してmemberCountを取得
+  const vrcGroup = await getGroup(group.account, groupId);
+  const memberCount = vrcGroup.memberCount || undefined;
+
   const members: VRCGroupMember[] = [];
   let offset = 0;
   let requestResult: VRCGroupMember[];
   let totalFetched = 0;
 
-  onProgress?.(0);
+  // 初期進捗（メンバー数がわかっている場合はそれを使用）
+  onProgress?.(0, memberCount);
 
   do {
     requestResult = await listGroupMembers(group.account, groupId, {
@@ -71,15 +77,14 @@ const getVRChatMembersWithProgress = async (
     totalFetched += requestResult.length;
     offset += 100;
 
-    // 進捗報告 (VRChatは総数が事前にわからないため、現在取得数のみ報告)
-    onProgress?.(totalFetched);
+    // 進捗報告（メンバー数と比較）
+    onProgress?.(totalFetched, memberCount);
   } while (requestResult.length > 0);
 
   const credentials = ZVRChatCredentials.parse(
     JSON.parse(group.account.credential),
   );
   const user = await getAuthUser(credentials.token, credentials.twoFactorToken);
-  const vrcGroup = await getGroup(group.account, groupId);
 
   const roles = await getGroupRoles(group.account, groupId);
   const serviceAccountOrder = getHighestRole(
