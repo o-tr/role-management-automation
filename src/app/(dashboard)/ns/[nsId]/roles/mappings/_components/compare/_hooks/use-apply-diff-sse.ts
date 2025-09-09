@@ -56,6 +56,7 @@ export const useApplyDiffSSE = (nsId: TNamespaceId) => {
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
+        let buffer = "";
 
         try {
           while (true) {
@@ -63,41 +64,91 @@ export const useApplyDiffSSE = (nsId: TNamespaceId) => {
 
             if (done) break;
 
-            const chunk = decoder.decode(value);
-            const lines = chunk.split("\n");
+            // チャンクをバッファに追加
+            buffer += decoder.decode(value, { stream: true });
+
+            // 完全な行を処理
+            const lines = buffer.split("\n");
+            // 最後の行は不完全な可能性があるので保持
+            buffer = lines.pop() || "";
 
             for (const line of lines) {
               if (line.startsWith("data: ")) {
                 try {
-                  const data: ApplyProgressUpdate = JSON.parse(line.slice(6));
+                  const jsonData = line.slice(6).trim();
+                  if (jsonData) {
+                    const data: ApplyProgressUpdate = JSON.parse(jsonData);
 
-                  if (data.type === "progress") {
-                    setState((prev) => ({
-                      ...prev,
-                      progress: data,
-                    }));
-                  } else if (data.type === "complete") {
-                    setState({
-                      isPending: false,
-                      isError: false,
-                      result: { status: "success", result: data.result },
-                      progress: data,
-                    });
-                    return { status: "success", result: data.result };
-                  } else if (data.type === "error") {
-                    setState({
-                      isPending: false,
-                      isError: true,
-                      error: data.error,
-                      result: undefined,
-                      progress: data,
-                    });
-                    return { status: "error", error: data.error };
+                    if (data.type === "progress") {
+                      setState((prev) => ({
+                        ...prev,
+                        progress: data,
+                      }));
+                    } else if (data.type === "complete") {
+                      setState({
+                        isPending: false,
+                        isError: false,
+                        result: { status: "success", result: data.result },
+                        progress: data,
+                      });
+                      return { status: "success", result: data.result };
+                    } else if (data.type === "error") {
+                      setState({
+                        isPending: false,
+                        isError: true,
+                        error: data.error,
+                        result: undefined,
+                        progress: data,
+                      });
+                      return { status: "error", error: data.error };
+                    }
                   }
                 } catch (error) {
-                  console.error("Failed to parse SSE data:", error);
+                  console.error(
+                    "Failed to parse SSE data:",
+                    error,
+                    "Line:",
+                    line,
+                  );
                 }
               }
+            }
+          }
+
+          // 最後のバッファ内容も処理
+          if (buffer.trim() && buffer.startsWith("data: ")) {
+            try {
+              const jsonData = buffer.slice(6).trim();
+              if (jsonData) {
+                const data: ApplyProgressUpdate = JSON.parse(jsonData);
+
+                if (data.type === "complete") {
+                  setState({
+                    isPending: false,
+                    isError: false,
+                    result: { status: "success", result: data.result },
+                    progress: data,
+                  });
+                  return { status: "success", result: data.result };
+                }
+                if (data.type === "error") {
+                  setState({
+                    isPending: false,
+                    isError: true,
+                    error: data.error,
+                    result: undefined,
+                    progress: data,
+                  });
+                  return { status: "error", error: data.error };
+                }
+              }
+            } catch (error) {
+              console.error(
+                "Failed to parse final SSE data:",
+                error,
+                "Buffer:",
+                buffer,
+              );
             }
           }
         } finally {

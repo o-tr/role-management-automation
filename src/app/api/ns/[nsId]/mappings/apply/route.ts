@@ -10,7 +10,7 @@ import { type TMemberWithDiff, ZMemberWithDiff } from "@/types/diff";
 import type { TNamespaceId } from "@/types/prisma";
 import type { NextRequest } from "next/server";
 import { z } from "zod";
-import { getMembers } from "../../services/accounts/[accountId]/groups/[groupId]/members/getMembers";
+import { getMembersWithProgress } from "../../services/accounts/[accountId]/groups/[groupId]/members/getMembersWithProgress";
 import {
   type ApplyProgressUpdate,
   applyDiffWithProgress,
@@ -33,23 +33,21 @@ export async function POST(
     }
 
     const requestBody = body.data;
-    const diff = await getMemberWithDiff(params.nsId);
-
-    if (!compareDiff(diff, requestBody)) {
-      console.log(requestBody, diff);
-      throw new BadRequestException("Invalid request body");
-    }
 
     const stream = new ReadableStream({
       start(controller) {
-        applyDiffWithProgress(params.nsId, requestBody, (progress) => {
-          const data = `data: ${JSON.stringify(progress)}\n\n`;
-          controller.enqueue(new TextEncoder().encode(data));
+        getMemberWithDiffAndApplyWithProgress(
+          params.nsId,
+          requestBody,
+          (progress) => {
+            const data = `data: ${JSON.stringify(progress)}\n\n`;
+            controller.enqueue(new TextEncoder().encode(data));
 
-          if (progress.type === "complete" || progress.type === "error") {
-            controller.close();
-          }
-        }).catch((error) => {
+            if (progress.type === "complete" || progress.type === "error") {
+              controller.close();
+            }
+          },
+        ).catch((error) => {
           const errorData = `data: ${JSON.stringify({
             type: "error",
             error: error.message,
@@ -77,33 +75,269 @@ export async function POST(
   }
 }
 
-const getMemberWithDiff = async (
+type ProgressCallback = (progress: ApplyProgressUpdate) => void;
+
+const getMemberWithDiffAndApplyWithProgress = async (
   nsId: TNamespaceId,
-): Promise<TMemberWithDiff[]> => {
-  const members = await getMembersWithRelation(nsId);
-  const mappings = (
-    await getExternalServiceGroupRoleMappingsByNamespaceId(nsId)
-  ).map(convertTSerializedMappingToTMapping);
-  const groups = await getExternalServiceGroups(nsId);
-  const targetGroups = extractTargetGroups(groups, mappings);
-  const groupMembers = await Promise.all(
-    targetGroups.map(async (targetGroup) => {
+  requestBody: TMemberWithDiff[],
+  onProgress: ProgressCallback,
+): Promise<void> => {
+  try {
+    // Stage 1: 差分計算with進捗
+    let calculatedDiff: TMemberWithDiff[] = [];
+
+    // 初期状態の報告
+    onProgress({
+      type: "progress",
+      stage: "fetching_members",
+      services: {
+        database: {
+          status: "in_progress",
+          current: 0,
+          total: 4,
+          message: "データベースからの初期データ取得中...",
+        },
+      },
+    });
+
+    // メンバー取得
+    onProgress({
+      type: "progress",
+      stage: "fetching_members",
+      services: {
+        database: {
+          status: "in_progress",
+          current: 1,
+          total: 4,
+          message: "メンバー情報を取得中...",
+        },
+      },
+    });
+    const members = await getMembersWithRelation(nsId);
+
+    // マッピング取得
+    onProgress({
+      type: "progress",
+      stage: "fetching_members",
+      services: {
+        database: {
+          status: "in_progress",
+          current: 2,
+          total: 4,
+          message: "ロールマッピング情報を取得中...",
+        },
+      },
+    });
+    const mappings = (
+      await getExternalServiceGroupRoleMappingsByNamespaceId(nsId)
+    ).map(convertTSerializedMappingToTMapping);
+
+    // グループ取得
+    onProgress({
+      type: "progress",
+      stage: "fetching_members",
+      services: {
+        database: {
+          status: "in_progress",
+          current: 3,
+          total: 4,
+          message: "外部サービスグループ情報を取得中...",
+        },
+      },
+    });
+    const groups = await getExternalServiceGroups(nsId);
+    const targetGroups = extractTargetGroups(groups, mappings);
+
+    // 初期データ取得完了
+    onProgress({
+      type: "progress",
+      stage: "fetching_members",
+      services: {
+        database: {
+          status: "completed",
+          current: 4,
+          total: 4,
+          message: "初期データ取得完了",
+        },
+      },
+    });
+
+    // サービス別グループメンバー取得の準備
+    const serviceGroups: { [service: string]: typeof targetGroups } = {};
+    for (const targetGroup of targetGroups) {
       const group = groups.find(
         (group) =>
           group.account.id === targetGroup.serviceAccountId &&
           group.id === targetGroup.serviceGroupId,
       );
-      if (!group) {
-        throw new Error("Group not found");
+      if (group) {
+        const serviceName = group.service.toLowerCase();
+        if (!serviceGroups[serviceName]) {
+          serviceGroups[serviceName] = [];
+        }
+        serviceGroups[serviceName].push(targetGroup);
       }
-      const groupMembers = await getMembers(group);
-      return {
-        serviceAccountId: targetGroup.serviceAccountId,
-        serviceGroupId: targetGroup.serviceGroupId,
-        members: groupMembers,
-        service: group.service,
+    }
+
+    // 各サービスの初期進捗状態を設定
+    const progressState: {
+      [key: string]: {
+        status: "pending" | "in_progress" | "completed" | "error";
+        current: number;
+        total: number | "unknown";
+        message: string;
+        error?: string;
       };
-    }),
-  );
-  return calculateDiff(members, mappings, groupMembers, groups);
+    } = {
+      database: {
+        status: "completed",
+        current: 4,
+        total: 4,
+        message: "初期データ取得完了",
+      },
+    };
+
+    for (const [serviceName] of Object.entries(serviceGroups)) {
+      progressState[serviceName] = {
+        status: "pending",
+        current: 0,
+        total: "unknown",
+        message: `${serviceName} の準備中...`,
+      };
+    }
+
+    onProgress({
+      type: "progress",
+      stage: "fetching_members",
+      services: progressState,
+    });
+
+    // 各サービスのグループメンバーを並行取得
+    const groupMembers = await Promise.all(
+      targetGroups.map(async (targetGroup) => {
+        const group = groups.find(
+          (group) =>
+            group.account.id === targetGroup.serviceAccountId &&
+            group.id === targetGroup.serviceGroupId,
+        );
+        if (!group) {
+          throw new Error("Group not found");
+        }
+
+        const serviceName = group.service.toLowerCase();
+
+        // 取得開始の報告
+        progressState[serviceName] = {
+          status: "in_progress",
+          current: 0,
+          total: "unknown",
+          message: `${serviceName} のメンバー取得中...`,
+        };
+        onProgress({
+          type: "progress",
+          stage: "fetching_members",
+          services: { ...progressState },
+        });
+
+        try {
+          const groupMembers = await getMembersWithProgress(
+            group,
+            (current, total) => {
+              progressState[serviceName] = {
+                status: "in_progress",
+                current,
+                total: total || "unknown",
+                message: `${serviceName} のメンバー取得中... (${current}${total ? `/${total}` : ""})`,
+              };
+              onProgress({
+                type: "progress",
+                stage: "fetching_members",
+                services: { ...progressState },
+              });
+            },
+          );
+
+          // 完了の報告
+          progressState[serviceName] = {
+            status: "completed",
+            current: groupMembers.length,
+            total: groupMembers.length,
+            message: `${serviceName} のメンバー取得完了 (${groupMembers.length}件)`,
+          };
+          onProgress({
+            type: "progress",
+            stage: "fetching_members",
+            services: { ...progressState },
+          });
+
+          return {
+            serviceAccountId: targetGroup.serviceAccountId,
+            serviceGroupId: targetGroup.serviceGroupId,
+            members: groupMembers,
+            service: group.service,
+          };
+        } catch (error) {
+          progressState[serviceName] = {
+            status: "error",
+            current: 0,
+            total: "unknown",
+            message: `${serviceName} でエラーが発生`,
+            error: error instanceof Error ? error.message : "Unknown error",
+          };
+          onProgress({
+            type: "progress",
+            stage: "fetching_members",
+            services: { ...progressState },
+          });
+          throw error;
+        }
+      }),
+    );
+
+    // 差分計算の報告
+    const calculatingState: typeof progressState = {
+      ...progressState,
+      calculation: {
+        status: "in_progress",
+        current: 0,
+        total: 1,
+        message: "差分を計算中...",
+      },
+    };
+
+    onProgress({
+      type: "progress",
+      stage: "calculating_diff",
+      services: calculatingState,
+    });
+
+    calculatedDiff = calculateDiff(members, mappings, groupMembers, groups);
+
+    // 計算完了
+    calculatingState.calculation = {
+      status: "completed",
+      current: 1,
+      total: 1,
+      message: `差分計算完了（${calculatedDiff.length}件の差分を検出）`,
+    };
+
+    onProgress({
+      type: "progress",
+      stage: "calculating_diff",
+      services: calculatingState,
+    });
+
+    // Stage 2: 差分検証
+    if (!compareDiff(calculatedDiff, requestBody)) {
+      throw new BadRequestException("Invalid request body - diff mismatch");
+    }
+
+    // Stage 3: 差分適用with進捗
+    await applyDiffWithProgress(nsId, requestBody, onProgress);
+  } catch (error) {
+    onProgress({
+      type: "error",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
 };

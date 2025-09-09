@@ -40,15 +40,16 @@ export type ApplyDiffResult = TMemberWithDiff & {
 export type ApplyProgressUpdate =
   | {
       type: "progress";
-      stage: "applying_changes";
+      stage: "fetching_members" | "calculating_diff" | "applying_changes";
       services: {
         [key: string]: {
           status: "pending" | "in_progress" | "completed" | "error";
           current: number;
-          total: number;
-          success: number;
-          errors: number;
+          total: number | "unknown";
+          success?: number;
+          errors?: number;
           message: string;
+          error?: string;
         };
       };
       currentMember?: string;
