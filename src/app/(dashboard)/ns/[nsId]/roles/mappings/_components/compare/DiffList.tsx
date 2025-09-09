@@ -1,4 +1,4 @@
-import type { ApplyDiffResult } from "@/app/api/ns/[nsId]/mappings/apply/applyDiff";
+import type { ApplyDiffResult } from "@/app/api/ns/[nsId]/mappings/apply/applyDiffWithProgress";
 import { Button } from "@/components/ui/button";
 import type { TNamespaceId } from "@/types/prisma";
 import { type FC, useCallback, useEffect } from "react";
