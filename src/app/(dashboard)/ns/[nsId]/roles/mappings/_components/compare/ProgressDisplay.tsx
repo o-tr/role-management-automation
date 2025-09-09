@@ -120,10 +120,12 @@ export const ProgressDisplay: FC<Props> = ({ progress, title }) => {
                         )}
                         {/* 適用時は成功/失敗数を表示 */}
                         {"success" in serviceProgress &&
-                          "errors" in serviceProgress && (
+                          "errors" in serviceProgress &&
+                          typeof serviceProgress.success === "number" &&
+                          typeof serviceProgress.errors === "number" && (
                             <span className="ml-2">
-                              (成功: {serviceProgress.success as number}, 失敗:{" "}
-                              {serviceProgress.errors as number})
+                              (成功: {serviceProgress.success}, 失敗:{" "}
+                              {serviceProgress.errors})
                             </span>
                           )}
                       </>
@@ -145,10 +147,12 @@ export const ProgressDisplay: FC<Props> = ({ progress, title }) => {
                         )}
                         )
                         {"success" in serviceProgress &&
-                          "errors" in serviceProgress && (
+                          "errors" in serviceProgress &&
+                          typeof serviceProgress.success === "number" &&
+                          typeof serviceProgress.errors === "number" && (
                             <span className="ml-2">
-                              (成功: {serviceProgress.success as number}, 失敗:{" "}
-                              {serviceProgress.errors as number})
+                              (成功: {serviceProgress.success}, 失敗:{" "}
+                              {serviceProgress.errors})
                             </span>
                           )}
                       </>
