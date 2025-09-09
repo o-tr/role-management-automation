@@ -51,6 +51,7 @@ export type ApplyProgressUpdate =
           errors?: number;
           message: string;
           error?: string;
+          isApproximate?: boolean;
         };
       };
       currentMember?: string;

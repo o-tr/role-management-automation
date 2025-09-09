@@ -7,6 +7,7 @@ export type ServiceProgressState = {
   total: number | "unknown";
   message: string;
   error?: string;
+  isApproximate?: boolean;
 };
 
 export type CommonProgressUpdate =

@@ -41,6 +41,7 @@ export type ProgressUpdate =
           total: number | "unknown";
           message: string;
           error?: string;
+          isApproximate?: boolean;
         };
       };
     }

@@ -164,7 +164,7 @@ export const getMemberWithDiffWithProgress = async (
         });
 
         try {
-          const groupMembers = await getMembersWithProgress(
+          const groupMembersResult = await getMembersWithProgress(
             group,
             (current, total) => {
               progressState[groupKey] = {
@@ -184,10 +184,14 @@ export const getMemberWithDiffWithProgress = async (
           // 完了の報告
           progressState[groupKey] = {
             status: "completed",
-            current: groupMembers.length,
-            total: groupMembers.length,
-            message: `${groupDisplayName} のメンバー取得完了 (${groupMembers.length}件)`,
+            current: groupMembersResult.members.length,
+            total: groupMembersResult.members.length,
+            message: `${groupDisplayName} のメンバー取得完了 (${groupMembersResult.members.length}件)`,
           };
+          // Propagate isApproximate if provided by the service-specific fetcher
+          if (groupMembersResult.isApproximate) {
+            progressState[groupKey].isApproximate = true;
+          }
           onProgress({
             type: "progress",
             stage: "fetching_members",
@@ -197,7 +201,7 @@ export const getMemberWithDiffWithProgress = async (
           return {
             serviceAccountId: targetGroup.serviceAccountId,
             serviceGroupId: targetGroup.serviceGroupId,
-            members: groupMembers,
+            members: groupMembersResult.members,
             service: group.service,
           };
         } catch (error) {

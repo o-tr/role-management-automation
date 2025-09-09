@@ -37,7 +37,10 @@ export type ProgressCallback = (current: number, total?: number) => void;
 export const getMembersWithProgress = async (
   group: TExternalServiceGroupWithAccount,
   onProgress?: ProgressCallback,
-): Promise<TExternalServiceGroupMember[]> => {
+): Promise<{
+  members: TExternalServiceGroupMember[];
+  isApproximate?: boolean;
+}> => {
   switch (group.account.service) {
     case "VRCHAT":
       return getVRChatMembersWithProgress(group, onProgress);
@@ -53,7 +56,10 @@ export const getMembersWithProgress = async (
 const getVRChatMembersWithProgress = async (
   group: TExternalServiceGroupWithAccount,
   onProgress?: ProgressCallback,
-): Promise<TExternalServiceGroupMember[]> => {
+): Promise<{
+  members: TExternalServiceGroupMember[];
+  isApproximate?: boolean;
+}> => {
   const groupId = ZVRCGroupId.parse(group.groupId);
 
   // まずVRCGroup情報を取得してmemberCountを取得
@@ -126,7 +132,8 @@ const getVRChatMembersWithProgress = async (
   // 最終的な総数で進捗報告
   onProgress?.(result.length, result.length);
 
-  return result;
+  // VRChat currently treated as approximate in UI historically; expose as isApproximate.
+  return { members: result, isApproximate: true };
 };
 
 const getHighestRole = (
@@ -141,7 +148,10 @@ const getHighestRole = (
 const getDiscordMembersWithProgress = async (
   group: TExternalServiceGroupWithAccount,
   onProgress?: ProgressCallback,
-): Promise<TExternalServiceGroupMember[]> => {
+): Promise<{
+  members: TExternalServiceGroupMember[];
+  isApproximate?: boolean;
+}> => {
   const token = ZDiscordCredentials.parse(
     JSON.parse(group.account.credential),
   ).token;
@@ -195,13 +205,17 @@ const getDiscordMembersWithProgress = async (
   // 最終的な総数で進捗報告
   onProgress?.(result.length, result.length);
 
-  return result;
+  // Discord is approximate by nature (approximate_member_count). Keep compatibility.
+  return { members: result, isApproximate: true };
 };
 
 const getGitHubMembersWithProgress = async (
   group: TExternalServiceGroupWithAccount,
   onProgress?: ProgressCallback,
-): Promise<TExternalServiceGroupMember[]> => {
+): Promise<{
+  members: TExternalServiceGroupMember[];
+  isApproximate?: boolean;
+}> => {
   const { installationId, accountId } = ZGitHubGroupId.parse(
     JSON.parse(group.groupId),
   );
@@ -268,7 +282,7 @@ const getGitHubMembersWithProgress = async (
   // 最終進捗報告
   onProgress?.(result.length, result.length);
 
-  return result;
+  return { members: result };
 };
 
 const getGitHubOrgMembersWithProgress = async (
