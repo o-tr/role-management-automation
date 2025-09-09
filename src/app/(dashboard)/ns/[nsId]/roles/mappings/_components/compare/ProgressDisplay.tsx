@@ -12,20 +12,20 @@ type Props = {
 export const ProgressDisplay: FC<Props> = ({ progress, title }) => {
   if (progress.type === "error") {
     return (
-      <div className="border border-red-200 rounded-lg p-4 bg-red-50">
-        <div className="flex items-center gap-2 text-red-800 font-medium mb-2">
+      <div className="border border-destructive/20 bg-destructive/5 dark:border-destructive/30 dark:bg-destructive/10 rounded-lg p-4">
+        <div className="flex items-center gap-2 text-destructive font-medium mb-2">
           <XCircle size={20} />
           {title} - エラー
         </div>
-        <div className="text-red-600">{progress.error}</div>
+        <div className="text-destructive/80">{progress.error}</div>
       </div>
     );
   }
 
   if (progress.type === "complete") {
     return (
-      <div className="border border-green-200 rounded-lg p-4 bg-green-50">
-        <div className="flex items-center gap-2 text-green-800 font-medium">
+      <div className="border border-green-500/20 bg-green-500/5 dark:border-green-400/30 dark:bg-green-400/10 rounded-lg p-4">
+        <div className="flex items-center gap-2 text-green-700 dark:text-green-300 font-medium">
           <CheckCircle size={20} />
           {title} - 完了
         </div>
@@ -35,8 +35,8 @@ export const ProgressDisplay: FC<Props> = ({ progress, title }) => {
 
   // progress.type === "progress"
   return (
-    <div className="border border-blue-200 rounded-lg p-4 bg-blue-50">
-      <div className="flex items-center gap-2 text-blue-800 font-medium mb-4">
+    <div className="border border-primary/20 bg-primary/5 dark:border-primary/30 dark:bg-primary/10 rounded-lg p-4">
+      <div className="flex items-center gap-2 text-primary font-medium mb-4">
         <Clock size={20} />
         {title} - 処理中
       </div>
@@ -59,13 +59,20 @@ export const ProgressDisplay: FC<Props> = ({ progress, title }) => {
             const getStatusIcon = () => {
               switch (serviceProgress.status) {
                 case "completed":
-                  return <CheckCircle size={16} className="text-green-600" />;
+                  return (
+                    <CheckCircle
+                      size={16}
+                      className="text-green-600 dark:text-green-400"
+                    />
+                  );
                 case "error":
-                  return <XCircle size={16} className="text-red-600" />;
+                  return <XCircle size={16} className="text-destructive" />;
                 case "in_progress":
-                  return <Clock size={16} className="text-blue-600" />;
+                  return <Clock size={16} className="text-primary" />;
                 case "pending":
-                  return <AlertCircle size={16} className="text-gray-400" />;
+                  return (
+                    <AlertCircle size={16} className="text-muted-foreground" />
+                  );
                 default:
                   return null;
               }
@@ -74,15 +81,15 @@ export const ProgressDisplay: FC<Props> = ({ progress, title }) => {
             const getStatusColor = () => {
               switch (serviceProgress.status) {
                 case "completed":
-                  return "text-green-700 bg-green-100";
+                  return "text-green-700 bg-green-100 dark:text-green-300 dark:bg-green-900/30";
                 case "error":
-                  return "text-red-700 bg-red-100";
+                  return "text-destructive bg-destructive/10";
                 case "in_progress":
-                  return "text-blue-700 bg-blue-100";
+                  return "text-primary bg-primary/10";
                 case "pending":
-                  return "text-gray-700 bg-gray-100";
+                  return "text-muted-foreground bg-muted";
                 default:
-                  return "text-gray-700 bg-gray-100";
+                  return "text-muted-foreground bg-muted";
               }
             };
 
@@ -106,7 +113,7 @@ export const ProgressDisplay: FC<Props> = ({ progress, title }) => {
                             /{serviceProgress.total}
                             {(serviceName === "discord" ||
                               serviceName === "vrchat") && (
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-muted-foreground">
                                 (概算)
                               </span>
                             )}
@@ -129,7 +136,7 @@ export const ProgressDisplay: FC<Props> = ({ progress, title }) => {
                             /{serviceProgress.total}
                             {(serviceName === "discord" ||
                               serviceName === "vrchat") && (
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-muted-foreground">
                                 (概算)
                               </span>
                             )}
@@ -151,11 +158,11 @@ export const ProgressDisplay: FC<Props> = ({ progress, title }) => {
 
                 <Progress value={percentage} className="h-2" />
 
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-muted-foreground">
                   {serviceProgress.message}
                   {serviceProgress.status === "error" &&
                     serviceProgress.error && (
-                      <span className="text-red-600 ml-2">
+                      <span className="text-destructive ml-2">
                         ({serviceProgress.error})
                       </span>
                     )}
@@ -167,8 +174,8 @@ export const ProgressDisplay: FC<Props> = ({ progress, title }) => {
       </div>
 
       {"currentMember" in progress && progress.currentMember && (
-        <div className="mt-4 p-3 bg-white rounded border">
-          <div className="text-sm font-medium text-gray-700">
+        <div className="mt-4 p-3 bg-background dark:bg-card rounded border">
+          <div className="text-sm font-medium text-foreground">
             処理中のメンバー: {progress.currentMember}
           </div>
         </div>
