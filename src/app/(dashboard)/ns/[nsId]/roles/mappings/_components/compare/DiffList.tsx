@@ -67,9 +67,14 @@ export const DiffList: FC<Props> = ({ nsId, onApplyResult, isOpen }) => {
 
   return (
     <div className="flex flex-col gap-4">
-      {applyState.isPending && applyState.progress && (
-        <ProgressDisplay progress={applyState.progress} title="変更適用" />
-      )}
+      {applyState.isPending &&
+        (applyState.progress ? (
+          <ProgressDisplay progress={applyState.progress} title="変更適用" />
+        ) : (
+          <div className="flex flex-col gap-4">
+            <div>差分を適用しています...</div>
+          </div>
+        ))}
 
       <MappingDiffList data={compareState.diff} />
 
