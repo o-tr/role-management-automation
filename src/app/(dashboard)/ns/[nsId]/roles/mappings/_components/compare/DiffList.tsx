@@ -3,6 +3,7 @@ import type {
   ApplyProgressUpdate,
 } from "@/app/api/ns/[nsId]/mappings/apply/applyDiffWithProgress";
 import { Button } from "@/components/ui/button";
+import { makeDiffKeyFromItem } from "@/lib/diffKey";
 import type { TDiffItem, TMemberWithDiff } from "@/types/diff";
 import type { TNamespaceId } from "@/types/prisma";
 import { type FC, type MutableRefObject, useCallback, useEffect } from "react";
@@ -22,11 +23,7 @@ export const mapDiffWithProgress = (
 
   return members.map((memberWithDiff, mi) => {
     const newDiff = memberWithDiff.diff.map((d, di) => {
-      const key = `${mi}-${di}-${d.serviceGroup.service}-${String(
-        d.serviceGroup.groupId,
-      )}-${String(
-        d.groupMember?.serviceId ?? d.groupMember?.serviceUsername ?? "",
-      )}-${String(d.roleId)}`;
+      const key = makeDiffKeyFromItem(mi, di, d);
 
       const svc = services[key];
       if (!svc) return d;

@@ -1,3 +1,4 @@
+import { makeDiffKeyFromItem } from "@/lib/diffKey";
 import { addGuildMemberRole } from "@/lib/discord/requests/addGuildMemberRole";
 import { deleteGuildMemberRole } from "@/lib/discord/requests/deleteGuildMemberRole";
 import type {
@@ -84,11 +85,7 @@ export const applyDiffWithProgress = async (
       for (let di = 0; di < diff.length; di++) {
         const diffItem = diff[di];
         // 一意キーを生成（インデックス＋重要フィールド）
-        const key = `${mi}-${di}-${diffItem.serviceGroup.service}-${String(
-          diffItem.serviceGroup.groupId,
-        )}-${String(diffItem.groupMember?.serviceId ?? diffItem.groupMember?.serviceUsername ?? "")}-${String(
-          diffItem.roleId,
-        )}`;
+        const key = makeDiffKeyFromItem(mi, di, diffItem);
         tasks.push({ key, member, diffItem });
       }
     }
