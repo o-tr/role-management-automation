@@ -71,169 +71,181 @@ export const applyDiffWithProgress = async (
   onProgress?: ApplyProgressCallback,
 ): Promise<void> => {
   try {
-    // サービス別の差分をグループ化
-    const serviceStats: {
-      [service: string]: {
-        total: number;
-        current: number;
-        success: number;
-        errors: number;
-      };
-    } = {};
+    // すべての差分を個別タスクとして扱う
+    type Task = {
+      key: string;
+      member: (typeof members)[number]["member"];
+      diffItem: TDiffItem;
+    };
 
-    for (const { diff } of members) {
-      for (const diffItem of diff) {
-        if (!diffItem.ignore) {
-          const serviceName = diffItem.serviceGroup.service.toLowerCase();
-          if (!serviceStats[serviceName]) {
-            serviceStats[serviceName] = {
-              total: 0,
-              current: 0,
-              success: 0,
-              errors: 0,
-            };
-          }
-          serviceStats[serviceName].total++;
-        }
+    const tasks: Task[] = [];
+    for (let mi = 0; mi < members.length; mi++) {
+      const { member, diff } = members[mi];
+      for (let di = 0; di < diff.length; di++) {
+        const diffItem = diff[di];
+        // 一意キーを生成（インデックス＋重要フィールド）
+        const key = `${mi}-${di}-${diffItem.serviceGroup.service}-${String(
+          diffItem.serviceGroup.groupId,
+        )}-${String(diffItem.groupMember?.serviceId ?? diffItem.groupMember?.serviceUsername ?? "")}-${String(
+          diffItem.roleId,
+        )}`;
+        tasks.push({ key, member, diffItem });
       }
     }
 
-    // 初期進捗報告
-    const initialServices: {
-      [service: string]: {
+    // 初期進捗（タスク単位）
+    const servicesState: {
+      [taskKey: string]: {
         status: "pending" | "in_progress" | "completed" | "error";
         current: number;
-        total: number;
-        success: number;
-        errors: number;
+        total: number | "unknown";
+        success?: number;
+        errors?: number;
         message: string;
+        error?: string;
       };
     } = Object.fromEntries(
-      Object.entries(serviceStats).map(([service, stats]) => [
-        service,
-        {
-          status: "pending",
-          current: 0,
-          total: stats.total,
-          success: 0,
-          errors: 0,
-          message: `${service} の準備中...`,
-        },
-      ]),
+      tasks.map((t) => {
+        const accountName =
+          t.member.externalAccounts?.find(
+            (acc) => acc.service === t.diffItem.serviceGroup.service,
+          )?.name || t.member.id;
+        return [
+          t.key,
+          {
+            status: "pending",
+            current: 0,
+            total: 1,
+            success: 0,
+            errors: 0,
+            message: `${t.diffItem.serviceGroup.service} - ${accountName} の準備中...`,
+          },
+        ];
+      }),
     );
 
     onProgress?.({
       type: "progress",
       stage: "applying_changes",
-      services: initialServices,
+      services: servicesState,
     });
 
-    // 結果を格納する配列
-    const results: ApplyDiffResult[] = [];
+    // 結果をメンバー毎に収集するマップ
+    const resultsMap: Map<string, ApplyDiffResult> = new Map();
 
-    // メンバーごとに並行処理
-    for (const { member, diff } of members) {
-      const memberResult: ApplyDiffResult = {
-        member,
-        diff: [],
-      };
-
-      // 差分アイテムごとに処理
-      for (const diffItem of diff) {
-        const serviceName = diffItem.serviceGroup.service.toLowerCase();
-
-        // 進捗更新
-        onProgress?.({
-          type: "progress",
-          stage: "applying_changes",
-          services: {
-            ...initialServices,
-            [serviceName]: {
-              ...initialServices[serviceName],
-              status: "in_progress",
-              message: `${member.externalAccounts.find((acc) => acc.service === diffItem.serviceGroup.service)?.name || member.id} を処理中...`,
-            },
-          },
-          currentMember:
-            member.externalAccounts.find(
-              (acc) => acc.service === diffItem.serviceGroup.service,
-            )?.name || member.id,
-        });
-
-        if (diffItem.ignore) {
-          memberResult.diff.push({
-            ...diffItem,
-            status: "skipped",
-            reason: "Ignored",
-          });
-          continue;
-        }
-
-        let resultItem: ApplyDiffResultItem;
-
-        try {
-          switch (diffItem.serviceGroup.service) {
-            case "VRCHAT":
-              resultItem = await applyVRChatDiff(nsId, diffItem);
-              break;
-            case "DISCORD":
-              resultItem = await applyDiscordDiff(nsId, diffItem);
-              break;
-            case "GITHUB":
-              resultItem = await applyGitHubDiff(nsId, diffItem);
-              break;
-            default:
-              throw new Error("Unsupported service");
-          }
-        } catch (error) {
-          resultItem = {
-            ...diffItem,
-            status: "error",
-            reason: error instanceof Error ? error.message : "Unknown error",
-          };
-        }
-
-        memberResult.diff.push(resultItem);
-
-        // 結果に基づいて統計更新
-        serviceStats[serviceName].current++;
-        if (resultItem.status === "success") {
-          serviceStats[serviceName].success++;
-        } else if (resultItem.status === "error") {
-          serviceStats[serviceName].errors++;
-        }
-
-        // 進捗更新
-        const updatedServices = { ...initialServices };
-        const newStatus: "pending" | "in_progress" | "completed" | "error" =
-          serviceStats[serviceName].current >= serviceStats[serviceName].total
-            ? "completed"
-            : "in_progress";
-
-        updatedServices[serviceName] = {
-          status: newStatus,
-          current: serviceStats[serviceName].current,
-          total: serviceStats[serviceName].total,
-          success: serviceStats[serviceName].success,
-          errors: serviceStats[serviceName].errors,
-          message: `${serviceName} 処理中... (${serviceStats[serviceName].current}/${serviceStats[serviceName].total})`,
-        };
-
-        onProgress?.({
-          type: "progress",
-          stage: "applying_changes",
-          services: updatedServices,
-        });
+    // タスク単位で順次処理
+    for (const { key, member, diffItem } of tasks) {
+      // メンバー結果を準備
+      if (!resultsMap.has(member.id)) {
+        resultsMap.set(member.id, { member, diff: [] });
+      }
+      let memberResult = resultsMap.get(member.id);
+      if (!memberResult) {
+        // 保険: ここに来ることは想定していないが型安全のため初期化
+        memberResult = { member, diff: [] };
+        resultsMap.set(member.id, memberResult);
       }
 
-      results.push(memberResult);
+      // 進捗: タスク開始
+      servicesState[key] = {
+        ...servicesState[key],
+        status: "in_progress",
+        message: `${member.externalAccounts?.find((acc) => acc.service === diffItem.serviceGroup.service)?.name || member.id} を処理中...`,
+      };
+
+      onProgress?.({
+        type: "progress",
+        stage: "applying_changes",
+        services: { ...servicesState },
+        currentMember:
+          member.externalAccounts?.find(
+            (acc) => acc.service === diffItem.serviceGroup.service,
+          )?.name || member.id,
+      });
+
+      if (diffItem.ignore) {
+        const skipped: ApplyDiffResultItem = {
+          ...diffItem,
+          status: "skipped",
+          reason: "Ignored",
+        };
+        memberResult.diff.push(skipped);
+        servicesState[key] = {
+          ...servicesState[key],
+          status: "completed",
+          current: 1,
+          message: `${servicesState[key].message} (skipped)`,
+        };
+        onProgress?.({
+          type: "progress",
+          stage: "applying_changes",
+          services: { ...servicesState },
+        });
+        continue;
+      }
+
+      let resultItem: ApplyDiffResultItem;
+      try {
+        switch (diffItem.serviceGroup.service) {
+          case "VRCHAT":
+            resultItem = await applyVRChatDiff(nsId, diffItem);
+            break;
+          case "DISCORD":
+            resultItem = await applyDiscordDiff(nsId, diffItem);
+            break;
+          case "GITHUB":
+            resultItem = await applyGitHubDiff(nsId, diffItem);
+            break;
+          default:
+            throw new Error("Unsupported service");
+        }
+      } catch (error) {
+        resultItem = {
+          ...diffItem,
+          status: "error",
+          reason: error instanceof Error ? error.message : "Unknown error",
+        };
+      }
+
+      memberResult.diff.push(resultItem);
+
+      // タスクの状態を更新
+      if (resultItem.status === "success") {
+        servicesState[key] = {
+          ...servicesState[key],
+          status: "completed",
+          current: 1,
+          success: 1,
+          message: `${diffItem.serviceGroup.service} 処理完了`,
+        };
+      } else if (resultItem.status === "error") {
+        servicesState[key] = {
+          ...servicesState[key],
+          status: "error",
+          current: 1,
+          errors: 1,
+          message: `${diffItem.serviceGroup.service} でエラー発生`,
+          error: resultItem.reason,
+        };
+      } else if (resultItem.status === "skipped") {
+        servicesState[key] = {
+          ...servicesState[key],
+          status: "completed",
+          current: 1,
+          message: `${diffItem.serviceGroup.service} はスキップ`,
+        };
+      }
+
+      onProgress?.({
+        type: "progress",
+        stage: "applying_changes",
+        services: { ...servicesState },
+      });
     }
 
-    // 完了報告
-    onProgress?.({
-      type: "complete",
-      result: results,
-    });
+    // マップを配列にして完了報告
+    const results: ApplyDiffResult[] = Array.from(resultsMap.values());
+    onProgress?.({ type: "complete", result: results });
   } catch (error) {
     onProgress?.({
       type: "error",
