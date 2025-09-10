@@ -1,3 +1,7 @@
+import {
+  APPLY_VALIDATION_STAGES,
+  PROGRESS_MESSAGES,
+} from "@/lib/constants/progress";
 import { BadRequestException } from "@/lib/exceptions/BadRequestException";
 import { compareDiff } from "@/lib/mapping/compareDiff";
 import { validatePermission } from "@/lib/validatePermission";
@@ -35,9 +39,9 @@ const convertToApplyProgress = (
       services: {
         validation: {
           status: "completed",
-          current: 1,
-          total: 1,
-          message: "差分検証完了",
+          current: APPLY_VALIDATION_STAGES.COMPLETE,
+          total: APPLY_VALIDATION_STAGES.TOTAL,
+          message: PROGRESS_MESSAGES.DIFF_VALIDATION_COMPLETE,
         },
       },
     };
@@ -138,8 +142,8 @@ const getMemberWithDiffAndApplyWithProgress = async (
         validation: {
           status: "in_progress",
           current: 0,
-          total: 1,
-          message: "差分を検証中...",
+          total: APPLY_VALIDATION_STAGES.TOTAL,
+          message: PROGRESS_MESSAGES.DIFF_VALIDATING,
         },
       },
     });
@@ -158,9 +162,9 @@ const getMemberWithDiffAndApplyWithProgress = async (
       services: {
         validation: {
           status: "completed",
-          current: 1,
-          total: 1,
-          message: "差分検証完了",
+          current: APPLY_VALIDATION_STAGES.COMPLETE,
+          total: APPLY_VALIDATION_STAGES.TOTAL,
+          message: PROGRESS_MESSAGES.DIFF_VALIDATION_COMPLETE,
         },
       },
     });

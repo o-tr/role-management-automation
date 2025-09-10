@@ -129,7 +129,7 @@ export const useApplyDiffSSE = (nsId: TNamespaceId) => {
           try {
             reader.releaseLock();
           } catch (e) {
-            // ignore
+            console.warn("Reader release error:", e);
           }
           // clear controller reference
           controllerRef.current = null;
@@ -138,11 +138,12 @@ export const useApplyDiffSSE = (nsId: TNamespaceId) => {
         return { status: "success", result: [] };
       } catch (error) {
         const errorMessage =
-          error instanceof Error ? error.message : "Unknown error";
+          error instanceof Error ? error.message : "不明なエラー";
+        console.error("Apply diff error:", error);
         setState({
           isPending: false,
           isError: true,
-          error: errorMessage,
+          error: `差分の適用でエラーが発生しました: ${errorMessage}`,
           result: undefined,
           progress: undefined,
         });

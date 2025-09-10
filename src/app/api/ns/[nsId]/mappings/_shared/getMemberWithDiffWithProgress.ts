@@ -1,3 +1,8 @@
+import {
+  DIFF_CALCULATION_STAGES,
+  DIFF_FETCH_STAGES,
+  PROGRESS_MESSAGES,
+} from "@/lib/constants/progress";
 import { calculateDiff, extractTargetGroups } from "@/lib/mapping/memberDiff";
 import { convertTSerializedMappingToTMapping } from "@/lib/prisma/convert/convertTSerializedMappingToTMapping";
 import { getExternalServiceGroupRoleMappingsByNamespaceId } from "@/lib/prisma/getExternalServiceGroupRoleMappingByNamespaceId";
@@ -29,8 +34,8 @@ export const getMemberWithDiffWithProgress = async (
         database: {
           status: "in_progress",
           current: 0,
-          total: 4,
-          message: "データベースからの初期データ取得中...",
+          total: DIFF_FETCH_STAGES.TOTAL,
+          message: PROGRESS_MESSAGES.DATABASE_INIT,
         },
       },
     });
@@ -42,9 +47,9 @@ export const getMemberWithDiffWithProgress = async (
       services: {
         database: {
           status: "in_progress",
-          current: 1,
-          total: 4,
-          message: "メンバー情報を取得中...",
+          current: DIFF_FETCH_STAGES.MEMBERS,
+          total: DIFF_FETCH_STAGES.TOTAL,
+          message: PROGRESS_MESSAGES.MEMBERS_FETCH,
         },
       },
     });
@@ -57,9 +62,9 @@ export const getMemberWithDiffWithProgress = async (
       services: {
         database: {
           status: "in_progress",
-          current: 2,
-          total: 4,
-          message: "ロールマッピング情報を取得中...",
+          current: DIFF_FETCH_STAGES.MAPPINGS,
+          total: DIFF_FETCH_STAGES.TOTAL,
+          message: PROGRESS_MESSAGES.MAPPINGS_FETCH,
         },
       },
     });
@@ -74,9 +79,9 @@ export const getMemberWithDiffWithProgress = async (
       services: {
         database: {
           status: "in_progress",
-          current: 3,
-          total: 4,
-          message: "外部サービスグループ情報を取得中...",
+          current: DIFF_FETCH_STAGES.GROUPS,
+          total: DIFF_FETCH_STAGES.TOTAL,
+          message: PROGRESS_MESSAGES.GROUPS_FETCH,
         },
       },
     });
@@ -90,9 +95,9 @@ export const getMemberWithDiffWithProgress = async (
       services: {
         database: {
           status: "completed",
-          current: 4,
-          total: 4,
-          message: "初期データ取得完了",
+          current: DIFF_FETCH_STAGES.COMPLETE,
+          total: DIFF_FETCH_STAGES.TOTAL,
+          message: PROGRESS_MESSAGES.DATABASE_COMPLETE,
         },
       },
     });
@@ -103,9 +108,9 @@ export const getMemberWithDiffWithProgress = async (
     } = {
       database: {
         status: "completed",
-        current: 4,
-        total: 4,
-        message: "初期データ取得完了",
+        current: DIFF_FETCH_STAGES.COMPLETE,
+        total: DIFF_FETCH_STAGES.TOTAL,
+        message: PROGRESS_MESSAGES.DATABASE_COMPLETE,
       },
     };
 
@@ -228,8 +233,8 @@ export const getMemberWithDiffWithProgress = async (
       calculation: {
         status: "in_progress",
         current: 0,
-        total: 1,
-        message: "差分を計算中...",
+        total: DIFF_CALCULATION_STAGES.TOTAL,
+        message: PROGRESS_MESSAGES.DIFF_CALCULATING,
       },
     };
 
@@ -244,8 +249,8 @@ export const getMemberWithDiffWithProgress = async (
     // 計算完了
     calculatingState.calculation = {
       status: "completed",
-      current: 1,
-      total: 1,
+      current: DIFF_CALCULATION_STAGES.COMPLETE,
+      total: DIFF_CALCULATION_STAGES.TOTAL,
       message: `差分計算完了（${result.length}件の差分を検出）`,
     };
 

@@ -21,10 +21,22 @@ export const useCompareSSE = (nsId: TNamespaceId) => {
 
   const eventSourceRef = useRef<EventSource | null>(null);
 
+  // EventSource を安全に閉じるヘルパー関数
+  const closeEventSource = useCallback((eventSource: EventSource) => {
+    try {
+      if (eventSource.readyState !== EventSource.CLOSED) {
+        eventSource.close();
+      }
+    } catch (error) {
+      console.warn("EventSource close error:", error);
+    }
+  }, []);
+
   const startCompare = useCallback(() => {
     // 既存の接続があれば閉じる
     if (eventSourceRef.current) {
-      eventSourceRef.current.close();
+      closeEventSource(eventSourceRef.current);
+      eventSourceRef.current = null;
     }
 
     setState({
@@ -53,7 +65,8 @@ export const useCompareSSE = (nsId: TNamespaceId) => {
             diff: data.result,
             progress: data,
           });
-          eventSource.close();
+          closeEventSource(eventSource);
+          eventSourceRef.current = null;
         } else if (data.type === "error") {
           setState({
             isPending: false,
@@ -62,18 +75,25 @@ export const useCompareSSE = (nsId: TNamespaceId) => {
             diff: [],
             progress: data,
           });
-          eventSource.close();
+          closeEventSource(eventSource);
+          eventSourceRef.current = null;
         }
       } catch (error) {
-        console.error("Failed to parse SSE data:", error);
+        console.error(
+          "Failed to parse SSE data:",
+          error,
+          "Raw data:",
+          event.data,
+        );
         setState({
           isPending: false,
           isError: true,
-          error: "Failed to parse progress data",
+          error: `データの解析に失敗しました: ${error instanceof Error ? error.message : "不明なエラー"}`,
           diff: [],
           progress: undefined,
         });
-        eventSource.close();
+        closeEventSource(eventSource);
+        eventSourceRef.current = null;
       }
     };
 
@@ -82,26 +102,28 @@ export const useCompareSSE = (nsId: TNamespaceId) => {
       setState({
         isPending: false,
         isError: true,
-        error: "Connection error",
+        error: "サーバーとの接続でエラーが発生しました",
         diff: [],
         progress: undefined,
       });
-      eventSource.close();
+      closeEventSource(eventSource);
+      eventSourceRef.current = null;
     };
 
     return () => {
-      eventSource.close();
+      closeEventSource(eventSource);
     };
-  }, [nsId]);
+  }, [nsId, closeEventSource]);
 
   // クリーンアップ
   useEffect(() => {
     return () => {
       if (eventSourceRef.current) {
-        eventSourceRef.current.close();
+        closeEventSource(eventSourceRef.current);
+        eventSourceRef.current = null;
       }
     };
-  }, []);
+  }, [closeEventSource]);
 
   const refetch = useCallback(() => {
     startCompare();

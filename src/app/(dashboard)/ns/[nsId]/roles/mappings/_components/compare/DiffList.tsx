@@ -4,7 +4,11 @@ import type {
 } from "@/app/api/ns/[nsId]/mappings/apply/applyDiffWithProgress";
 import { Button } from "@/components/ui/button";
 import { makeDiffKeyFromItem } from "@/lib/diffKey";
-import type { TDiffItem, TMemberWithDiff } from "@/types/diff";
+import type {
+  TExtendedDiffItem,
+  TExtendedMemberWithDiff,
+  TMemberWithDiff,
+} from "@/types/diff";
 import type { TNamespaceId } from "@/types/prisma";
 import { type FC, type MutableRefObject, useCallback, useEffect } from "react";
 import { MappingDiffList } from "./MappingDiffList";
@@ -16,41 +20,47 @@ import { useCompareSSE } from "./_hooks/use-compare-sse";
 export const mapDiffWithProgress = (
   members: TMemberWithDiff[],
   progress?: ApplyProgressUpdate,
-) => {
-  if (!progress || progress.type !== "progress") return members;
+): TExtendedMemberWithDiff[] => {
+  if (!progress || progress.type !== "progress") {
+    // progress がない場合は、元の diff をそのまま拡張型として返す
+    return members.map((member) => ({
+      ...member,
+      diff: member.diff.map((d) => ({ ...d }) as TExtendedDiffItem),
+    }));
+  }
 
   const services = progress.services;
 
   return members.map((memberWithDiff, mi) => {
-    const newDiff = memberWithDiff.diff.map((d, di) => {
+    const newDiff: TExtendedDiffItem[] = memberWithDiff.diff.map((d, di) => {
       const key = makeDiffKeyFromItem(mi, di, d);
-
       const svc = services[key];
-      if (!svc) return d;
 
-      const out: TDiffItem & { status?: string; reason?: string } = {
-        ...d,
-      };
-      if (svc.status === "completed" && svc.success && svc.success > 0) {
-        out.status = "success";
-      } else if (svc.status === "error") {
-        out.status = "error";
-        if (svc.error) out.reason = svc.error;
-      } else if (
-        svc.status === "completed" &&
-        svc.current === 1 &&
-        !svc.success &&
-        !svc.errors
-      ) {
-        out.status = "success";
-      } else if (svc.status === "skipped") {
-        out.status = "skipped";
-        if (svc.error) out.reason = svc.error;
-        else if (svc.message) out.reason = svc.message;
+      const extendedDiff: TExtendedDiffItem = { ...d };
+
+      if (svc) {
+        if (svc.status === "completed" && svc.success && svc.success > 0) {
+          extendedDiff.status = "success";
+        } else if (svc.status === "error") {
+          extendedDiff.status = "error";
+          if (svc.error) extendedDiff.reason = svc.error;
+        } else if (
+          svc.status === "completed" &&
+          svc.current === 1 &&
+          !svc.success &&
+          !svc.errors
+        ) {
+          extendedDiff.status = "success";
+        } else if (svc.status === "skipped") {
+          extendedDiff.status = "skipped";
+          if (svc.error) extendedDiff.reason = svc.error;
+          else if (svc.message) extendedDiff.reason = svc.message;
+        }
       }
 
-      return out;
+      return extendedDiff;
     });
+
     return { ...memberWithDiff, diff: newDiff };
   });
 };
@@ -80,14 +90,20 @@ export const DiffList: FC<Props> = ({
     };
   }, [applyState.isPending, busyRef]);
 
-  // モーダルが開いたときに差分取得を開始
+  // モーダルが開いたときに差分取得を開始（apply処理中でない場合のみ）
   useEffect(() => {
-    if (isOpen && !compareState.isPending && compareState.diff.length === 0) {
+    if (
+      isOpen &&
+      !compareState.isPending &&
+      !applyState.isPending &&
+      compareState.diff.length === 0
+    ) {
       compareState.startCompare();
     }
   }, [
     isOpen,
     compareState.isPending,
+    applyState.isPending,
     compareState.diff.length,
     compareState.startCompare,
   ]);
