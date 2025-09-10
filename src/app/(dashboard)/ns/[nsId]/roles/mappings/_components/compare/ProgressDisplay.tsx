@@ -136,9 +136,7 @@ export const ProgressDisplay: FC<Props> = ({ progress, title }) => {
                         {serviceProgress.total !== "unknown" && (
                           <>
                             /{serviceProgress.total}
-                            {(serviceProgress.isApproximate === true ||
-                              serviceName === "discord" ||
-                              serviceName === "vrchat") && (
+                            {serviceProgress.isApproximate === true && (
                               <span className="text-xs text-muted-foreground">
                                 (概算)
                               </span>
