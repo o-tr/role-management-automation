@@ -145,6 +145,8 @@ export const DiffList: FC<Props> = ({
             <div>差分を適用しています...</div>
           </div>
         )
+      ) : compareState.isPending && compareState.progress ? (
+        <ProgressDisplay progress={compareState.progress} title="差分取得" />
       ) : (
         <MappingDiffList data={compareState.diff} />
       )}
