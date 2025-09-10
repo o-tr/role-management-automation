@@ -28,11 +28,7 @@ export const MemberAccountResolveDisplay: FC<Props> = ({
 
   if (isLoading) return <div className="text-gray-500">Loading...</div>;
   if (data?.status !== "success")
-    return (
-      <div className="flex flex-row items-center gap-2">
-        <div className="text-red-500">Not Found ({serviceId})</div>
-      </div>
-    );
+    return <div className="text-red-500">Not Found ({serviceId})</div>;
   return (
     <div
       className={`flex flex-row items-center ${
