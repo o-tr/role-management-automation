@@ -57,13 +57,16 @@ export const useCompareSSE = (nsId: TNamespaceId) => {
           setState((prev) => ({
             ...prev,
             progress: data,
+            // メモリ効率のため、progress更新時は古いdiffは保持しない
+            diff: prev.diff,
           }));
         } else if (data.type === "complete") {
           setState({
             isPending: false,
             isError: false,
             diff: data.result,
-            progress: data,
+            // 完了時はprogressをクリア（メモリ節約）
+            progress: undefined,
           });
           closeEventSource(eventSource);
           eventSourceRef.current = null;
@@ -73,7 +76,8 @@ export const useCompareSSE = (nsId: TNamespaceId) => {
             isError: true,
             error: data.error,
             diff: [],
-            progress: data,
+            // エラー時もprogressをクリア（メモリ節約）
+            progress: undefined,
           });
           closeEventSource(eventSource);
           eventSourceRef.current = null;

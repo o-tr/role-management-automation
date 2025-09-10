@@ -84,13 +84,16 @@ export const useApplyDiffSSE = <TResult>(nsId: TNamespaceId) => {
                 setState((prev) => ({
                   ...prev,
                   progress: data,
+                  // メモリ効率のため、古いresultは保持しない
+                  result: undefined,
                 }));
               } else if (data.type === "complete") {
                 setState({
                   isPending: false,
                   isError: false,
                   result: { status: "success", result: data.result as TResult },
-                  progress: data,
+                  // 完了時はprogressをクリア（メモリ節約）
+                  progress: undefined,
                 });
                 return { status: "success", result: data.result as TResult };
               } else if (data.type === "error") {
@@ -99,7 +102,8 @@ export const useApplyDiffSSE = <TResult>(nsId: TNamespaceId) => {
                   isError: true,
                   error: data.error,
                   result: undefined,
-                  progress: data,
+                  // エラー時もprogressをクリア（メモリ節約）
+                  progress: undefined,
                 });
                 return { status: "error", error: data.error };
               }
@@ -115,7 +119,8 @@ export const useApplyDiffSSE = <TResult>(nsId: TNamespaceId) => {
                 isPending: false,
                 isError: false,
                 result: { status: "success", result: data.result as TResult },
-                progress: data,
+                // 完了時はprogressをクリア（メモリ節約）
+                progress: undefined,
               });
               return { status: "success", result: data.result as TResult };
             }
@@ -125,7 +130,8 @@ export const useApplyDiffSSE = <TResult>(nsId: TNamespaceId) => {
                 isError: true,
                 error: data.error,
                 result: undefined,
-                progress: data,
+                // エラー時もprogressをクリア（メモリ節約）
+                progress: undefined,
               });
               return { status: "error", error: data.error };
             }

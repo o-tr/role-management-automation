@@ -10,7 +10,13 @@ import type {
   TMemberWithDiff,
 } from "@/types/diff";
 import type { TNamespaceId } from "@/types/prisma";
-import { type FC, type MutableRefObject, useCallback, useEffect } from "react";
+import {
+  type FC,
+  type MutableRefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+} from "react";
 import { MappingDiffList } from "./MappingDiffList";
 import { ProgressDisplay } from "./ProgressDisplay";
 import { useApplyDiffSSE } from "./_hooks/use-apply-diff-sse";
@@ -73,6 +79,11 @@ export const DiffList: FC<Props> = ({
 }) => {
   const compareState = useCompareSSE(nsId);
   const applyState = useApplyDiffSSE<ApplyDiffResult[]>(nsId);
+
+  // メモ化された差分データ（パフォーマンス最適化）
+  const memoizedDiffWithProgress = useMemo(() => {
+    return mapDiffWithProgress(compareState.diff, applyState.progress);
+  }, [compareState.diff, applyState.progress]);
   // busyRef が渡されていれば apply の状態を反映
   useEffect(() => {
     if (!busyRef) return;
@@ -127,9 +138,7 @@ export const DiffList: FC<Props> = ({
             <ProgressDisplay progress={applyState.progress} title="差分取得" />
           ) : (
             // それ以外（主に applying_changes）は差分リストに適用状況を注入して表示
-            <MappingDiffList
-              data={mapDiffWithProgress(compareState.diff, applyState.progress)}
-            />
+            <MappingDiffList data={memoizedDiffWithProgress} />
           )
         ) : (
           <div className="flex flex-col gap-4">
