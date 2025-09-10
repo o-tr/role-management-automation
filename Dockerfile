@@ -1,35 +1,44 @@
-ARG NODE_VERSION=22-alpine
+FROM node:22-alpine AS base
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Build phase
-FROM node:$NODE_VERSION AS builder
+FROM base AS builder
+
 WORKDIR /app
+RUN corepack enable pnpm
 
-COPY package.json pnpm-lock.yaml ./
-RUN npm install -g pnpm@9
-RUN CI=true pnpm install --frozen-lockfile
+RUN --mount=type=bind,readonly,source=./package.json,target=./package.json \
+    --mount=type=bind,readonly,source=./pnpm-lock.yaml,target=./pnpm-lock.yaml \
+    CI=true pnpm install --frozen-lockfile
 
-# Prepare node_modules
-COPY ./ ./
+COPY . .
+RUN pnpm exec prisma generate
+RUN BUILD_STANDALONE=1 pnpm run build
 
 # Run phase
-FROM node:$NODE_VERSION AS runner
+FROM base AS runner
 
 WORKDIR /app
 
 RUN apk add --no-cache openssl
 
-COPY --from=builder /app ./
+COPY --from=builder --chown=nodejs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nodejs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nodejs:nodejs /app/prisma ./prisma
 
 COPY ./docker/.env.placeholder ./.env
-
-RUN npx prisma generate
-RUN npm run build
-
 COPY ./docker/env-replacer.sh ./
+COPY ./start.sh ./
 
 RUN chmod +x ./env-replacer.sh && \
     chmod +x ./start.sh && \
     mv .env .env.replacer
+
+# Create a non-root user to run the application
+RUN adduser -D nodejs
+USER nodejs
+
 ENTRYPOINT [ "/app/env-replacer.sh" ]
 
 # Copy artifacts

@@ -1,0 +1,13 @@
+# コンテナ内に持ち込む必要のないデータを除外
+.git
+.github
+.next
+docs
+CLAUDE.md
+Dockerfile
+.dockerignore
+.gitignore
+
+# ホスト側とコンテナ側で差異が生じる可能性のあるものを除外
+node_modules
+next-env.d.ts
