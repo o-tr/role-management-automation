@@ -72,7 +72,7 @@ export const DiffList: FC<Props> = ({
   busyRef,
 }) => {
   const compareState = useCompareSSE(nsId);
-  const applyState = useApplyDiffSSE(nsId);
+  const applyState = useApplyDiffSSE<ApplyDiffResult[]>(nsId);
   // busyRef が渡されていれば apply の状態を反映
   useEffect(() => {
     if (!busyRef) return;

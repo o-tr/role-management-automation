@@ -4,18 +4,18 @@ import type { TMemberWithDiff } from "@/types/diff";
 import type { TNamespaceId } from "@/types/prisma";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-export type ApplyDiffSSEState = {
+export type ApplyDiffSSEState<TResult> = {
   isPending: boolean;
   isError: boolean;
   error?: string;
   result?:
-    | { status: "success"; result: unknown }
+    | { status: "success"; result: TResult }
     | { status: "error"; error: string };
   progress?: ApplyProgressUpdate;
 };
 
-export const useApplyDiffSSE = (nsId: TNamespaceId) => {
-  const [state, setState] = useState<ApplyDiffSSEState>({
+export const useApplyDiffSSE = <TResult>(nsId: TNamespaceId) => {
+  const [state, setState] = useState<ApplyDiffSSEState<TResult>>({
     isPending: false,
     isError: false,
   });
@@ -24,7 +24,12 @@ export const useApplyDiffSSE = (nsId: TNamespaceId) => {
   const controllerRef = useRef<AbortController | null>(null);
 
   const applyDiff = useCallback(
-    async (diff: TMemberWithDiff[]) => {
+    async (
+      diff: TMemberWithDiff[],
+    ): Promise<
+      | { status: "success"; result: TResult }
+      | { status: "error"; error: string }
+    > => {
       // 既存の接続があれば中止する
       if (controllerRef.current) {
         controllerRef.current.abort();
@@ -84,10 +89,10 @@ export const useApplyDiffSSE = (nsId: TNamespaceId) => {
                 setState({
                   isPending: false,
                   isError: false,
-                  result: { status: "success", result: data.result },
+                  result: { status: "success", result: data.result as TResult },
                   progress: data,
                 });
-                return { status: "success", result: data.result };
+                return { status: "success", result: data.result as TResult };
               } else if (data.type === "error") {
                 setState({
                   isPending: false,
@@ -109,10 +114,10 @@ export const useApplyDiffSSE = (nsId: TNamespaceId) => {
               setState({
                 isPending: false,
                 isError: false,
-                result: { status: "success", result: data.result },
+                result: { status: "success", result: data.result as TResult },
                 progress: data,
               });
-              return { status: "success", result: data.result };
+              return { status: "success", result: data.result as TResult };
             }
             if (data.type === "error") {
               setState({
@@ -135,7 +140,7 @@ export const useApplyDiffSSE = (nsId: TNamespaceId) => {
           controllerRef.current = null;
         }
 
-        return { status: "success", result: [] };
+        return { status: "success", result: [] as TResult };
       } catch (error) {
         const errorMessage =
           error instanceof Error ? error.message : "不明なエラー";
