@@ -8,7 +8,7 @@ export const getGuild = async (
   guildId: DiscordGuildId,
 ) => {
   const response = await discordLimit(() =>
-    requests(`https://discord.com/api/v10/guilds/${guildId}`, {
+    requests(`https://discord.com/api/v10/guilds/${guildId}?with_counts=true`, {
       headers: {
         Authorization: `Bot ${token}`,
       },

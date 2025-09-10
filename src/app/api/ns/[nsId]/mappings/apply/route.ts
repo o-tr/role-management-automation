@@ -1,35 +1,62 @@
-import { api } from "@/lib/api";
+import {
+  APPLY_VALIDATION_STAGES,
+  PROGRESS_MESSAGES,
+} from "@/lib/constants/progress";
 import { BadRequestException } from "@/lib/exceptions/BadRequestException";
 import { compareDiff } from "@/lib/mapping/compareDiff";
-import { calculateDiff, extractTargetGroups } from "@/lib/mapping/memberDiff";
-import { convertTSerializedMappingToTMapping } from "@/lib/prisma/convert/convertTSerializedMappingToTMapping";
-import { getExternalServiceGroupRoleMappingsByNamespaceId } from "@/lib/prisma/getExternalServiceGroupRoleMappingByNamespaceId";
-import { getExternalServiceGroups } from "@/lib/prisma/getExternalServiceGroups";
-import { getMembersWithRelation } from "@/lib/prisma/getMembersWithRelation";
 import { validatePermission } from "@/lib/validatePermission";
-import type { ErrorResponseType } from "@/types/api";
 import { type TMemberWithDiff, ZMemberWithDiff } from "@/types/diff";
 import type { TNamespaceId } from "@/types/prisma";
 import type { NextRequest } from "next/server";
 import { z } from "zod";
-import { getMembers } from "../../services/accounts/[accountId]/groups/[groupId]/members/getMembers";
-import { type ApplyDiffResult, applyDiff } from "./applyDiff";
-
-export type ApplyMappingRequestResponse =
-  | {
-      status: "success";
-      result: ApplyDiffResult[];
-    }
-  | ErrorResponseType;
+import { getMemberWithDiffWithProgress } from "../_shared/getMemberWithDiffWithProgress";
+import type { CommonProgressUpdate } from "../_shared/types";
+import {
+  type ApplyProgressUpdate,
+  applyDiffWithProgress,
+} from "./applyDiffWithProgress";
 
 const ZApplyMappingSchema = z.array(ZMemberWithDiff);
 export type TApplyMappingRequestBody = z.infer<typeof ZApplyMappingSchema>;
 
-export const POST = api(
-  async (
-    req: NextRequest,
-    { params }: { params: { nsId: TNamespaceId } },
-  ): Promise<ApplyMappingRequestResponse> => {
+// CommonProgressUpdateからApplyProgressUpdateへの変換関数
+const convertToApplyProgress = (
+  commonProgress: CommonProgressUpdate,
+  stage: "fetching_members" | "calculating_diff" | "applying_changes",
+): ApplyProgressUpdate => {
+  if (commonProgress.type === "progress") {
+    return {
+      type: "progress",
+      stage,
+      services: commonProgress.services,
+    };
+  }
+  if (commonProgress.type === "complete") {
+    // complete時は次の段階（差分検証）に進むため、progressとして返す
+    return {
+      type: "progress",
+      stage: "applying_changes",
+      services: {
+        validation: {
+          status: "completed",
+          current: APPLY_VALIDATION_STAGES.COMPLETE,
+          total: APPLY_VALIDATION_STAGES.TOTAL,
+          message: PROGRESS_MESSAGES.DIFF_VALIDATION_COMPLETE,
+        },
+      },
+    };
+  }
+  return {
+    type: "error",
+    error: commonProgress.error,
+  };
+};
+
+export async function POST(
+  req: NextRequest,
+  { params }: { params: { nsId: TNamespaceId } },
+) {
+  try {
     await validatePermission(params.nsId, "admin");
 
     const body = ZApplyMappingSchema.safeParse(await req.json());
@@ -39,49 +66,115 @@ export const POST = api(
     }
 
     const requestBody = body.data;
-    const diff = await getMemberWithDiff(params.nsId);
 
-    if (!compareDiff(diff, requestBody)) {
-      console.log(requestBody, diff);
-      throw new BadRequestException("Invalid request body");
+    const stream = new ReadableStream({
+      start(controller) {
+        getMemberWithDiffAndApplyWithProgress(
+          params.nsId,
+          requestBody,
+          (progress) => {
+            const data = `data: ${JSON.stringify(progress)}\n\n`;
+            controller.enqueue(new TextEncoder().encode(data));
+
+            if (progress.type === "complete" || progress.type === "error") {
+              controller.close();
+            }
+          },
+        ).catch((error) => {
+          const errorData = `data: ${JSON.stringify({
+            type: "error",
+            error: error.message,
+          } satisfies ApplyProgressUpdate)}\n\n`;
+          controller.enqueue(new TextEncoder().encode(errorData));
+          controller.close();
+        });
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
+      },
+    });
+  } catch (error) {
+    return new Response(
+      JSON.stringify({
+        error: error instanceof Error ? error.message : "Unknown error",
+      }),
+      { status: 500, headers: { "Content-Type": "application/json" } },
+    );
+  }
+}
+
+type ProgressCallback = (progress: ApplyProgressUpdate) => void;
+
+const getMemberWithDiffAndApplyWithProgress = async (
+  nsId: TNamespaceId,
+  requestBody: TMemberWithDiff[],
+  onProgress: ProgressCallback,
+): Promise<void> => {
+  try {
+    // Stage 1: 共通の差分計算を使用
+    const calculatedDiff = await getMemberWithDiffWithProgress(
+      nsId,
+      (commonProgress) => {
+        // 差分計算段階の進捗を適用用に変換
+        if (commonProgress.type === "progress") {
+          const stage = commonProgress.stage;
+          onProgress(convertToApplyProgress(commonProgress, stage));
+        }
+        // complete時は何もしない（次の段階に進む）
+        if (commonProgress.type === "error") {
+          onProgress(
+            convertToApplyProgress(commonProgress, "fetching_members"),
+          );
+        }
+      },
+    );
+
+    // Stage 2: 差分検証
+    onProgress({
+      type: "progress",
+      stage: "applying_changes",
+      services: {
+        validation: {
+          status: "in_progress",
+          current: 0,
+          total: APPLY_VALIDATION_STAGES.TOTAL,
+          message: PROGRESS_MESSAGES.DIFF_VALIDATING,
+        },
+      },
+    });
+
+    if (!compareDiff(calculatedDiff, requestBody)) {
+      onProgress({
+        type: "error",
+        error: "Invalid request body - diff mismatch",
+      });
+      return;
     }
 
-    const result = await applyDiff(params.nsId, requestBody);
+    onProgress({
+      type: "progress",
+      stage: "applying_changes",
+      services: {
+        validation: {
+          status: "completed",
+          current: APPLY_VALIDATION_STAGES.COMPLETE,
+          total: APPLY_VALIDATION_STAGES.TOTAL,
+          message: PROGRESS_MESSAGES.DIFF_VALIDATION_COMPLETE,
+        },
+      },
+    });
 
-    return {
-      status: "success",
-      result,
-    };
-  },
-);
-
-const getMemberWithDiff = async (
-  nsId: TNamespaceId,
-): Promise<TMemberWithDiff[]> => {
-  const members = await getMembersWithRelation(nsId);
-  const mappings = (
-    await getExternalServiceGroupRoleMappingsByNamespaceId(nsId)
-  ).map(convertTSerializedMappingToTMapping);
-  const groups = await getExternalServiceGroups(nsId);
-  const targetGroups = extractTargetGroups(groups, mappings);
-  const groupMembers = await Promise.all(
-    targetGroups.map(async (targetGroup) => {
-      const group = groups.find(
-        (group) =>
-          group.account.id === targetGroup.serviceAccountId &&
-          group.id === targetGroup.serviceGroupId,
-      );
-      if (!group) {
-        throw new Error("Group not found");
-      }
-      const groupMembers = await getMembers(group);
-      return {
-        serviceAccountId: targetGroup.serviceAccountId,
-        serviceGroupId: targetGroup.serviceGroupId,
-        members: groupMembers,
-        service: group.service,
-      };
-    }),
-  );
-  return calculateDiff(members, mappings, groupMembers, groups);
+    // Stage 3: 差分適用with進捗
+    await applyDiffWithProgress(nsId, requestBody, onProgress);
+  } catch (error) {
+    onProgress({
+      type: "error",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
 };

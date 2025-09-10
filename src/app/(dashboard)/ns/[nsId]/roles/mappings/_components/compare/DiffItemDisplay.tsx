@@ -3,7 +3,7 @@ import { ServiceGroupRoleDisplay } from "@/app/(dashboard)/ns/[nsId]/components/
 import type {
   ApplyDiffResultItem,
   ApplyDiffResultStatus,
-} from "@/app/api/ns/[nsId]/mappings/apply/applyDiff";
+} from "@/app/api/ns/[nsId]/mappings/apply/applyDiffWithProgress";
 import type { TDiffItem } from "@/types/diff";
 import type { FC } from "react";
 import { TbCheck, TbMinus, TbX } from "react-icons/tb";

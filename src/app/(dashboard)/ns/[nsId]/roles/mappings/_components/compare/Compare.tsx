@@ -1,4 +1,4 @@
-import type { ApplyDiffResult } from "@/app/api/ns/[nsId]/mappings/apply/applyDiff";
+import type { ApplyDiffResult } from "@/app/api/ns/[nsId]/mappings/apply/applyDiffWithProgress";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,7 +9,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import type { TNamespaceId } from "@/types/prisma";
-import { type FC, useCallback, useState } from "react";
+import { type FC, useCallback, useRef, useState } from "react";
 import { DiffList } from "./DiffList";
 import { MappingDiffList } from "./MappingDiffList";
 
@@ -22,13 +22,21 @@ export const Compare: FC<Props> = ({ nsId }) => {
   const [applyResult, setApplyResult] = useState<ApplyDiffResult[] | undefined>(
     [],
   );
+  const diffModalBusyRef = useRef<boolean | undefined>(false);
   const onApplyResult = useCallback((result: ApplyDiffResult[]) => {
     setIsDiffModalOpen(false);
     setApplyResult(result);
   }, []);
   return (
     <>
-      <Dialog open={isDiffModalOpen} onOpenChange={setIsDiffModalOpen}>
+      <Dialog
+        open={isDiffModalOpen}
+        onOpenChange={(open) => {
+          // 進行中は閉じる要求を無視する
+          if (!open && diffModalBusyRef.current) return;
+          setIsDiffModalOpen(open);
+        }}
+      >
         <DialogTrigger asChild>
           <Button>差分を表示</Button>
         </DialogTrigger>
@@ -38,7 +46,12 @@ export const Compare: FC<Props> = ({ nsId }) => {
           </DialogHeader>
           <div className="p-4 overflow-y-auto h-full">
             {isDiffModalOpen && (
-              <DiffList nsId={nsId} onApplyResult={onApplyResult} />
+              <DiffList
+                nsId={nsId}
+                onApplyResult={onApplyResult}
+                isOpen={isDiffModalOpen}
+                busyRef={diffModalBusyRef}
+              />
             )}
           </div>
         </DialogContent>

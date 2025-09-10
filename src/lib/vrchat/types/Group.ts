@@ -7,4 +7,5 @@ export const ZVRCGroup = z.object({
   name: z.string(),
   iconUrl: z.string().optional(),
   myMember: ZVRCGroupMember.omit({ user: true }),
+  memberCount: z.number().optional(),
 });

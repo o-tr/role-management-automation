@@ -8,6 +8,7 @@ export const ZDiscordGuild = z.object({
   id: ZDiscordGuildId,
   name: z.string(),
   icon: z.string().optional(),
+  approximate_member_count: z.number().optional(),
 });
 export type DiscordGuild = z.infer<typeof ZDiscordGuild>;
 

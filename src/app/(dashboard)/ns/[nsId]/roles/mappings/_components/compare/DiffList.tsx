@@ -1,47 +1,161 @@
-import { DataTable } from "@/app/(dashboard)/ns/[nsId]/components/DataTable";
-import { MemberExternalAccountDisplay } from "@/app/(dashboard)/ns/[nsId]/components/MemberExternalAccountDisplay";
-import type { ApplyDiffResult } from "@/app/api/ns/[nsId]/mappings/apply/applyDiff";
+import type {
+  ApplyDiffResult,
+  ApplyProgressUpdate,
+} from "@/app/api/ns/[nsId]/mappings/apply/applyDiffWithProgress";
 import { Button } from "@/components/ui/button";
-import { TMemberWithDiff } from "@/types/diff";
+import { makeDiffKeyFromItem } from "@/lib/diffKey";
+import type {
+  TExtendedDiffItem,
+  TExtendedMemberWithDiff,
+  TMemberWithDiff,
+} from "@/types/diff";
 import type { TNamespaceId } from "@/types/prisma";
-import type { ColumnDef, RowModel } from "@tanstack/react-table";
-import { type FC, useCallback, useState } from "react";
-import { DIffItemDisplay } from "./DiffItemDisplay";
+import {
+  type FC,
+  type MutableRefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+} from "react";
 import { MappingDiffList } from "./MappingDiffList";
-import { useApplyDiff } from "./_hooks/use-apply-diff";
-import { useCompare } from "./_hooks/useCompare";
+import { ProgressDisplay } from "./ProgressDisplay";
+import { useApplyDiffSSE } from "./_hooks/use-apply-diff-sse";
+import { useCompareSSE } from "./_hooks/use-compare-sse";
+
+// Pure helper: map compareState.diff with apply progress to inject per-diff status/reason
+export const mapDiffWithProgress = (
+  members: TMemberWithDiff[],
+  progress?: ApplyProgressUpdate,
+): TExtendedMemberWithDiff[] => {
+  if (!progress || progress.type !== "progress") {
+    // progress がない場合は、元の diff をそのまま拡張型として返す
+    return members.map((member) => ({
+      ...member,
+      diff: member.diff.map((d) => ({ ...d }) as TExtendedDiffItem),
+    }));
+  }
+
+  const services = progress.services;
+
+  return members.map((memberWithDiff, mi) => {
+    const newDiff: TExtendedDiffItem[] = memberWithDiff.diff.map((d, di) => {
+      const key = makeDiffKeyFromItem(mi, di, d);
+      const svc = services[key];
+
+      const extendedDiff: TExtendedDiffItem = { ...d };
+
+      if (svc) {
+        if (svc.status === "error") {
+          extendedDiff.status = "error";
+          if (svc.error) extendedDiff.reason = svc.error;
+        } else if (svc.status === "skipped") {
+          extendedDiff.status = "skipped";
+          if (svc.error) extendedDiff.reason = svc.error;
+          else if (svc.message) extendedDiff.reason = svc.message;
+        } else if (svc.status === "completed") {
+          extendedDiff.status = "success";
+        }
+      }
+
+      return extendedDiff;
+    });
+
+    return { ...memberWithDiff, diff: newDiff };
+  });
+};
 
 type Props = {
   nsId: TNamespaceId;
   onApplyResult?: (result: ApplyDiffResult[]) => void;
+  isOpen: boolean;
+  busyRef?: React.MutableRefObject<boolean | undefined>;
 };
 
-export const DiffList: FC<Props> = ({ nsId, onApplyResult }) => {
-  const { isPending, diff, refetch } = useCompare(nsId);
-  const { applyDiff, isPending: isApplying } = useApplyDiff(nsId);
+export const DiffList: FC<Props> = ({
+  nsId,
+  onApplyResult,
+  isOpen,
+  busyRef,
+}) => {
+  const compareState = useCompareSSE(nsId);
+  const applyState = useApplyDiffSSE<ApplyDiffResult[]>(nsId);
+
+  // メモ化された差分データ（パフォーマンス最適化）
+  const memoizedDiffWithProgress = useMemo(() => {
+    return mapDiffWithProgress(compareState.diff, applyState.progress);
+  }, [compareState.diff, applyState.progress]);
+  // busyRef が渡されていれば apply の状態を反映
+  useEffect(() => {
+    if (!busyRef) return;
+    busyRef.current = applyState.isPending;
+    return () => {
+      // unmount 時は undefined に戻す
+      busyRef.current = undefined;
+    };
+  }, [applyState.isPending, busyRef]);
+
+  // モーダルが開いたときに差分取得を開始（apply処理中でない場合のみ）
+  useEffect(() => {
+    if (
+      isOpen &&
+      !compareState.isPending &&
+      !applyState.isPending &&
+      compareState.diff.length === 0
+    ) {
+      compareState.startCompare();
+    }
+  }, [
+    isOpen,
+    compareState.isPending,
+    applyState.isPending,
+    compareState.diff.length,
+    compareState.startCompare,
+  ]);
 
   const onButtonClick = useCallback(async () => {
-    const result = await applyDiff(diff);
-    if (result.status === "success") {
+    const result = await applyState.applyDiff(compareState.diff);
+    if (result.status === "success" && result.result) {
       onApplyResult?.(result.result);
-      refetch();
+      // 適用完了後に差分を再取得
+      compareState.refetch();
     }
-  }, [diff, refetch, onApplyResult, applyDiff]);
-
-  if (isPending) {
-    return <div>Loading...</div>;
-  }
+  }, [
+    compareState.diff,
+    compareState.refetch,
+    onApplyResult,
+    applyState.applyDiff,
+  ]);
 
   return (
-    <div className="flex flex-col gap-2">
-      <MappingDiffList data={diff} />
+    <div className="flex flex-col gap-4">
+      {applyState.isPending ? (
+        applyState.progress ? (
+          // applyState.progress の stage によって表示を切り替える
+          applyState.progress.type === "progress" &&
+          (applyState.progress.stage === "fetching_members" ||
+            applyState.progress.stage === "calculating_diff") ? (
+            // getMemberWithDiffWithProgress 実行中は従来の ProgressDisplay を表示
+            <ProgressDisplay progress={applyState.progress} title="差分取得" />
+          ) : (
+            // それ以外（主に applying_changes）は差分リストに適用状況を注入して表示
+            <MappingDiffList data={memoizedDiffWithProgress} />
+          )
+        ) : (
+          <div className="flex flex-col gap-4">
+            <div>差分を適用しています...</div>
+          </div>
+        )
+      ) : (
+        <MappingDiffList data={compareState.diff} />
+      )}
+
       <div>
         <Button
           type="button"
           onClick={onButtonClick}
-          disabled={isApplying || diff.length === 0}
+          disabled={applyState.isPending || compareState.diff.length === 0}
         >
-          {isApplying ? "反映しています..." : "反映"}
+          {applyState.isPending ? "反映しています..." : "反映"}
         </Button>
       </div>
     </div>
