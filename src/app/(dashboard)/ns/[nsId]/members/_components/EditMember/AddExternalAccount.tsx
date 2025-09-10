@@ -39,6 +39,11 @@ export const AddExternalAccount: FC<{
     ["VRCHAT", "DISCORD", "GITHUB"] as ExternalServiceName[]
   ).filter((s) => !usedServices.includes(s));
 
+  const resetForm = () => {
+    setAddAccountService("VRCUserId");
+    setAddAccountValue("");
+  };
+
   const onConfirm = (data: ResolveResult) => {
     setMember((pv) => {
       const nv = structuredClone(pv);
@@ -54,8 +59,7 @@ export const AddExternalAccount: FC<{
       });
       return nv;
     });
-    setAddAccountService("VRCUserId");
-    setAddAccountValue("");
+    resetForm();
   };
 
   return (
@@ -76,6 +80,7 @@ export const AddExternalAccount: FC<{
           service={addAccountService}
           value={addAccountValue}
           onConfirm={onConfirm}
+          onCancel={resetForm}
           disabled={disabled}
         />
       )}
@@ -88,8 +93,9 @@ const AddExternalAccountPreview: FC<{
   service: TResolveRequestType;
   value: string;
   onConfirm: (data: ResolveResult) => void;
+  onCancel: () => void;
   disabled: boolean;
-}> = ({ service, value, onConfirm, nsId, disabled }) => {
+}> = ({ service, value, onConfirm, onCancel, nsId, disabled }) => {
   const [result, setResult] = useState<ResolveResult | null>(null);
   const onConfirmClick = () => {
     if (!result) return;
@@ -105,6 +111,9 @@ const AddExternalAccountPreview: FC<{
       />
       <Button onClick={onConfirmClick} disabled={!result || disabled}>
         追加
+      </Button>
+      <Button variant="outline" onClick={onCancel} disabled={disabled}>
+        キャンセル
       </Button>
     </div>
   );
