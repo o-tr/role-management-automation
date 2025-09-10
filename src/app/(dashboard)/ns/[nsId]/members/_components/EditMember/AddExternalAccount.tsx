@@ -76,6 +76,10 @@ export const AddExternalAccount: FC<{
           service={addAccountService}
           value={addAccountValue}
           onConfirm={onConfirm}
+          onCancel={() => {
+            setAddAccountService("VRCUserId");
+            setAddAccountValue("");
+          }}
           disabled={disabled}
         />
       )}
@@ -88,8 +92,9 @@ const AddExternalAccountPreview: FC<{
   service: TResolveRequestType;
   value: string;
   onConfirm: (data: ResolveResult) => void;
+  onCancel: () => void;
   disabled: boolean;
-}> = ({ service, value, onConfirm, nsId, disabled }) => {
+}> = ({ service, value, onConfirm, onCancel, nsId, disabled }) => {
   const [result, setResult] = useState<ResolveResult | null>(null);
   const onConfirmClick = () => {
     if (!result) return;
@@ -105,6 +110,9 @@ const AddExternalAccountPreview: FC<{
       />
       <Button onClick={onConfirmClick} disabled={!result || disabled}>
         追加
+      </Button>
+      <Button variant="outline" onClick={onCancel} disabled={disabled}>
+        キャンセル
       </Button>
     </div>
   );

@@ -1,4 +1,8 @@
-export class AccountNotFoundError extends Error {
+import { BaseException } from "./BaseException";
+
+export class AccountNotFoundError extends BaseException {
+  public statusCode = 404;
+
   constructor(
     public readonly service: string,
     public readonly accountId: string,
