@@ -39,6 +39,11 @@ export const AddExternalAccount: FC<{
     ["VRCHAT", "DISCORD", "GITHUB"] as ExternalServiceName[]
   ).filter((s) => !usedServices.includes(s));
 
+  const resetForm = () => {
+    setAddAccountService("VRCUserId");
+    setAddAccountValue("");
+  };
+
   const onConfirm = (data: ResolveResult) => {
     setMember((pv) => {
       const nv = structuredClone(pv);
@@ -54,8 +59,7 @@ export const AddExternalAccount: FC<{
       });
       return nv;
     });
-    setAddAccountService("VRCUserId");
-    setAddAccountValue("");
+    resetForm();
   };
 
   return (
@@ -76,10 +80,7 @@ export const AddExternalAccount: FC<{
           service={addAccountService}
           value={addAccountValue}
           onConfirm={onConfirm}
-          onCancel={() => {
-            setAddAccountService("VRCUserId");
-            setAddAccountValue("");
-          }}
+          onCancel={resetForm}
           disabled={disabled}
         />
       )}
