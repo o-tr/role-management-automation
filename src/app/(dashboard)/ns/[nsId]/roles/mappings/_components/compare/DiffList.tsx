@@ -39,22 +39,15 @@ export const mapDiffWithProgress = (
       const extendedDiff: TExtendedDiffItem = { ...d };
 
       if (svc) {
-        if (svc.status === "completed" && svc.success && svc.success > 0) {
-          extendedDiff.status = "success";
-        } else if (svc.status === "error") {
+        if (svc.status === "error") {
           extendedDiff.status = "error";
           if (svc.error) extendedDiff.reason = svc.error;
-        } else if (
-          svc.status === "completed" &&
-          svc.current === 1 &&
-          !svc.success &&
-          !svc.errors
-        ) {
-          extendedDiff.status = "success";
         } else if (svc.status === "skipped") {
           extendedDiff.status = "skipped";
           if (svc.error) extendedDiff.reason = svc.error;
           else if (svc.message) extendedDiff.reason = svc.message;
+        } else if (svc.status === "completed") {
+          extendedDiff.status = "success";
         }
       }
 
