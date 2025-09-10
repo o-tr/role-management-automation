@@ -31,6 +31,7 @@ export const createOrUpdateMember = async (
   namespaceId: TNamespaceId,
   members: TCreateOrUpdateMembers,
   tagAppendOnly = false,
+  externalAccountsPartialUpdate = false,
 ): Promise<{ id: TMemberId }[]> => {
   const results = await prisma.$transaction(async () => {
     return await Promise.all(
@@ -53,6 +54,7 @@ export const createOrUpdateMember = async (
                   : undefined,
               },
               tagAppendOnly,
+              externalAccountsPartialUpdate,
             )
           : createMember(namespaceId, {
               tags: member.tags,
