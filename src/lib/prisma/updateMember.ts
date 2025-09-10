@@ -42,6 +42,7 @@ export const updateMember = async (
   id: TMemberId,
   data: TMemberUpdateInput,
   tagAppendOnly = false,
+  externalAccountsPartialUpdate = false,
 ): Promise<TMemberWithRelation> => {
   const result = await prisma.$transaction(async () => {
     const member = await getMemberWithRelation(nsId, id);
@@ -55,11 +56,14 @@ export const updateMember = async (
             a.service === account.service && a.serviceId === account.serviceId,
         );
         if (!newAccount) {
-          await prisma.memberExternalServiceAccount.delete({
-            where: {
-              id: account.id,
-            },
-          });
+          // Only delete existing accounts if we're doing a full replacement (not partial update)
+          if (!externalAccountsPartialUpdate) {
+            await prisma.memberExternalServiceAccount.delete({
+              where: {
+                id: account.id,
+              },
+            });
+          }
         } else {
           await prisma.memberExternalServiceAccount.update({
             where: {

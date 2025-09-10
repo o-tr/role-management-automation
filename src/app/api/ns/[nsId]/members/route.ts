@@ -34,7 +34,7 @@ export const POST = api(
 
     const body = ZCreateOrUpdateMembers.parse(await req.json());
 
-    const members = await createOrUpdateMember(params.nsId, body, true);
+    const members = await createOrUpdateMember(params.nsId, body, true, true);
 
     return {
       status: "success",
