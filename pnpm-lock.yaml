@@ -15,7 +15,7 @@ importers:
         specifier: latest
         version: 1.0.7(@prisma/client@6.1.0(prisma@6.1.0))(next-auth@4.24.11(next@14.2.16(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1))
       '@prisma/client':
-        specifier: latest
+        specifier: ^6.1.0
         version: 6.1.0(prisma@6.1.0)
       '@radix-ui/react-accordion':
         specifier: ^1.2.2
