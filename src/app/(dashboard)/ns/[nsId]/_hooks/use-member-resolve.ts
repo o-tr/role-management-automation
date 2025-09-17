@@ -5,7 +5,7 @@ import type {
 import pLimit from "p-limit";
 import useSWR from "swr";
 
-const limit = pLimit(1);
+const limit = pLimit(5);
 
 const fetcher = (url: string) =>
   limit(() => fetch(url).then((res) => res.json()));
