@@ -82,8 +82,14 @@ export async function generateMemberPreviewCsv(args: {
         memory.set(requestUrl, json);
         return json.item;
       }
-    } catch (_e) {
-      // noop
+    } catch (e) {
+      console.error("generateMemberPreviewCsv.ensureResolved: fetch failed", {
+        requestUrl,
+        nsId,
+        key,
+        value,
+        error: e,
+      });
     }
     return undefined;
   };
