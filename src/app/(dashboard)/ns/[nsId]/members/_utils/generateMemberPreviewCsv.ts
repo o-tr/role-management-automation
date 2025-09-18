@@ -62,6 +62,13 @@ export async function generateMemberPreviewCsv(args: {
 
   const memory = new Map<string, ResolveResponse>();
   const limit = pLimit(5);
+  const memberIdToTagsLabel = new Map<string, string>();
+  if (members) {
+    for (const m of members) {
+      const label = m.tags?.length ? m.tags.map((t) => t.name).join("; ") : "";
+      memberIdToTagsLabel.set(m.id, label);
+    }
+  }
 
   const ensureResolved = async (
     key: TKeys,
@@ -152,11 +159,8 @@ export async function generateMemberPreviewCsv(args: {
     }
     // 紐づくタグ
     let tagsLabel = "";
-    if (associatedMemberId && members) {
-      const m = members.find((mm) => mm.id === associatedMemberId);
-      if (m?.tags?.length) {
-        tagsLabel = m.tags.map((t) => t.name).join("; ");
-      }
+    if (associatedMemberId) {
+      tagsLabel = memberIdToTagsLabel.get(associatedMemberId) ?? "";
     }
     csvRow.push(escapeCsv(tagsLabel));
     return csvRow.join(",");
