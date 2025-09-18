@@ -54,6 +54,36 @@ export const MemberPreviewTable: FC<Props> = ({
   const { members } = useMembers(nsId);
   const [exporting, setExporting] = useState(false);
   const { toast } = useToast();
+
+  const handleExportCsv = async () => {
+    setExporting(true);
+    try {
+      const csvContent = await generateMemberPreviewCsv({
+        nsId,
+        data,
+        keys,
+        members,
+      });
+      const blob = new Blob([csvContent], {
+        type: "text/csv;charset=utf-8;",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "member-preview.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error(e);
+      toast({
+        title: "CSV生成に失敗しました",
+        description: "しばらくしてから再度お試しください。",
+        variant: "destructive",
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
   const data = useMemo(() => {
     return data_.map((row) => {
       return {
@@ -162,35 +192,7 @@ export const MemberPreviewTable: FC<Props> = ({
             <Button
               className="ml-2"
               variant="outline"
-              onClick={async () => {
-                setExporting(true);
-                try {
-                  const csvContent = await generateMemberPreviewCsv({
-                    nsId,
-                    data,
-                    keys,
-                    members,
-                  });
-                  const blob = new Blob([csvContent], {
-                    type: "text/csv;charset=utf-8;",
-                  });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement("a");
-                  a.href = url;
-                  a.download = "member-preview.csv";
-                  a.click();
-                  URL.revokeObjectURL(url);
-                } catch (e) {
-                  console.error(e);
-                  toast({
-                    title: "CSV生成に失敗しました",
-                    description: "しばらくしてから再度お試しください。",
-                    variant: "destructive",
-                  });
-                } finally {
-                  setExporting(false);
-                }
-              }}
+              onClick={handleExportCsv}
               disabled={disabled || exporting}
             >
               {exporting ? "CSVを生成中..." : "CSVをダウンロード"}
