@@ -1,5 +1,4 @@
 import type {
-  ResolveResponse,
   ResolveResult,
   TResolveRequestType,
 } from "@/app/api/ns/[nsId]/members/resolve/[type]/[serviceId]/route";
@@ -164,14 +163,11 @@ export const MemberPreviewTable: FC<Props> = ({
               onClick={async () => {
                 setExporting(true);
                 try {
-                  const cacheMap = new Map<string, ResolveResponse>();
                   const csvContent = await generateMemberPreviewCsv({
                     nsId,
                     data,
                     keys,
                     members,
-                    getCached: (key) => cacheMap.get(key),
-                    setCached: (key, value) => cacheMap.set(key, value),
                   });
                   const blob = new Blob([csvContent], {
                     type: "text/csv;charset=utf-8;",

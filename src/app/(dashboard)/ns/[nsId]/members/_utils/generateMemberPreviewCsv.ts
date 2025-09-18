@@ -57,10 +57,8 @@ export async function generateMemberPreviewCsv(args: {
   data: RowObject[];
   keys: TKeys[];
   members: TMemberWithRelation[] | undefined;
-  getCached: (key: string) => ResolveResponse | undefined;
-  setCached: (key: string, value: ResolveResponse) => void;
 }): Promise<string> {
-  const { nsId, data, keys, members, getCached, setCached } = args;
+  const { nsId, data, keys, members } = args;
 
   const memory = new Map<string, ResolveResponse>();
   const limit = pLimit(5);
@@ -77,17 +75,11 @@ export async function generateMemberPreviewCsv(args: {
     if (inMem?.status === "success") {
       return inMem.item;
     }
-    const cached = getCached(requestUrl);
-    if (cached?.status === "success") {
-      memory.set(requestUrl, cached);
-      return cached.item;
-    }
     try {
       const res = await limit(() => fetch(requestUrl));
       const json: ResolveResponse = await res.json();
       if (json?.status === "success") {
         memory.set(requestUrl, json);
-        setCached(requestUrl, json);
         return json.item;
       }
     } catch (_e) {
