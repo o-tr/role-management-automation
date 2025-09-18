@@ -11,36 +11,53 @@ import type { RowObject } from "../_components/AddPastedMembers";
 type TKeys = TResolveRequestType | "unknown";
 type Status = "登録済み" | "存在する" | "存在しない";
 
-const valueHeaderLabel = (key: TKeys): string => {
-  switch (key) {
-    case "VRCUserId":
-      return "vrchat id";
-    case "DiscordUserId":
-      return "discord id";
-    case "DiscordUsername":
-      return "discord username";
-    case "GitHubUserId":
-      return "github id";
-    case "GitHubUsername":
-      return "github username";
-    case "unknown":
-      return "unknown";
-  }
+type ExtraColumn = {
+  header: string;
+  getValue: (item?: ResolveResult) => string;
 };
 
-const statusHeaderLabel = (key: TKeys): string | undefined => {
-  switch (key) {
-    case "VRCUserId":
-      return "vrchat accountの存在";
-    case "DiscordUserId":
-    case "DiscordUsername":
-      return "discord accountの存在";
-    case "GitHubUserId":
-    case "GitHubUsername":
-      return "github accountの存在";
-    default:
-      return undefined;
-  }
+type ColumnConfig = {
+  valueHeader: string;
+  statusHeader?: string;
+  extraColumns?: ExtraColumn[];
+};
+
+const columnConfigs: Record<TKeys, ColumnConfig> = {
+  VRCUserId: {
+    valueHeader: "vrchat id",
+    statusHeader: "vrchat accountの存在",
+    extraColumns: [
+      {
+        header: "vrchat username",
+        getValue: (item) => item?.name ?? "",
+      },
+    ],
+  },
+  DiscordUserId: {
+    valueHeader: "discord id",
+    statusHeader: "discord accountの存在",
+    extraColumns: [
+      { header: "discord display name", getValue: (item) => item?.name ?? "" },
+    ],
+  },
+  DiscordUsername: {
+    valueHeader: "discord username",
+    statusHeader: "discord accountの存在",
+    extraColumns: [
+      { header: "discord display name", getValue: (item) => item?.name ?? "" },
+    ],
+  },
+  GitHubUserId: {
+    valueHeader: "github id",
+    statusHeader: "github accountの存在",
+  },
+  GitHubUsername: {
+    valueHeader: "github username",
+    statusHeader: "github accountの存在",
+  },
+  unknown: {
+    valueHeader: "unknown",
+  },
 };
 
 const escapeCsv = (val: string) => {
@@ -115,12 +132,12 @@ export async function generateMemberPreviewCsv(args: {
   // ヘッダー作成
   const headers: string[] = [];
   for (const k of keys) {
-    headers.push(valueHeaderLabel(k));
-    if (k === "VRCUserId") headers.push("vrchat username");
-    if (k === "DiscordUserId" || k === "DiscordUsername")
-      headers.push("discord display name");
-    const h = statusHeaderLabel(k);
-    if (h) headers.push(h);
+    const cfg = columnConfigs[k];
+    headers.push(cfg.valueHeader);
+    if (cfg.extraColumns) {
+      for (const extra of cfg.extraColumns) headers.push(extra.header);
+    }
+    if (cfg.statusHeader) headers.push(cfg.statusHeader);
   }
   headers.push("紐づくタグ");
 
@@ -138,12 +155,11 @@ export async function generateMemberPreviewCsv(args: {
           | ResolveResult
           | undefined;
         const item = await ensureResolved(key, value, existing);
-        if (
-          key === "VRCUserId" ||
-          key === "DiscordUserId" ||
-          key === "DiscordUsername"
-        ) {
-          csvRow.push(escapeCsv(item?.name || ""));
+        const cfg = columnConfigs[key];
+        if (cfg.extraColumns) {
+          for (const extra of cfg.extraColumns) {
+            csvRow.push(escapeCsv(extra.getValue(item)));
+          }
         }
         const { status, memberId } = resolveStatus(item);
         if (!associatedMemberId && memberId) associatedMemberId = memberId;
