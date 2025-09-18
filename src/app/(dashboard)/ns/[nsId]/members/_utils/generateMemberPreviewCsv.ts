@@ -76,6 +76,10 @@ export async function generateMemberPreviewCsv(args: {
   ): Promise<ResolveResult | undefined> => {
     if (key === "unknown") return undefined;
     if (existing) return existing;
+    if (key === "VRCUserId") {
+      const parsed = ZVRCUserId.safeParse(value);
+      if (!parsed.success) return undefined;
+    }
     const requestUrl = urlFor(nsId, key as TResolveRequestType, value);
     const inMem = memory.get(requestUrl);
     if (inMem?.status === "success") {
@@ -100,22 +104,12 @@ export async function generateMemberPreviewCsv(args: {
     return undefined;
   };
 
-  const resolveStatus = async (
-    key: TKeys,
-    value: string,
-    existing?: ResolveResult,
-  ): Promise<{ status: Status; memberId?: string }> => {
-    if (key === "unknown") return { status: "存在しない" };
-    if (!existing && key === "VRCUserId") {
-      const parsed = ZVRCUserId.safeParse(value);
-      if (!parsed.success) return { status: "存在しない" };
-    }
-    const item = await ensureResolved(key, value, existing);
-    if (item) {
-      if (item.memberId) return { status: "登録済み", memberId: item.memberId };
-      return { status: "存在する" };
-    }
-    return { status: "存在しない" };
+  const resolveStatus = (
+    item?: ResolveResult,
+  ): { status: Status; memberId?: string } => {
+    if (!item) return { status: "存在しない" };
+    if (item.memberId) return { status: "登録済み", memberId: item.memberId };
+    return { status: "存在する" };
   };
 
   // ヘッダー作成
@@ -143,15 +137,15 @@ export async function generateMemberPreviewCsv(args: {
         const existing = ("data" in cell ? cell.data : undefined) as
           | ResolveResult
           | undefined;
+        const item = await ensureResolved(key, value, existing);
         if (
           key === "VRCUserId" ||
           key === "DiscordUserId" ||
           key === "DiscordUsername"
         ) {
-          const item = await ensureResolved(key, value, existing);
           csvRow.push(escapeCsv(item?.name || ""));
         }
-        const { status, memberId } = await resolveStatus(key, value, existing);
+        const { status, memberId } = resolveStatus(item);
         if (!associatedMemberId && memberId) associatedMemberId = memberId;
         csvRow.push(escapeCsv(status));
       }
