@@ -68,7 +68,7 @@ export const GET = api(
 
 export type ResolveResult = {
   memberId?: TMemberId;
-  name: string;
+  name: string | null;
   icon?: string;
   service: ExternalServiceName;
   serviceId: string;
