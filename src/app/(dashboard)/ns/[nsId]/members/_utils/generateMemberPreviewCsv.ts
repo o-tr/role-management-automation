@@ -126,9 +126,7 @@ export async function generateMemberPreviewCsv(args: {
   }
   headers.push("紐づくタグ");
 
-  const rows: string[] = [headers.map(escapeCsv).join(",")];
-
-  for (const row of data) {
+  const rowPromises = data.map(async (row) => {
     const csvRow: string[] = [];
     let associatedMemberId: string | undefined;
     for (let i = 0; i < keys.length; i++) {
@@ -163,8 +161,13 @@ export async function generateMemberPreviewCsv(args: {
       }
     }
     csvRow.push(escapeCsv(tagsLabel));
-    rows.push(csvRow.join(","));
-  }
+    return csvRow.join(",");
+  });
+
+  const rows: string[] = [
+    headers.map(escapeCsv).join(","),
+    ...(await Promise.all(rowPromises)),
+  ];
 
   return rows.join("\n");
 }
