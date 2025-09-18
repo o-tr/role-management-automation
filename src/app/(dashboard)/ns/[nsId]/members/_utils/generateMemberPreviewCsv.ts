@@ -44,8 +44,7 @@ const statusHeaderLabel = (key: TKeys): string | undefined => {
 };
 
 const escapeCsv = (val: string) => {
-  const s = val ?? "";
-  const escaped = s.replace(/"/g, '""');
+  const escaped = val.replace(/"/g, '""');
   return `"${escaped}"`;
 };
 
