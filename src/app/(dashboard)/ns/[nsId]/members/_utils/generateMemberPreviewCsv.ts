@@ -5,6 +5,7 @@ import type {
 } from "@/app/api/ns/[nsId]/members/resolve/[type]/[serviceId]/route";
 import { ZVRCUserId } from "@/lib/vrchat/types/brand";
 import type { TMemberWithRelation } from "@/types/prisma";
+import pLimit from "p-limit";
 import type { RowObject } from "../_components/AddPastedMembers";
 
 type TKeys = TResolveRequestType | "unknown";
@@ -62,6 +63,7 @@ export async function generateMemberPreviewCsv(args: {
   const { nsId, data, keys, members, getCached, setCached } = args;
 
   const memory = new Map<string, ResolveResponse>();
+  const limit = pLimit(5);
 
   const ensureResolved = async (
     key: TKeys,
@@ -81,7 +83,7 @@ export async function generateMemberPreviewCsv(args: {
       return cached.item;
     }
     try {
-      const res = await fetch(requestUrl);
+      const res = await limit(() => fetch(requestUrl));
       const json: ResolveResponse = await res.json();
       if (json?.status === "success") {
         memory.set(requestUrl, json);
