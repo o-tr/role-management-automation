@@ -51,7 +51,7 @@ export const MemberPreviewTable: FC<Props> = ({
   setData,
   disabled,
 }) => {
-  const { members } = useMembers(nsId);
+  const { members, isPending: isMembersPending } = useMembers(nsId);
   const [exporting, setExporting] = useState(false);
   const { toast } = useToast();
 
@@ -193,9 +193,13 @@ export const MemberPreviewTable: FC<Props> = ({
               className="ml-2"
               variant="outline"
               onClick={handleExportCsv}
-              disabled={disabled || exporting}
+              disabled={disabled || exporting || isMembersPending}
             >
-              {exporting ? "CSVを生成中..." : "CSVをダウンロード"}
+              {isMembersPending
+                ? "データ読込中..."
+                : exporting
+                  ? "CSVを生成中..."
+                  : "CSVをダウンロード"}
             </Button>
           </div>
         );
