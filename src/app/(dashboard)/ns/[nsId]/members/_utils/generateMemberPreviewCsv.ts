@@ -131,11 +131,11 @@ export async function generateMemberPreviewCsv(args: {
         const existing = ("data" in cell ? cell.data : undefined) as
           | ResolveResult
           | undefined;
-        if (key === "VRCUserId") {
-          const item = await ensureResolved(key, value, existing);
-          csvRow.push(escapeCsv(item?.name || ""));
-        }
-        if (key === "DiscordUserId" || key === "DiscordUsername") {
+        if (
+          key === "VRCUserId" ||
+          key === "DiscordUserId" ||
+          key === "DiscordUsername"
+        ) {
           const item = await ensureResolved(key, value, existing);
           csvRow.push(escapeCsv(item?.name || ""));
         }
