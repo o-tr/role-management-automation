@@ -4,6 +4,7 @@ import type {
 } from "@/app/api/ns/[nsId]/members/resolve/[type]/[serviceId]/route";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/components/ui/use-toast";
 import { ZVRCUserId } from "@/lib/vrchat/types/brand";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
@@ -52,6 +53,7 @@ export const MemberPreviewTable: FC<Props> = ({
 }) => {
   const { members } = useMembers(nsId);
   const [exporting, setExporting] = useState(false);
+  const { toast } = useToast();
   const data = useMemo(() => {
     return data_.map((row) => {
       return {
@@ -178,6 +180,13 @@ export const MemberPreviewTable: FC<Props> = ({
                   a.download = "member-preview.csv";
                   a.click();
                   URL.revokeObjectURL(url);
+                } catch (e) {
+                  console.error(e);
+                  toast({
+                    title: "CSV生成に失敗しました",
+                    description: "しばらくしてから再度お試しください。",
+                    variant: "destructive",
+                  });
                 } finally {
                   setExporting(false);
                 }
