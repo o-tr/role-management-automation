@@ -1,6 +1,6 @@
 {
   "name": "my-v0-project",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -94,6 +94,9 @@
     "typescript": "^5"
   },
   "pnpm": {
-    "onlyBuiltDependencies": ["@biomejs/biome", "lefthook"]
+    "onlyBuiltDependencies": [
+      "@biomejs/biome",
+      "lefthook"
+    ]
   }
 }
