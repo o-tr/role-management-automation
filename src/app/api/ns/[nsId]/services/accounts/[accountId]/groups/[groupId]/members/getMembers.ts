@@ -119,7 +119,7 @@ const getDiscordMembers = async (
     JSON.parse(group.account.credential),
   ).token;
   const members: DiscordGuildMember[] = [];
-  let maxUserId = 0;
+  let maxUserId = "0";
   let requestResult: DiscordGuildMember[];
   const processedUserIds = new Set<string>();
   let noChangeCount = 0;
@@ -144,7 +144,7 @@ const getDiscordMembers = async (
     }
 
     if (requestResult.length > 0) {
-      maxUserId = Number(requestResult[requestResult.length - 1].user.id);
+      maxUserId = requestResult[requestResult.length - 1].user.id;
     }
 
     // IDが変動しなかった場合のカウンターを更新

@@ -7,7 +7,7 @@ import type { DiscordToken } from "../types/token";
 
 type Options = {
   limit?: number;
-  after?: number;
+  after?: string;
 };
 
 export const listGuildMembers = async (
@@ -18,7 +18,7 @@ export const listGuildMembers = async (
   const query = new URLSearchParams(
     filterObject({
       limit: options.limit?.toString(),
-      after: options.after?.toString(),
+      after: options.after,
     } as Record<string, string>),
   );
   const response = await discordLimit(() =>
