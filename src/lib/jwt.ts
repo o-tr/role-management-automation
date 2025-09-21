@@ -52,14 +52,11 @@ export async function createDiffToken(
   const now = Math.floor(Date.now() / 1000);
   const exp = now + 3600; // 1時間後
 
-  const payload: DiffTokenPayload = {
+  return await new SignJWT({
     nsId,
     diff,
     timestamp: now,
-    exp,
-  };
-
-  return await new SignJWT(payload)
+  })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt(now)
     .setExpirationTime(exp)
