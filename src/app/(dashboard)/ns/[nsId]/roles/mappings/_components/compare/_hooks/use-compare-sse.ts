@@ -188,6 +188,8 @@ export const useCompareSSE = (nsId: TNamespaceId) => {
         token: undefined,
         progress: undefined,
       });
+      // リソースリークを防ぐため、controllerRefをクリア
+      controllerRef.current = null;
       return { status: "error", error: errorMessage };
     }
   }, [nsId]);
