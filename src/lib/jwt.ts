@@ -9,19 +9,19 @@ function validateJwtSecret(): Uint8Array {
 
   if (!jwtSecret) {
     if (isProduction) {
-      console.error(
-        "🚨 CRITICAL SECURITY ERROR: JWT_SECRET is not set or contains only whitespace in production environment!",
-      );
+      const errorMessage =
+        "JWT_SECRET is not set or contains only whitespace in production environment!";
+      console.error(`🚨 CRITICAL SECURITY ERROR: ${errorMessage}`);
       console.error(
         "This application cannot start without a secure JWT secret in production.",
       );
-      process.exit(1);
-    } else {
-      console.warn(
-        "⚠️  WARNING: JWT_SECRET is not set or contains only whitespace. Using fallback secret for development only.",
-      );
-      console.warn("This fallback secret should NEVER be used in production!");
+      throw new Error(errorMessage);
     }
+
+    console.warn(
+      "⚠️  WARNING: JWT_SECRET is not set or contains only whitespace. Using fallback secret for development only.",
+    );
+    console.warn("This fallback secret should NEVER be used in production!");
   }
 
   return new TextEncoder().encode(
