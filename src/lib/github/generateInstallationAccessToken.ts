@@ -39,7 +39,7 @@ export const generateInstallationAccessToken = async (
   if (!credentials.success) {
     throw new Error("Failed to parse credentials");
   }
-  const jwt = generateJWT(
+  const jwt = await generateJWT(
     credentials.data.clientId,
     credentials.data.privateKey,
   );
