@@ -1,4 +1,4 @@
-import { SignJWT } from "jose";
+import { SignJWT, importPKCS8 } from "jose";
 import type { GitHubAppClientId, GitHubAppClientSecret } from "./types/app";
 import type { GitHubJWTToken } from "./types/auth";
 
@@ -7,17 +7,18 @@ export const generateJWT = async (
   privateKey: GitHubAppClientSecret,
 ): Promise<GitHubJWTToken> => {
   const now = Math.floor(Date.now() / 1000);
-  const payload = {
-    iat: now - 60,
-    exp: now + 60 * 10,
-    iss: clientId,
-  };
+  const exp = now + 60 * 10;
 
-  const token = await new SignJWT(payload)
+  // RS256用の秘密鍵をCryptoKeyオブジェクトとしてインポート
+  const cryptoKey = await importPKCS8(privateKey, "RS256");
+
+  const token = await new SignJWT({
+    iss: clientId,
+  })
     .setProtectedHeader({ alg: "RS256" })
-    .setIssuedAt(payload.iat)
-    .setExpirationTime(payload.exp)
-    .sign(new TextEncoder().encode(privateKey));
+    .setIssuedAt(now - 60)
+    .setExpirationTime(exp)
+    .sign(cryptoKey);
 
   return token as GitHubJWTToken;
 };
