@@ -89,12 +89,6 @@ export async function verifyDiffToken(
       throw new Error("Namespace ID mismatch");
     }
 
-    // 有効期限の検証（jwtVerifyで自動的に行われるが、明示的にチェック）
-    const now = Math.floor(Date.now() / 1000);
-    if (payload.exp && payload.exp < now) {
-      throw new Error("Token expired");
-    }
-
     return payload.diff as TMemberWithDiff[];
   } catch (error) {
     if (error instanceof Error) {
