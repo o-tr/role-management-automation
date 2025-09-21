@@ -122,7 +122,11 @@ const getDiscordMembers = async (
   let maxUserId = 0;
   let requestResult: DiscordGuildMember[];
   const processedUserIds = new Set<string>();
+  let noChangeCount = 0;
+  const maxNoChangeCount = 2;
+
   do {
+    const previousMaxUserId = maxUserId;
     requestResult = await listGuildMembers(
       token,
       group.groupId as DiscordGuildId,
@@ -138,7 +142,22 @@ const getDiscordMembers = async (
     for (const member of filteredMembers) {
       processedUserIds.add(member.user.id);
     }
-    maxUserId = Math.max(...members.map((member) => Number(member.user.id)));
+
+    if (requestResult.length > 0) {
+      maxUserId = Number(requestResult[requestResult.length - 1].user.id);
+    }
+
+    // IDが変動しなかった場合のカウンターを更新
+    if (maxUserId === previousMaxUserId) {
+      noChangeCount++;
+    } else {
+      noChangeCount = 0;
+    }
+
+    // 2回連続でIDが変動しなかった場合は終了
+    if (noChangeCount >= maxNoChangeCount) {
+      break;
+    }
   } while (requestResult.length > 0);
   return members.map((member) => ({
     serviceId: member.user.id,
