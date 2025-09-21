@@ -91,7 +91,7 @@ const applyDiffWithToken = async (
       services: {
         validation: {
           status: "in_progress",
-          current: 0,
+          current: APPLY_VALIDATION_STAGES.TOKEN_VALIDATION,
           total: APPLY_VALIDATION_STAGES.TOTAL,
           message: "トークンを検証中...",
         },
@@ -107,7 +107,7 @@ const applyDiffWithToken = async (
       services: {
         validation: {
           status: "in_progress",
-          current: 1,
+          current: APPLY_VALIDATION_STAGES.DIFF_VALIDATION,
           total: APPLY_VALIDATION_STAGES.TOTAL,
           message: PROGRESS_MESSAGES.DIFF_VALIDATING,
         },
