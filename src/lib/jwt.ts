@@ -2,9 +2,34 @@ import type { TMemberWithDiff } from "@/types/diff";
 import type { TNamespaceId } from "@/types/prisma";
 import { SignJWT, jwtVerify } from "jose";
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || "your-secret-key-change-this-in-production",
-);
+// 本番環境でのJWT_SECRETの必須チェック
+function validateJwtSecret(): Uint8Array {
+  const jwtSecret = process.env.JWT_SECRET;
+  const isProduction = process.env.NODE_ENV === "production";
+
+  if (!jwtSecret) {
+    if (isProduction) {
+      console.error(
+        "🚨 CRITICAL SECURITY ERROR: JWT_SECRET is not set in production environment!",
+      );
+      console.error(
+        "This application cannot start without a secure JWT secret in production.",
+      );
+      process.exit(1);
+    } else {
+      console.warn(
+        "⚠️  WARNING: JWT_SECRET is not set. Using fallback secret for development only.",
+      );
+      console.warn("This fallback secret should NEVER be used in production!");
+    }
+  }
+
+  return new TextEncoder().encode(
+    jwtSecret || "your-secret-key-change-this-in-production",
+  );
+}
+
+const JWT_SECRET = validateJwtSecret();
 
 export interface DiffTokenPayload {
   nsId: TNamespaceId;
