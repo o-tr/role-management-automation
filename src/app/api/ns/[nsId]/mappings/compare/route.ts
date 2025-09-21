@@ -1,3 +1,4 @@
+import { createDiffToken } from "@/lib/jwt";
 import { validatePermission } from "@/lib/validatePermission";
 import type { TMemberWithDiff } from "@/types/diff";
 import type { TNamespaceId } from "@/types/prisma";
@@ -22,6 +23,7 @@ const convertToCompareProgress = (
     return {
       type: "complete",
       result: commonProgress.result,
+      token: "", // 後で設定
     };
   }
   return {
@@ -48,6 +50,7 @@ export type ProgressUpdate =
   | {
       type: "complete";
       result: TMemberWithDiff[];
+      token: string; // JWTトークンを追加
     }
   | {
       type: "error";
@@ -63,8 +66,25 @@ export async function GET(
 
     const stream = new ReadableStream({
       start(controller) {
-        getMemberWithDiffWithProgress(params.nsId, (commonProgress) => {
+        getMemberWithDiffWithProgress(params.nsId, async (commonProgress) => {
           const progress = convertToCompareProgress(commonProgress);
+
+          // completeの場合はJWTトークンを生成
+          if (progress.type === "complete") {
+            try {
+              const token = await createDiffToken(params.nsId, progress.result);
+              progress.token = token;
+            } catch (error) {
+              const errorData = `data: ${JSON.stringify({
+                type: "error",
+                error: `Token generation failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+              } satisfies ProgressUpdate)}\n\n`;
+              controller.enqueue(new TextEncoder().encode(errorData));
+              controller.close();
+              return;
+            }
+          }
+
           const data = `data: ${JSON.stringify(progress)}\n\n`;
           controller.enqueue(new TextEncoder().encode(data));
 

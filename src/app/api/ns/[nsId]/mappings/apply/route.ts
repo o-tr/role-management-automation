@@ -3,54 +3,25 @@ import {
   PROGRESS_MESSAGES,
 } from "@/lib/constants/progress";
 import { BadRequestException } from "@/lib/exceptions/BadRequestException";
+import { verifyDiffToken } from "@/lib/jwt";
 import { compareDiff } from "@/lib/mapping/compareDiff";
 import { validatePermission } from "@/lib/validatePermission";
 import { type TMemberWithDiff, ZMemberWithDiff } from "@/types/diff";
 import type { TNamespaceId } from "@/types/prisma";
 import type { NextRequest } from "next/server";
 import { z } from "zod";
-import { getMemberWithDiffWithProgress } from "../_shared/getMemberWithDiffWithProgress";
-import type { CommonProgressUpdate } from "../_shared/types";
 import {
   type ApplyProgressUpdate,
   applyDiffWithProgress,
 } from "./applyDiffWithProgress";
 
-const ZApplyMappingSchema = z.array(ZMemberWithDiff);
+const ZApplyMappingSchema = z.object({
+  diff: z.array(ZMemberWithDiff),
+  token: z.string(),
+});
 export type TApplyMappingRequestBody = z.infer<typeof ZApplyMappingSchema>;
 
-// CommonProgressUpdateからApplyProgressUpdateへの変換関数
-const convertToApplyProgress = (
-  commonProgress: CommonProgressUpdate,
-  stage: "fetching_members" | "calculating_diff" | "applying_changes",
-): ApplyProgressUpdate => {
-  if (commonProgress.type === "progress") {
-    return {
-      type: "progress",
-      stage,
-      services: commonProgress.services,
-    };
-  }
-  if (commonProgress.type === "complete") {
-    // complete時は次の段階（差分検証）に進むため、progressとして返す
-    return {
-      type: "progress",
-      stage: "applying_changes",
-      services: {
-        validation: {
-          status: "completed",
-          current: APPLY_VALIDATION_STAGES.COMPLETE,
-          total: APPLY_VALIDATION_STAGES.TOTAL,
-          message: PROGRESS_MESSAGES.DIFF_VALIDATION_COMPLETE,
-        },
-      },
-    };
-  }
-  return {
-    type: "error",
-    error: commonProgress.error,
-  };
-};
+// この関数は不要になったため削除
 
 export async function POST(
   req: NextRequest,
@@ -65,22 +36,18 @@ export async function POST(
       throw new BadRequestException("Invalid request body");
     }
 
-    const requestBody = body.data;
+    const { diff: requestDiff, token } = body.data;
 
     const stream = new ReadableStream({
       start(controller) {
-        getMemberWithDiffAndApplyWithProgress(
-          params.nsId,
-          requestBody,
-          (progress) => {
-            const data = `data: ${JSON.stringify(progress)}\n\n`;
-            controller.enqueue(new TextEncoder().encode(data));
+        applyDiffWithToken(params.nsId, requestDiff, token, (progress) => {
+          const data = `data: ${JSON.stringify(progress)}\n\n`;
+          controller.enqueue(new TextEncoder().encode(data));
 
-            if (progress.type === "complete" || progress.type === "error") {
-              controller.close();
-            }
-          },
-        ).catch((error) => {
+          if (progress.type === "complete" || progress.type === "error") {
+            controller.close();
+          }
+        }).catch((error) => {
           const errorData = `data: ${JSON.stringify({
             type: "error",
             error: error.message,
@@ -110,31 +77,14 @@ export async function POST(
 
 type ProgressCallback = (progress: ApplyProgressUpdate) => void;
 
-const getMemberWithDiffAndApplyWithProgress = async (
+const applyDiffWithToken = async (
   nsId: TNamespaceId,
-  requestBody: TMemberWithDiff[],
+  requestDiff: TMemberWithDiff[],
+  token: string,
   onProgress: ProgressCallback,
 ): Promise<void> => {
   try {
-    // Stage 1: 共通の差分計算を使用
-    const calculatedDiff = await getMemberWithDiffWithProgress(
-      nsId,
-      (commonProgress) => {
-        // 差分計算段階の進捗を適用用に変換
-        if (commonProgress.type === "progress") {
-          const stage = commonProgress.stage;
-          onProgress(convertToApplyProgress(commonProgress, stage));
-        }
-        // complete時は何もしない（次の段階に進む）
-        if (commonProgress.type === "error") {
-          onProgress(
-            convertToApplyProgress(commonProgress, "fetching_members"),
-          );
-        }
-      },
-    );
-
-    // Stage 2: 差分検証
+    // Stage 1: JWTトークンから差分データを取得
     onProgress({
       type: "progress",
       stage: "applying_changes",
@@ -143,12 +93,28 @@ const getMemberWithDiffAndApplyWithProgress = async (
           status: "in_progress",
           current: 0,
           total: APPLY_VALIDATION_STAGES.TOTAL,
+          message: "トークンを検証中...",
+        },
+      },
+    });
+
+    const tokenDiff = await verifyDiffToken(token, nsId);
+
+    // Stage 2: 差分検証
+    onProgress({
+      type: "progress",
+      stage: "applying_changes",
+      services: {
+        validation: {
+          status: "in_progress",
+          current: 1,
+          total: APPLY_VALIDATION_STAGES.TOTAL,
           message: PROGRESS_MESSAGES.DIFF_VALIDATING,
         },
       },
     });
 
-    if (!compareDiff(calculatedDiff, requestBody)) {
+    if (!compareDiff(tokenDiff, requestDiff)) {
       onProgress({
         type: "error",
         error: "Invalid request body - diff mismatch",
@@ -170,7 +136,7 @@ const getMemberWithDiffAndApplyWithProgress = async (
     });
 
     // Stage 3: 差分適用with進捗
-    await applyDiffWithProgress(nsId, requestBody, onProgress);
+    await applyDiffWithProgress(nsId, requestDiff, onProgress);
   } catch (error) {
     onProgress({
       type: "error",
