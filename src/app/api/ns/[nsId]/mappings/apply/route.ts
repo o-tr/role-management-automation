@@ -66,6 +66,8 @@ export async function POST(
     }
 
     const requestBody = body.data;
+    const abortController = new AbortController();
+    let isStreamClosed = false;
 
     const stream = new ReadableStream({
       start(controller) {
@@ -73,21 +75,44 @@ export async function POST(
           params.nsId,
           requestBody,
           (progress) => {
-            const data = `data: ${JSON.stringify(progress)}\n\n`;
-            controller.enqueue(new TextEncoder().encode(data));
+            if (isStreamClosed || abortController.signal.aborted) {
+              return;
+            }
+            try {
+              const data = `data: ${JSON.stringify(progress)}\n\n`;
+              controller.enqueue(new TextEncoder().encode(data));
 
-            if (progress.type === "complete" || progress.type === "error") {
-              controller.close();
+              if (progress.type === "complete" || progress.type === "error") {
+                isStreamClosed = true;
+                controller.close();
+              }
+            } catch (error) {
+              // Controller already closed, ignore the error
+              isStreamClosed = true;
             }
           },
+          abortController.signal,
         ).catch((error) => {
-          const errorData = `data: ${JSON.stringify({
-            type: "error",
-            error: error.message,
-          } satisfies ApplyProgressUpdate)}\n\n`;
-          controller.enqueue(new TextEncoder().encode(errorData));
-          controller.close();
+          if (isStreamClosed || abortController.signal.aborted) {
+            return;
+          }
+          try {
+            const errorData = `data: ${JSON.stringify({
+              type: "error",
+              error: error.message,
+            } satisfies ApplyProgressUpdate)}\n\n`;
+            controller.enqueue(new TextEncoder().encode(errorData));
+            isStreamClosed = true;
+            controller.close();
+          } catch {
+            // Controller already closed, ignore the error
+            isStreamClosed = true;
+          }
         });
+      },
+      cancel() {
+        isStreamClosed = true;
+        abortController.abort();
       },
     });
 
@@ -114,12 +139,16 @@ const getMemberWithDiffAndApplyWithProgress = async (
   nsId: TNamespaceId,
   requestBody: TMemberWithDiff[],
   onProgress: ProgressCallback,
+  abortSignal?: AbortSignal,
 ): Promise<void> => {
   try {
     // Stage 1: 共通の差分計算を使用
     const calculatedDiff = await getMemberWithDiffWithProgress(
       nsId,
       (commonProgress) => {
+        if (abortSignal?.aborted) {
+          return;
+        }
         // 差分計算段階の進捗を適用用に変換
         if (commonProgress.type === "progress") {
           const stage = commonProgress.stage;
@@ -132,7 +161,12 @@ const getMemberWithDiffAndApplyWithProgress = async (
           );
         }
       },
+      abortSignal,
     );
+
+    if (abortSignal?.aborted) {
+      throw new Error("Operation aborted");
+    }
 
     // Stage 2: 差分検証
     onProgress({

@@ -61,24 +61,53 @@ export async function GET(
   try {
     await validatePermission(params.nsId, "admin");
 
+    const abortController = new AbortController();
+    let isStreamClosed = false;
+
     const stream = new ReadableStream({
       start(controller) {
-        getMemberWithDiffWithProgress(params.nsId, (commonProgress) => {
-          const progress = convertToCompareProgress(commonProgress);
-          const data = `data: ${JSON.stringify(progress)}\n\n`;
-          controller.enqueue(new TextEncoder().encode(data));
+        getMemberWithDiffWithProgress(
+          params.nsId,
+          (commonProgress) => {
+            if (isStreamClosed || abortController.signal.aborted) {
+              return;
+            }
+            try {
+              const progress = convertToCompareProgress(commonProgress);
+              const data = `data: ${JSON.stringify(progress)}\n\n`;
+              controller.enqueue(new TextEncoder().encode(data));
 
-          if (progress.type === "complete" || progress.type === "error") {
-            controller.close();
+              if (progress.type === "complete" || progress.type === "error") {
+                isStreamClosed = true;
+                controller.close();
+              }
+            } catch (error) {
+              // Controller already closed, ignore the error
+              isStreamClosed = true;
+            }
+          },
+          abortController.signal,
+        ).catch((error) => {
+          if (isStreamClosed || abortController.signal.aborted) {
+            return;
           }
-        }).catch((error) => {
-          const errorData = `data: ${JSON.stringify({
-            type: "error",
-            error: error.message,
-          } satisfies ProgressUpdate)}\n\n`;
-          controller.enqueue(new TextEncoder().encode(errorData));
-          controller.close();
+          try {
+            const errorData = `data: ${JSON.stringify({
+              type: "error",
+              error: error.message,
+            } satisfies ProgressUpdate)}\n\n`;
+            controller.enqueue(new TextEncoder().encode(errorData));
+            isStreamClosed = true;
+            controller.close();
+          } catch {
+            // Controller already closed, ignore the error
+            isStreamClosed = true;
+          }
         });
+      },
+      cancel() {
+        isStreamClosed = true;
+        abortController.abort();
       },
     });
 

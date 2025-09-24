@@ -24,6 +24,7 @@ import type {
 export const getMemberWithDiffWithProgress = async (
   nsId: TNamespaceId,
   onProgress: CommonProgressCallback,
+  abortSignal?: AbortSignal,
 ): Promise<TMemberWithDiff[]> => {
   try {
     // 初期状態の報告
@@ -142,6 +143,10 @@ export const getMemberWithDiffWithProgress = async (
     // 各グループのメンバーを並行取得
     const groupMembers = await Promise.all(
       targetGroups.map(async (targetGroup) => {
+        if (abortSignal?.aborted) {
+          throw new Error("Operation aborted");
+        }
+
         const group = groups.find(
           (g) =>
             g.account.id === targetGroup.serviceAccountId &&
@@ -172,18 +177,24 @@ export const getMemberWithDiffWithProgress = async (
           const groupMembersResult = await getMembersWithProgress(
             group,
             (current, total) => {
+              if (abortSignal?.aborted) {
+                return;
+              }
               progressState[groupKey] = {
                 status: "in_progress",
                 current,
                 total: total || "unknown",
                 message: `${groupDisplayName} のメンバー取得中... (${current}${total ? `/${total}` : ""})`,
               };
-              onProgress({
-                type: "progress",
-                stage: "fetching_members",
-                services: { ...progressState },
-              });
+              if (!abortSignal?.aborted) {
+                onProgress({
+                  type: "progress",
+                  stage: "fetching_members",
+                  services: { ...progressState },
+                });
+              }
             },
+            abortSignal,
           );
 
           // 完了の報告
@@ -244,6 +255,10 @@ export const getMemberWithDiffWithProgress = async (
       services: calculatingState,
     });
 
+    if (abortSignal?.aborted) {
+      throw new Error("Operation aborted");
+    }
+
     const result = calculateDiff(members, mappings, groupMembers, groups);
 
     // 計算完了
@@ -261,10 +276,12 @@ export const getMemberWithDiffWithProgress = async (
     });
 
     // 完了の報告
-    onProgress({
-      type: "complete",
-      result,
-    });
+    if (!abortSignal?.aborted) {
+      onProgress({
+        type: "complete",
+        result,
+      });
+    }
 
     return result;
   } catch (error) {
