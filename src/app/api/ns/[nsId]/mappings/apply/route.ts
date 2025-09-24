@@ -203,61 +203,7 @@ const getMemberWithDiffFromJWTAndApplyWithProgress = async (
       },
     });
 
-    let plan: TComparePlan;
-    try {
-      plan = verifyAndExtractPlan(jwtToken, nsId, userId);
-    } catch (error) {
-      // JWTトークン検証失敗時のフォールバック：従来の方式で差分を再計算
-      console.warn(
-        "JWT verification failed, falling back to traditional method:",
-        error,
-      );
-
-      onProgress({
-        type: "progress",
-        stage: "fetching_members",
-        services: {
-          validation: {
-            status: "in_progress",
-            current: 0,
-            total: APPLY_VALIDATION_STAGES.TOTAL,
-            message: "JWTトークンが無効です。データを再取得しています...",
-          },
-        },
-      });
-
-      // 従来の方式でデータを取得
-      const calculatedDiff = await getMemberWithDiffWithProgress(
-        nsId,
-        userId,
-        (commonProgress) => {
-          if (abortSignal?.aborted) {
-            return;
-          }
-          // 差分計算段階の進捗を適用用に変換
-          if (commonProgress.type === "progress") {
-            const stage = commonProgress.stage;
-            onProgress(convertToApplyProgress(commonProgress, stage));
-          }
-          if (commonProgress.type === "error") {
-            onProgress(
-              convertToApplyProgress(commonProgress, "fetching_members"),
-            );
-          }
-        },
-        abortSignal,
-      );
-
-      // フォールバック用のプランを作成
-      plan = {
-        nsId,
-        userId,
-        createdAt: Date.now(),
-        diff: calculatedDiff,
-        groupMembers: [], // フォールバック時は元データは不要
-        groups: [],
-      };
-    }
+    const plan: TComparePlan = verifyAndExtractPlan(jwtToken, nsId, userId);
 
     if (abortSignal?.aborted) {
       throw new Error("Operation aborted");
