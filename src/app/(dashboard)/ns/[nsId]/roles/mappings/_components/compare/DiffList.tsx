@@ -82,8 +82,8 @@ export const DiffList: FC<Props> = ({
 
   // メモ化された差分データ（パフォーマンス最適化）
   const memoizedDiffWithProgress = useMemo(() => {
-    return mapDiffWithProgress(compareState.result || [], applyState.progress);
-  }, [compareState.result, applyState.progress]);
+    return mapDiffWithProgress(compareState.diff, applyState.progress);
+  }, [compareState.diff, applyState.progress]);
   // busyRef が渡されていれば apply の状態を反映
   useEffect(() => {
     if (!busyRef) return;
@@ -100,37 +100,28 @@ export const DiffList: FC<Props> = ({
       isOpen &&
       !compareState.isPending &&
       !applyState.isPending &&
-      !compareState.result
+      compareState.diff.length === 0
     ) {
-      compareState.compare();
+      compareState.startCompare();
     }
   }, [
     isOpen,
     compareState.isPending,
     applyState.isPending,
-    compareState.result,
-    compareState.compare,
+    compareState.diff.length,
+    compareState.startCompare,
   ]);
 
   const onButtonClick = useCallback(async () => {
-    if (!compareState.result || !compareState.token) {
-      console.error("No diff result or token available");
-      return;
-    }
-
-    const result = await applyState.applyDiff(
-      compareState.result,
-      compareState.token,
-    );
+    const result = await applyState.applyDiff(compareState.diff);
     if (result.status === "success" && result.result) {
       onApplyResult?.(result.result);
       // 適用完了後に差分を再取得
-      compareState.compare();
+      compareState.refetch();
     }
   }, [
-    compareState.result,
-    compareState.token,
-    compareState.compare,
+    compareState.diff,
+    compareState.refetch,
     onApplyResult,
     applyState.applyDiff,
   ]);
@@ -157,18 +148,14 @@ export const DiffList: FC<Props> = ({
       ) : compareState.isPending && compareState.progress ? (
         <ProgressDisplay progress={compareState.progress} title="差分取得" />
       ) : (
-        <MappingDiffList data={compareState.result || []} />
+        <MappingDiffList data={compareState.diff} />
       )}
 
       <div>
         <Button
           type="button"
           onClick={onButtonClick}
-          disabled={
-            applyState.isPending ||
-            !compareState.result ||
-            compareState.result.length === 0
-          }
+          disabled={applyState.isPending || compareState.diff.length === 0}
         >
           {applyState.isPending ? "反映しています..." : "反映"}
         </Button>
