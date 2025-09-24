@@ -11,9 +11,9 @@ export interface TPlanPayload {
 const JWT_EXPIRY = "30m"; // 30分
 
 function getJwtSecret(): string {
-  const secret = process.env.NEXTAUTH_SECRET;
+  const secret = process.env.AUTH_SECRET;
   if (!secret) {
-    throw new Error("NEXTAUTH_SECRET is not configured");
+    throw new Error("AUTH_SECRET is not configured");
   }
   return secret;
 }

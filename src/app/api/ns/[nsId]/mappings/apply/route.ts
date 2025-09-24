@@ -3,9 +3,11 @@ import {
   PROGRESS_MESSAGES,
 } from "@/lib/constants/progress";
 import { BadRequestException } from "@/lib/exceptions/BadRequestException";
+import { verifyPlan } from "@/lib/jwt/plan";
 import { compareDiff } from "@/lib/mapping/compareDiff";
 import { validatePermission } from "@/lib/validatePermission";
 import { type TMemberWithDiff, ZMemberWithDiff } from "@/types/diff";
+import type { TComparePlan } from "@/types/plan";
 import type { TNamespaceId } from "@/types/prisma";
 import { getServerSession } from "next-auth/next";
 import type { NextRequest } from "next/server";
@@ -17,8 +19,50 @@ import {
   applyDiffWithProgress,
 } from "./applyDiffWithProgress";
 
-const ZApplyMappingSchema = z.array(ZMemberWithDiff);
+// JWTトークンベースのリクエストスキーマ
+const ZApplyMappingWithJWTSchema = z.object({
+  token: z.string(),
+});
+
+// 従来形式との後方互換性のためのUnion型
+const ZApplyMappingSchema = z.union([
+  ZApplyMappingWithJWTSchema,
+  z.array(ZMemberWithDiff),
+]);
+
 export type TApplyMappingRequestBody = z.infer<typeof ZApplyMappingSchema>;
+
+// JWTトークンからプランを復元するヘルパー関数
+const verifyAndExtractPlan = (
+  token: string,
+  nsId: TNamespaceId,
+  userId: string,
+): TComparePlan => {
+  try {
+    const payload = verifyPlan(token);
+
+    // NamespaceIDとUserIDの一致確認
+    if (payload.nsId !== nsId) {
+      throw new Error("Namespace ID mismatch");
+    }
+    if (payload.userId !== userId) {
+      throw new Error("User ID mismatch");
+    }
+
+    return payload.data as TComparePlan;
+  } catch (error) {
+    throw new BadRequestException(
+      `Invalid JWT token: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
+  }
+};
+
+// リクエストボディがJWTトークン形式かどうかを判定
+const isJWTRequest = (
+  body: TApplyMappingRequestBody,
+): body is { token: string } => {
+  return typeof body === "object" && "token" in body && !Array.isArray(body);
+};
 
 // CommonProgressUpdateからApplyProgressUpdateへの変換関数
 const convertToApplyProgress = (
@@ -82,45 +126,90 @@ export async function POST(
 
     const stream = new ReadableStream({
       start(controller) {
-        getMemberWithDiffAndApplyWithProgress(
-          params.nsId,
-          userId,
-          requestBody,
-          (progress) => {
+        // JWTリクエストか従来のリクエストかを判定
+        if (isJWTRequest(requestBody)) {
+          // JWTベースの処理
+          getMemberWithDiffFromJWTAndApplyWithProgress(
+            params.nsId,
+            userId,
+            requestBody.token,
+            (progress) => {
+              if (isStreamClosed || abortController.signal.aborted) {
+                return;
+              }
+              try {
+                const data = `data: ${JSON.stringify(progress)}\n\n`;
+                controller.enqueue(new TextEncoder().encode(data));
+
+                if (progress.type === "complete" || progress.type === "error") {
+                  isStreamClosed = true;
+                  controller.close();
+                }
+              } catch (error) {
+                // Controller already closed, ignore the error
+                isStreamClosed = true;
+              }
+            },
+            abortController.signal,
+          ).catch((error) => {
             if (isStreamClosed || abortController.signal.aborted) {
               return;
             }
             try {
-              const data = `data: ${JSON.stringify(progress)}\n\n`;
-              controller.enqueue(new TextEncoder().encode(data));
-
-              if (progress.type === "complete" || progress.type === "error") {
-                isStreamClosed = true;
-                controller.close();
-              }
-            } catch (error) {
+              const errorData = `data: ${JSON.stringify({
+                type: "error",
+                error: error.message,
+              } satisfies ApplyProgressUpdate)}\n\n`;
+              controller.enqueue(new TextEncoder().encode(errorData));
+              isStreamClosed = true;
+              controller.close();
+            } catch {
               // Controller already closed, ignore the error
               isStreamClosed = true;
             }
-          },
-          abortController.signal,
-        ).catch((error) => {
-          if (isStreamClosed || abortController.signal.aborted) {
-            return;
-          }
-          try {
-            const errorData = `data: ${JSON.stringify({
-              type: "error",
-              error: error.message,
-            } satisfies ApplyProgressUpdate)}\n\n`;
-            controller.enqueue(new TextEncoder().encode(errorData));
-            isStreamClosed = true;
-            controller.close();
-          } catch {
-            // Controller already closed, ignore the error
-            isStreamClosed = true;
-          }
-        });
+          });
+        } else {
+          // 従来の処理（後方互換性のため）
+          getMemberWithDiffAndApplyWithProgress(
+            params.nsId,
+            userId,
+            requestBody as TMemberWithDiff[],
+            (progress) => {
+              if (isStreamClosed || abortController.signal.aborted) {
+                return;
+              }
+              try {
+                const data = `data: ${JSON.stringify(progress)}\n\n`;
+                controller.enqueue(new TextEncoder().encode(data));
+
+                if (progress.type === "complete" || progress.type === "error") {
+                  isStreamClosed = true;
+                  controller.close();
+                }
+              } catch (error) {
+                // Controller already closed, ignore the error
+                isStreamClosed = true;
+              }
+            },
+            abortController.signal,
+          ).catch((error) => {
+            if (isStreamClosed || abortController.signal.aborted) {
+              return;
+            }
+            try {
+              const errorData = `data: ${JSON.stringify({
+                type: "error",
+                error: error.message,
+              } satisfies ApplyProgressUpdate)}\n\n`;
+              controller.enqueue(new TextEncoder().encode(errorData));
+              isStreamClosed = true;
+              controller.close();
+            } catch {
+              // Controller already closed, ignore the error
+              isStreamClosed = true;
+            }
+          });
+        }
       },
       cancel() {
         isStreamClosed = true;
@@ -146,6 +235,120 @@ export async function POST(
 }
 
 type ProgressCallback = (progress: ApplyProgressUpdate) => void;
+
+// JWTトークンからプランを復元してApplyを実行する関数（フォールバック機能付き）
+const getMemberWithDiffFromJWTAndApplyWithProgress = async (
+  nsId: TNamespaceId,
+  userId: string,
+  jwtToken: string,
+  onProgress: ProgressCallback,
+  abortSignal?: AbortSignal,
+): Promise<void> => {
+  try {
+    // Stage 1: JWT検証・プラン復元
+    onProgress({
+      type: "progress",
+      stage: "applying_changes",
+      services: {
+        validation: {
+          status: "in_progress",
+          current: 0,
+          total: APPLY_VALIDATION_STAGES.TOTAL,
+          message: "JWTトークンを検証中...",
+        },
+      },
+    });
+
+    let plan: TComparePlan;
+    try {
+      plan = verifyAndExtractPlan(jwtToken, nsId, userId);
+    } catch (error) {
+      // JWTトークン検証失敗時のフォールバック：従来の方式で差分を再計算
+      console.warn(
+        "JWT verification failed, falling back to traditional method:",
+        error,
+      );
+
+      onProgress({
+        type: "progress",
+        stage: "fetching_members",
+        services: {
+          validation: {
+            status: "in_progress",
+            current: 0,
+            total: APPLY_VALIDATION_STAGES.TOTAL,
+            message: "JWTトークンが無効です。データを再取得しています...",
+          },
+        },
+      });
+
+      // 従来の方式でデータを取得
+      const calculatedDiff = await getMemberWithDiffWithProgress(
+        nsId,
+        userId,
+        (commonProgress) => {
+          if (abortSignal?.aborted) {
+            return;
+          }
+          // 差分計算段階の進捗を適用用に変換
+          if (commonProgress.type === "progress") {
+            const stage = commonProgress.stage;
+            onProgress(convertToApplyProgress(commonProgress, stage));
+          }
+          if (commonProgress.type === "error") {
+            onProgress(
+              convertToApplyProgress(commonProgress, "fetching_members"),
+            );
+          }
+        },
+        abortSignal,
+      );
+
+      // フォールバック用のプランを作成
+      plan = {
+        nsId,
+        userId,
+        createdAt: Date.now(),
+        diff: calculatedDiff,
+        groupMembers: [], // フォールバック時は元データは不要
+        groups: [],
+      };
+    }
+
+    if (abortSignal?.aborted) {
+      throw new Error("Operation aborted");
+    }
+
+    // Stage 2: プラン検証完了
+    onProgress({
+      type: "progress",
+      stage: "applying_changes",
+      services: {
+        validation: {
+          status: "completed",
+          current: APPLY_VALIDATION_STAGES.COMPLETE,
+          total: APPLY_VALIDATION_STAGES.TOTAL,
+          message: "検証完了",
+        },
+      },
+    });
+
+    // Stage 3: 差分適用
+    await applyDiffWithProgress(nsId, plan.diff, onProgress);
+
+    // 完了
+    onProgress({
+      type: "complete",
+      result: [], // applyDiffWithProgressは実際の結果を返すため、空配列で問題なし
+    });
+  } catch (error) {
+    onProgress({
+      type: "error",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+    throw error;
+  }
+};
 
 const getMemberWithDiffAndApplyWithProgress = async (
   nsId: TNamespaceId,
