@@ -170,8 +170,8 @@ const getDiscordMembersWithProgress = async (
   const approximateMemberCount = guild.approximate_member_count || undefined;
 
   const members: DiscordGuildMember[] = [];
-  let maxUserId = 0;
-  let lastMaxUserId = -1;
+  let maxUserId = "0";
+  let lastMaxUserId = "-1";
   let requestResult: DiscordGuildMember[];
   const processedUserIds = new Set<string>();
   let totalFetched = 0;
@@ -188,7 +188,7 @@ const getDiscordMembersWithProgress = async (
       token,
       group.groupId as DiscordGuildId,
       {
-        after: maxUserId ? `${maxUserId}` : undefined,
+        after: maxUserId,
         limit: 100,
       },
     );
@@ -202,7 +202,7 @@ const getDiscordMembersWithProgress = async (
       processedUserIds.add(member.user.id);
     }
     lastMaxUserId = maxUserId;
-    maxUserId = Math.max(...members.map((member) => Number(member.user.id)));
+    maxUserId = requestResult[requestResult.length - 1]?.user.id || maxUserId;
 
     // 進捗報告（概算メンバー数と比較）
     if (!abortSignal?.aborted) {
