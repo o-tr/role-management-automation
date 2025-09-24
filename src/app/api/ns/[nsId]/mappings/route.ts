@@ -126,6 +126,9 @@ const extractServiceGroups = (actions: TMappingAction[]) => {
   }[] = [];
 
   for (const action of actions) {
+    if (action.type === "invite-group") {
+      continue;
+    }
     const role = roles.find(
       (r) =>
         r.accountId === action.targetServiceAccountId &&

@@ -23,14 +23,30 @@ export const compareDiff = (
       return false;
     }
     for (const diff of diffItemA.diff) {
-      const diffB = diffItemB.diff.find(
-        (item) =>
-          item.type === diff.type &&
-          item.serviceGroup.id === diff.serviceGroup.id &&
-          item.groupMember.serviceId === diff.groupMember.serviceId &&
-          item.roleId === diff.roleId &&
-          item.ignore === diff.ignore,
-      );
+      const diffB = diffItemB.diff.find((item) => {
+        if (item.type !== diff.type) {
+          return false;
+        }
+        if (item.serviceGroup.id !== diff.serviceGroup.id) {
+          return false;
+        }
+        if (item.ignore !== diff.ignore) {
+          return false;
+        }
+        if (
+          (diff.type === "add" || diff.type === "remove") &&
+          (item.type === "add" || item.type === "remove")
+        ) {
+          return (
+            item.groupMember.serviceId === diff.groupMember.serviceId &&
+            item.roleId === diff.roleId
+          );
+        }
+        if (diff.type === "invite-group" && item.type === "invite-group") {
+          return item.targetAccount.serviceId === diff.targetAccount.serviceId;
+        }
+        return false;
+      });
       if (!diffB) {
         console.log(
           `Member ${diffItemA.member.id} diff item not found: ${JSON.stringify(

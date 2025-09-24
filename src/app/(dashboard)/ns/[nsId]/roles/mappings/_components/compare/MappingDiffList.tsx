@@ -71,12 +71,11 @@ export const columns: TColumnDef<InternalTMember>[] = [
       return (
         <div className="flex flex-col gap-2">
           {row.original.diff.map((diff) => {
-            return (
-              <DIffItemDisplay
-                key={`diff-${diff.groupMember.serviceId}-${diff.type}-${diff.roleId}`}
-                item={diff}
-              />
-            );
+            const diffKey =
+              diff.type === "invite-group"
+                ? `diff-${diff.targetAccount.serviceId}-${diff.type}`
+                : `diff-${diff.groupMember.serviceId}-${diff.type}-${diff.roleId}`;
+            return <DIffItemDisplay key={diffKey} item={diff} />;
           })}
         </div>
       );

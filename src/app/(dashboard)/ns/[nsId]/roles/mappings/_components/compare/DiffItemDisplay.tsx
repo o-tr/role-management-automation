@@ -42,7 +42,10 @@ export const DIffItemDisplay: FC<Props> = ({ item }) => {
     return statusMap[item.status].color;
   })();
 
-  const role = roles?.find((role) => role.id === item.roleId);
+  const role =
+    item.type === "add" || item.type === "remove"
+      ? roles?.find((r) => r.id === item.roleId)
+      : undefined;
 
   return (
     <div className={`flex flex-row gap-1 ${textColor}`}>
@@ -60,14 +63,23 @@ export const DIffItemDisplay: FC<Props> = ({ item }) => {
           }
         >
           <ServiceGroupDisplay group={item.serviceGroup} />
-          <div>{item.type}</div>
-          <div>
-            {role ? (
-              <ServiceGroupRoleDisplay role={role} />
-            ) : (
-              <div>ロールが見つかりません</div>
-            )}
-          </div>
+          {item.type === "invite-group" ? (
+            <>
+              <div>に招待</div>
+              <div>{item.targetAccount.name}</div>
+            </>
+          ) : (
+            <>
+              <div>{item.type}</div>
+              <div>
+                {role ? (
+                  <ServiceGroupRoleDisplay role={role} />
+                ) : (
+                  <div>ロールが見つかりません</div>
+                )}
+              </div>
+            </>
+          )}
         </div>
         {"reason" in item && (
           <div className="text-sm text-gray-500">{item.reason}</div>

@@ -21,17 +21,22 @@ export const makeDiffKeyFromItem = (
   diffItem: {
     serviceGroup: { service: string; groupId: unknown };
     groupMember?: { serviceId?: unknown; serviceUsername?: unknown } | null;
+    targetAccount?: { serviceId?: unknown; serviceUsername?: unknown } | null;
     roleId?: unknown;
   },
 ): string => {
+  const identifier =
+    diffItem.groupMember?.serviceId ??
+    diffItem.groupMember?.serviceUsername ??
+    diffItem.targetAccount?.serviceId ??
+    diffItem.targetAccount?.serviceUsername ??
+    "";
   return makeDiffKey(
     mi,
     di,
     diffItem.serviceGroup.service,
     diffItem.serviceGroup.groupId,
-    diffItem.groupMember?.serviceId ??
-      diffItem.groupMember?.serviceUsername ??
-      "",
+    identifier,
     diffItem.roleId,
   );
 };

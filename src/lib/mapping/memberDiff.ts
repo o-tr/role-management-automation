@@ -43,10 +43,13 @@ export const calculateDiff = (
             groupMember.group.serviceAccountId === group.account.id &&
             groupMember.group.serviceGroupId === group.id,
         );
-        if (!groupMember) {
+        if (!groupMember && action.type !== "invite-group") {
           return undefined;
         }
         if (action.type === "add") {
+          if (!groupMember) {
+            return undefined;
+          }
           if (
             groupMember.groupMember.roleIds.includes(action.targetServiceRoleId)
           ) {
@@ -61,6 +64,9 @@ export const calculateDiff = (
           };
         }
         if (action.type === "remove") {
+          if (!groupMember) {
+            return undefined;
+          }
           if (
             !groupMember.groupMember.roleIds.includes(
               action.targetServiceRoleId,
@@ -74,6 +80,26 @@ export const calculateDiff = (
             groupMember: groupMember.groupMember,
             roleId: action.targetServiceRoleId,
             ignore: !groupMember.groupMember.isEditable,
+          };
+        }
+        if (action.type === "invite-group") {
+          if (group.service !== "VRCHAT") {
+            return undefined;
+          }
+          if (groupMember) {
+            return undefined;
+          }
+          const targetAccount = member.externalAccounts.find(
+            (externalAccount) => externalAccount.service === group.service,
+          );
+          if (!targetAccount) {
+            return undefined;
+          }
+          return {
+            type: "invite-group",
+            serviceGroup: group,
+            targetAccount,
+            ignore: false,
           };
         }
       });
