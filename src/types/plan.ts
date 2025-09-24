@@ -1,4 +1,5 @@
-import type { TMemberWithDiff } from "./diff";
+import { z } from "zod";
+import { type TMemberWithDiff, ZMemberWithDiff } from "./diff";
 import type { TNamespaceId } from "./prisma";
 
 // Compare時に取得した元データを格納する型
@@ -40,3 +41,36 @@ export interface TSignedComparePlan {
   token: string;
   expiresAt: number;
 }
+
+// Zod schemas for validation
+export const ZTTargetGroupData = z.object({
+  serviceAccountId: z.string(),
+  serviceGroupId: z.string(),
+  service: z.string(),
+  members: z.array(
+    z.object({
+      userId: z.string(),
+      userName: z.string().optional(),
+      roles: z.array(z.string()),
+    }),
+  ),
+});
+
+export const ZTGroupData = z.object({
+  account: z.object({
+    id: z.string(),
+  }),
+  id: z.string(),
+  service: z.string(),
+  name: z.string().optional(),
+  groupId: z.string(),
+});
+
+export const ZTComparePlan = z.object({
+  nsId: z.string().uuid(), // Use plain UUID validation, will be cast to TNamespaceId
+  userId: z.string(),
+  createdAt: z.number(),
+  diff: z.array(ZMemberWithDiff),
+  groupMembers: z.array(ZTTargetGroupData),
+  groups: z.array(ZTGroupData),
+});

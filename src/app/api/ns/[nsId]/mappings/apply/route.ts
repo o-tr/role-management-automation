@@ -7,7 +7,7 @@ import { verifyPlan } from "@/lib/jwt/plan";
 import { compareDiff } from "@/lib/mapping/compareDiff";
 import { validatePermission } from "@/lib/validatePermission";
 import { type TMemberWithDiff, ZMemberWithDiff } from "@/types/diff";
-import type { TComparePlan } from "@/types/plan";
+import { type TComparePlan, ZTComparePlan } from "@/types/plan";
 import type { TNamespaceId } from "@/types/prisma";
 import { getServerSession } from "next-auth/next";
 import type { NextRequest } from "next/server";
@@ -45,7 +45,17 @@ const verifyAndExtractPlan = (
       throw new Error("User ID mismatch");
     }
 
-    return payload.data as TComparePlan;
+    // payload.dataをZodでバリデーション
+    const validationResult = ZTComparePlan.safeParse(payload.data);
+    if (!validationResult.success) {
+      throw new Error(`Invalid plan data: ${validationResult.error.message}`);
+    }
+
+    // Zod validation passed, cast nsId to proper branded type
+    return {
+      ...validationResult.data,
+      nsId: validationResult.data.nsId as TNamespaceId,
+    };
   } catch (error) {
     throw new BadRequestException(
       `Invalid JWT token: ${error instanceof Error ? error.message : "Unknown error"}`,
