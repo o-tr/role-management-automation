@@ -6,6 +6,7 @@ import {
 import { signPlan } from "@/lib/jwt/plan";
 import { calculateDiff, extractTargetGroups } from "@/lib/mapping/memberDiff";
 import { convertTSerializedMappingToTMapping } from "@/lib/prisma/convert/convertTSerializedMappingToTMapping";
+import { getExternalServiceAccounts } from "@/lib/prisma/getExternalServiceAccounts";
 import { getExternalServiceGroupRoleMappingsByNamespaceId } from "@/lib/prisma/getExternalServiceGroupRoleMappingByNamespaceId";
 import { getExternalServiceGroups } from "@/lib/prisma/getExternalServiceGroups";
 import { getMembersWithRelation } from "@/lib/prisma/getMembersWithRelation";
@@ -91,6 +92,9 @@ export const getMemberWithDiffWithProgress = async (
     });
     const groups = await getExternalServiceGroups(nsId);
     const targetGroups = extractTargetGroups(groups, mappings);
+
+    // サービスアカウント取得
+    const serviceAccounts = await getExternalServiceAccounts(nsId);
 
     // 初期データ取得完了
     onProgress({
@@ -262,7 +266,13 @@ export const getMemberWithDiffWithProgress = async (
       throw new Error("Operation aborted");
     }
 
-    const result = calculateDiff(members, mappings, groupMembers, groups);
+    const result = await calculateDiff(
+      members,
+      mappings,
+      groupMembers,
+      groups,
+      serviceAccounts,
+    );
 
     // 計算完了
     calculatingState.calculation = {

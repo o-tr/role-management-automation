@@ -22,6 +22,6 @@ export const ZVRCGroupMember = z.object({
   groupId: ZVRCGroupId,
   userId: ZVRCUserId,
   user: ZVRCGroupMemberLimitedUser,
-  roleIds: z.array(ZVRCGroupRoleId),
+  roleIds: z.array(ZVRCGroupRoleId).optional(),
 });
 export type VRCGroupMember = z.infer<typeof ZVRCGroupMember>;
