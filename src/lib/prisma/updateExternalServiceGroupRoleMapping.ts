@@ -35,6 +35,17 @@ export const updateExternalServiceGroupRoleMapping = async (
     updateData.enabled = data.enabled;
   }
 
+  if (Object.keys(updateData).length === 0) {
+    const currentMapping =
+      await prisma.externalServiceGroupRoleMapping.findUniqueOrThrow({
+        where: {
+          id: mappingId,
+          namespaceId: namespaceId,
+        },
+      });
+    return formatTSerializedMapping(currentMapping);
+  }
+
   const result = await prisma.externalServiceGroupRoleMapping.update({
     where: {
       id: mappingId,
