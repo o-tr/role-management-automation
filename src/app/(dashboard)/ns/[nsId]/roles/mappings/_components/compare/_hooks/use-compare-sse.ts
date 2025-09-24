@@ -5,6 +5,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 export type CompareSSEState =
   | {
+      state: "uninitialized";
+      diff: [];
+      progress: undefined;
+      token: undefined;
+    }
+  | {
       state: "error";
       error: string;
       diff: [];
@@ -24,7 +30,7 @@ export type CompareSSEState =
 
 export const useCompareSSE = (nsId: TNamespaceId) => {
   const [state, setState] = useState<CompareSSEState>({
-    state: "loading",
+    state: "uninitialized",
     diff: [],
     progress: undefined,
     token: undefined,
