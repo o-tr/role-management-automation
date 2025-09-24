@@ -8,5 +8,6 @@ export const formatTSerializedMapping = (
     id: input.id as TMappingId,
     conditions: input.conditions,
     actions: input.actions,
+    enabled: input.enabled,
   };
 };

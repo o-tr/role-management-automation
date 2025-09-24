@@ -166,12 +166,14 @@ export type TSerializedMapping = {
   id: TMappingId;
   conditions: string;
   actions: string;
+  enabled: boolean;
 };
 
 export type TMapping = {
   id: TMappingId;
   conditions: TMappingCondition;
   actions: TMappingAction[];
+  enabled: boolean;
 };
 
 export const ZMemberId = z.string().uuid().brand("MemberId");

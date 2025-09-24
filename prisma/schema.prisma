@@ -154,6 +154,7 @@ model ExternalServiceGroupRoleMapping {
 
   conditions String @db.Text
   actions    String @db.Text
+  enabled    Boolean @default(true)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

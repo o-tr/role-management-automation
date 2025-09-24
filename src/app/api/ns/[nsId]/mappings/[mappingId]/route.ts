@@ -28,8 +28,9 @@ export type UpdateExternalServiceGroupMappingResponse =
     }
   | ErrorResponseType;
 const updateMappingSchema = z.object({
-  conditions: ZMappingCondition,
-  actions: z.array(ZMappingAction),
+  conditions: ZMappingCondition.optional(),
+  actions: z.array(ZMappingAction).optional(),
+  enabled: z.boolean().optional(),
 });
 export type UpdateMappingBody = z.infer<typeof updateMappingSchema>;
 

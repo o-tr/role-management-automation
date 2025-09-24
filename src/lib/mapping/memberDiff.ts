@@ -113,6 +113,9 @@ const extractGroupMembers = (
 const evaluateMappings = (tags: TTag[], mappings: TMapping[]) => {
   const actions: TMappingAction[] = [];
   for (const mapping of mappings) {
+    if (!mapping.enabled) {
+      continue;
+    }
     const conditions = mapping.conditions;
     if (evaluateConditions(tags, conditions)) {
       actions.push(...mapping.actions);
@@ -153,6 +156,9 @@ export const extractTargetGroups = (
   const targets: TargetGroup[] = [];
 
   for (const mapping of mappings) {
+    if (!mapping.enabled) {
+      continue;
+    }
     for (const action of mapping.actions) {
       if (
         targets.some(
