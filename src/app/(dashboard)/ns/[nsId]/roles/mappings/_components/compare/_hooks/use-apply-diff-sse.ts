@@ -26,7 +26,7 @@ export const useApplyDiffSSE = <TResult>(nsId: TNamespaceId) => {
   const applyDiff = useCallback(
     async (
       diff: TMemberWithDiff[],
-      token?: string,
+      token: string,
     ): Promise<
       | { status: "success"; result: TResult }
       | { status: "error"; error: string }
@@ -53,7 +53,7 @@ export const useApplyDiffSSE = <TResult>(nsId: TNamespaceId) => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: token ? JSON.stringify({ token }) : JSON.stringify(diff),
+          body: JSON.stringify({ token }),
           signal: controller.signal,
         });
 
