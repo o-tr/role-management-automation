@@ -8,6 +8,7 @@ import {
 } from "@/app/(dashboard)/ns/[nsId]/components/DataTable";
 import { useMappings } from "@/app/(dashboard)/ns/[nsId]/roles/_hooks/use-mappings";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { deleteMapping } from "@/requests/deleteMapping";
 import type { TMapping } from "@/types/prisma";
 import {
@@ -40,30 +41,60 @@ export const columns: TColumnDef<InternalMapping>[] = [
     maxSize: 50,
   },
   {
+    id: "enabled",
+    header: "有効",
+    cell: ({ row }) => {
+      const handleToggle = async (enabled: boolean) => {
+        try {
+          const response = await fetch(
+            `/api/ns/${row.original.namespaceId}/mappings/${row.original.id}/toggle`,
+            {
+              method: "POST",
+            },
+          );
+          if (response.ok) {
+            onServiceGroupMappingChange();
+          }
+        } catch (error) {
+          console.error("Failed to toggle mapping:", error);
+        }
+      };
+
+      return (
+        <Switch checked={row.original.enabled} onCheckedChange={handleToggle} />
+      );
+    },
+    size: 80,
+  },
+  {
     id: "condition",
     header: "条件",
     cell: ({ row }) => (
-      <div className="flex flex-col">
+      <div
+        className={`flex flex-col ${!row.original.enabled ? "opacity-50" : ""}`}
+      >
         <ConditionsDisplay
           conditions={row.original.conditions}
           nsId={row.original.namespaceId}
         />
       </div>
     ),
-    widthPercent: 30,
+    widthPercent: 25,
   },
   {
     id: "actions",
     header: "アクション",
     cell: ({ row }) => (
-      <div className="flex flex-col">
+      <div
+        className={`flex flex-col ${!row.original.enabled ? "opacity-50" : ""}`}
+      >
         <ActionsDisplay
           actions={row.original.actions}
           nsId={row.original.namespaceId}
         />
       </div>
     ),
-    widthPercent: 60,
+    widthPercent: 55,
   },
   {
     id: "buttons",
