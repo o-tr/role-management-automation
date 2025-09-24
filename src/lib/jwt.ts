@@ -2,34 +2,9 @@ import type { TMemberWithDiff } from "@/types/diff";
 import type { TNamespaceId } from "@/types/prisma";
 import { SignJWT, jwtVerify } from "jose";
 
-// 本番環境でのJWT_SECRETの必須チェック
-function validateJwtSecret(): Uint8Array {
-  const jwtSecret = process.env.JWT_SECRET?.trim();
-  const isProduction = process.env.NODE_ENV === "production";
-
-  if (!jwtSecret) {
-    if (isProduction) {
-      const errorMessage =
-        "JWT_SECRET is not set or contains only whitespace in production environment!";
-      console.error(`🚨 CRITICAL SECURITY ERROR: ${errorMessage}`);
-      console.error(
-        "This application cannot start without a secure JWT secret in production.",
-      );
-      throw new Error(errorMessage);
-    }
-
-    console.warn(
-      "⚠️  WARNING: JWT_SECRET is not set or contains only whitespace. Using fallback secret for development only.",
-    );
-    console.warn("This fallback secret should NEVER be used in production!");
-  }
-
-  return new TextEncoder().encode(
-    jwtSecret || "your-secret-key-change-this-in-production",
-  );
-}
-
-const JWT_SECRET = validateJwtSecret();
+const JWT_SECRET = new TextEncoder().encode(
+  process.env.JWT_SECRET || "your-secret-key-change-this-in-production",
+);
 
 export interface DiffTokenPayload {
   nsId: TNamespaceId;
@@ -52,11 +27,14 @@ export async function createDiffToken(
   const now = Math.floor(Date.now() / 1000);
   const exp = now + 3600; // 1時間後
 
-  return await new SignJWT({
+  const payload: DiffTokenPayload = {
     nsId,
     diff,
     timestamp: now,
-  })
+    exp,
+  };
+
+  return await new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt(now)
     .setExpirationTime(exp)
@@ -84,6 +62,12 @@ export async function verifyDiffToken(
     // ネームスペースIDの検証
     if (payload.nsId !== expectedNsId) {
       throw new Error("Namespace ID mismatch");
+    }
+
+    // 有効期限の検証（jwtVerifyで自動的に行われるが、明示的にチェック）
+    const now = Math.floor(Date.now() / 1000);
+    if (payload.exp && payload.exp < now) {
+      throw new Error("Token expired");
     }
 
     return payload.diff as TMemberWithDiff[];
