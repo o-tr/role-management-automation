@@ -108,7 +108,7 @@ export const AddPastedMembers: FC<Props> = ({ nsId }) => {
         .map((val) => {
           return {
             memberId: val.memberId,
-            name: val.name,
+            name: val.name ?? "",
             service: val.service,
             serviceId: val.serviceId,
             serviceUsername: val.serviceUsername,

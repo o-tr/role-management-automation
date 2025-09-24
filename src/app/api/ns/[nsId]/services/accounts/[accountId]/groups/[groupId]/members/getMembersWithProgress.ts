@@ -37,17 +37,18 @@ export type ProgressCallback = (current: number, total?: number) => void;
 export const getMembersWithProgress = async (
   group: TExternalServiceGroupWithAccount,
   onProgress?: ProgressCallback,
+  abortSignal?: AbortSignal,
 ): Promise<{
   members: TExternalServiceGroupMember[];
   isApproximate?: boolean;
 }> => {
   switch (group.account.service) {
     case "VRCHAT":
-      return getVRChatMembersWithProgress(group, onProgress);
+      return getVRChatMembersWithProgress(group, onProgress, abortSignal);
     case "DISCORD":
-      return getDiscordMembersWithProgress(group, onProgress);
+      return getDiscordMembersWithProgress(group, onProgress, abortSignal);
     case "GITHUB":
-      return getGitHubMembersWithProgress(group, onProgress);
+      return getGitHubMembersWithProgress(group, onProgress, abortSignal);
     default:
       throw new Error(`Unknown service: ${group.account.service}`);
   }
@@ -56,6 +57,7 @@ export const getMembersWithProgress = async (
 const getVRChatMembersWithProgress = async (
   group: TExternalServiceGroupWithAccount,
   onProgress?: ProgressCallback,
+  abortSignal?: AbortSignal,
 ): Promise<{
   members: TExternalServiceGroupMember[];
   isApproximate?: boolean;
@@ -75,6 +77,10 @@ const getVRChatMembersWithProgress = async (
   onProgress?.(0, memberCount);
 
   do {
+    if (abortSignal?.aborted) {
+      throw new Error("Operation aborted");
+    }
+
     requestResult = await listGroupMembers(group.account, groupId, {
       offset,
       limit: 100,
@@ -84,8 +90,10 @@ const getVRChatMembersWithProgress = async (
     offset += 100;
 
     // 進捗報告（メンバー数と比較）
-    onProgress?.(totalFetched, memberCount);
-  } while (requestResult.length > 0);
+    if (!abortSignal?.aborted) {
+      onProgress?.(totalFetched, memberCount);
+    }
+  } while (requestResult.length > 0 && !abortSignal?.aborted);
 
   const credentials = ZVRChatCredentials.parse(
     JSON.parse(group.account.credential),
@@ -148,6 +156,7 @@ const getHighestRole = (
 const getDiscordMembersWithProgress = async (
   group: TExternalServiceGroupWithAccount,
   onProgress?: ProgressCallback,
+  abortSignal?: AbortSignal,
 ): Promise<{
   members: TExternalServiceGroupMember[];
   isApproximate?: boolean;
@@ -161,7 +170,8 @@ const getDiscordMembersWithProgress = async (
   const approximateMemberCount = guild.approximate_member_count || undefined;
 
   const members: DiscordGuildMember[] = [];
-  let maxUserId = 0;
+  let maxUserId = "0";
+  let lastMaxUserId = "-1";
   let requestResult: DiscordGuildMember[];
   const processedUserIds = new Set<string>();
   let totalFetched = 0;
@@ -170,6 +180,10 @@ const getDiscordMembersWithProgress = async (
   onProgress?.(0, approximateMemberCount);
 
   do {
+    if (abortSignal?.aborted) {
+      throw new Error("Operation aborted");
+    }
+
     requestResult = await listGuildMembers(
       token,
       group.groupId as DiscordGuildId,
@@ -187,11 +201,19 @@ const getDiscordMembersWithProgress = async (
     for (const member of filteredMembers) {
       processedUserIds.add(member.user.id);
     }
-    maxUserId = Math.max(...members.map((member) => Number(member.user.id)));
+    lastMaxUserId = maxUserId;
+    maxUserId = requestResult[requestResult.length - 1]?.user.id || maxUserId;
 
     // 進捗報告（概算メンバー数と比較）
-    onProgress?.(totalFetched, approximateMemberCount);
-  } while (requestResult.length > 0);
+    if (!abortSignal?.aborted) {
+      onProgress?.(totalFetched, approximateMemberCount);
+    }
+
+    if (maxUserId === lastMaxUserId) {
+      // maxUserIdが更新されていない場合、ループを防ぐために終了
+      break;
+    }
+  } while (requestResult.length > 0 && !abortSignal?.aborted);
 
   const result = members.map((member) => ({
     serviceId: member.user.id,
@@ -212,6 +234,7 @@ const getDiscordMembersWithProgress = async (
 const getGitHubMembersWithProgress = async (
   group: TExternalServiceGroupWithAccount,
   onProgress?: ProgressCallback,
+  abortSignal?: AbortSignal,
 ): Promise<{
   members: TExternalServiceGroupMember[];
   isApproximate?: boolean;
@@ -236,23 +259,33 @@ const getGitHubMembersWithProgress = async (
     token,
     organizationId,
     (current) => {
-      onProgress?.(1 + current); // teams取得(1) + members取得進捗
+      if (!abortSignal?.aborted) {
+        onProgress?.(1 + current); // teams取得(1) + members取得進捗
+      }
     },
+    abortSignal,
   );
 
   // Team members取得 (並行実行)
   const teamMembersPromises = teams.map(async (team, index) => {
+    if (abortSignal?.aborted) {
+      throw new Error("Operation aborted");
+    }
+
     const teamMembers = await getGitHubTeamMembersWithProgress(
       token,
       organizationId,
       team.slug,
-      (current) => {
+      () => {
         // team別の進捗は詳細すぎるので、ここでは報告しない
       },
+      abortSignal,
     );
 
     // 各team完了時に進捗更新
-    onProgress?.(1 + members.length + index + 1);
+    if (!abortSignal?.aborted) {
+      onProgress?.(1 + members.length + index + 1);
+    }
 
     return {
       id: team.id,
@@ -289,6 +322,7 @@ const getGitHubOrgMembersWithProgress = async (
   token: GitHubInstallationAccessToken,
   organizationId: GitHubOrganizationId,
   onProgress?: ProgressCallback,
+  abortSignal?: AbortSignal,
 ): Promise<GitHubAccount[]> => {
   const members: GitHubAccount[] = [];
   let requestResult: GitHubAccount[];
@@ -296,6 +330,10 @@ const getGitHubOrgMembersWithProgress = async (
   let totalFetched = 0;
 
   do {
+    if (abortSignal?.aborted) {
+      throw new Error("Operation aborted");
+    }
+
     requestResult = await listOrganizationMembers(token, organizationId, {
       per_page: 100,
       page: page++,
@@ -304,8 +342,10 @@ const getGitHubOrgMembersWithProgress = async (
     totalFetched += requestResult.length;
 
     // 進捗報告
-    onProgress?.(totalFetched);
-  } while (requestResult.length > 0);
+    if (!abortSignal?.aborted) {
+      onProgress?.(totalFetched);
+    }
+  } while (requestResult.length > 0 && !abortSignal?.aborted);
 
   return members;
 };
@@ -315,6 +355,7 @@ const getGitHubTeamMembersWithProgress = async (
   organizationId: GitHubOrganizationId,
   teamSlug: GitHubTeamSlug,
   onProgress?: ProgressCallback,
+  abortSignal?: AbortSignal,
 ): Promise<GitHubAccount[]> => {
   const members: GitHubAccount[] = [];
   let requestResult: GitHubAccount[];
@@ -322,6 +363,10 @@ const getGitHubTeamMembersWithProgress = async (
   let totalFetched = 0;
 
   do {
+    if (abortSignal?.aborted) {
+      throw new Error("Operation aborted");
+    }
+
     requestResult = await listTeamMembers(token, organizationId, teamSlug, {
       per_page: 100,
       page: page++,
@@ -330,8 +375,10 @@ const getGitHubTeamMembersWithProgress = async (
     totalFetched += requestResult.length;
 
     // 進捗報告
-    onProgress?.(totalFetched);
-  } while (requestResult.length > 0);
+    if (!abortSignal?.aborted) {
+      onProgress?.(totalFetched);
+    }
+  } while (requestResult.length > 0 && !abortSignal?.aborted);
 
   return members;
 };

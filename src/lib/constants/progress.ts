@@ -19,10 +19,8 @@ export const DIFF_CALCULATION_STAGES = {
 
 // 差分適用時の検証段階数
 export const APPLY_VALIDATION_STAGES = {
-  TOTAL: 2,
-  TOKEN_VALIDATION: 1,
-  DIFF_VALIDATION: 2,
-  COMPLETE: 2,
+  TOTAL: 1,
+  COMPLETE: 1,
 } as const;
 
 // 進捗表示メッセージ

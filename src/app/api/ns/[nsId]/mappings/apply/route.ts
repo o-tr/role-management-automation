@@ -1,13 +1,10 @@
-import {
-  APPLY_VALIDATION_STAGES,
-  PROGRESS_MESSAGES,
-} from "@/lib/constants/progress";
+import { APPLY_VALIDATION_STAGES } from "@/lib/constants/progress";
 import { BadRequestException } from "@/lib/exceptions/BadRequestException";
-import { verifyDiffToken } from "@/lib/jwt";
-import { compareDiff } from "@/lib/mapping/compareDiff";
+import { verifyPlan } from "@/lib/jwt/plan";
 import { validatePermission } from "@/lib/validatePermission";
-import { type TMemberWithDiff, ZMemberWithDiff } from "@/types/diff";
+import { type TComparePlan, ZTComparePlan } from "@/types/plan";
 import type { TNamespaceId } from "@/types/prisma";
+import { getServerSession } from "next-auth/next";
 import type { NextRequest } from "next/server";
 import { z } from "zod";
 import {
@@ -15,13 +12,49 @@ import {
   applyDiffWithProgress,
 } from "./applyDiffWithProgress";
 
-const ZApplyMappingSchema = z.object({
-  diff: z.array(ZMemberWithDiff),
+// JWTトークンベースのリクエストスキーマ
+const ZApplyMappingWithJWTSchema = z.object({
   token: z.string(),
 });
-export type TApplyMappingRequestBody = z.infer<typeof ZApplyMappingSchema>;
 
-// この関数は不要になったため削除
+export type TApplyMappingRequestBody = z.infer<
+  typeof ZApplyMappingWithJWTSchema
+>;
+
+// JWTトークンからプランを復元するヘルパー関数
+const verifyAndExtractPlan = (
+  token: string,
+  nsId: TNamespaceId,
+  userId: string,
+): TComparePlan => {
+  try {
+    const payload = verifyPlan(token);
+
+    // NamespaceIDとUserIDの一致確認
+    if (payload.nsId !== nsId) {
+      throw new Error("Namespace ID mismatch");
+    }
+    if (payload.userId !== userId) {
+      throw new Error("User ID mismatch");
+    }
+
+    // payload.dataをZodでバリデーション
+    const validationResult = ZTComparePlan.safeParse(payload.data);
+    if (!validationResult.success) {
+      throw new Error(`Invalid plan data: ${validationResult.error.message}`);
+    }
+
+    // Zod validation passed, cast nsId to proper branded type
+    return {
+      ...validationResult.data,
+      nsId: validationResult.data.nsId as TNamespaceId,
+    };
+  } catch (error) {
+    throw new BadRequestException(
+      `Invalid JWT token: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
+  }
+};
 
 export async function POST(
   req: NextRequest,
@@ -30,31 +63,71 @@ export async function POST(
   try {
     await validatePermission(params.nsId, "admin");
 
-    const body = ZApplyMappingSchema.safeParse(await req.json());
+    // セッション情報からユーザーIDを取得
+    const session = await getServerSession();
+    if (!session?.user?.email) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    const userId = session.user.email;
+
+    const body = ZApplyMappingWithJWTSchema.safeParse(await req.json());
 
     if (!body.success) {
       throw new BadRequestException("Invalid request body");
     }
 
-    const { diff: requestDiff, token } = body.data;
+    const requestBody = body.data;
+    const abortController = new AbortController();
+    let isStreamClosed = false;
 
     const stream = new ReadableStream({
       start(controller) {
-        applyDiffWithToken(params.nsId, requestDiff, token, (progress) => {
-          const data = `data: ${JSON.stringify(progress)}\n\n`;
-          controller.enqueue(new TextEncoder().encode(data));
+        getMemberWithDiffFromJWTAndApplyWithProgress(
+          params.nsId,
+          userId,
+          requestBody.token,
+          (progress) => {
+            if (isStreamClosed || abortController.signal.aborted) {
+              return;
+            }
+            try {
+              const data = `data: ${JSON.stringify(progress)}\n\n`;
+              controller.enqueue(new TextEncoder().encode(data));
 
-          if (progress.type === "complete" || progress.type === "error") {
-            controller.close();
+              if (progress.type === "complete" || progress.type === "error") {
+                isStreamClosed = true;
+                controller.close();
+              }
+            } catch (error) {
+              // Controller already closed, ignore the error
+              isStreamClosed = true;
+            }
+          },
+          abortController.signal,
+        ).catch((error) => {
+          if (isStreamClosed || abortController.signal.aborted) {
+            return;
           }
-        }).catch((error) => {
-          const errorData = `data: ${JSON.stringify({
-            type: "error",
-            error: error.message,
-          } satisfies ApplyProgressUpdate)}\n\n`;
-          controller.enqueue(new TextEncoder().encode(errorData));
-          controller.close();
+          try {
+            const errorData = `data: ${JSON.stringify({
+              type: "error",
+              error: error.message,
+            } satisfies ApplyProgressUpdate)}\n\n`;
+            controller.enqueue(new TextEncoder().encode(errorData));
+            isStreamClosed = true;
+            controller.close();
+          } catch {
+            // Controller already closed, ignore the error
+            isStreamClosed = true;
+          }
         });
+      },
+      cancel() {
+        isStreamClosed = true;
+        abortController.abort();
       },
     });
 
@@ -77,51 +150,36 @@ export async function POST(
 
 type ProgressCallback = (progress: ApplyProgressUpdate) => void;
 
-const applyDiffWithToken = async (
+// JWTトークンからプランを復元してApplyを実行する関数（フォールバック機能付き）
+const getMemberWithDiffFromJWTAndApplyWithProgress = async (
   nsId: TNamespaceId,
-  requestDiff: TMemberWithDiff[],
-  token: string,
+  userId: string,
+  jwtToken: string,
   onProgress: ProgressCallback,
+  abortSignal?: AbortSignal,
 ): Promise<void> => {
   try {
-    // Stage 1: JWTトークンから差分データを取得
+    // Stage 1: JWT検証・プラン復元
     onProgress({
       type: "progress",
       stage: "applying_changes",
       services: {
         validation: {
           status: "in_progress",
-          current: APPLY_VALIDATION_STAGES.TOKEN_VALIDATION,
+          current: 0,
           total: APPLY_VALIDATION_STAGES.TOTAL,
-          message: "トークンを検証中...",
+          message: "JWTトークンを検証中...",
         },
       },
     });
 
-    const tokenDiff = await verifyDiffToken(token, nsId);
+    const plan: TComparePlan = verifyAndExtractPlan(jwtToken, nsId, userId);
 
-    // Stage 2: 差分検証
-    onProgress({
-      type: "progress",
-      stage: "applying_changes",
-      services: {
-        validation: {
-          status: "in_progress",
-          current: APPLY_VALIDATION_STAGES.DIFF_VALIDATION,
-          total: APPLY_VALIDATION_STAGES.TOTAL,
-          message: PROGRESS_MESSAGES.DIFF_VALIDATING,
-        },
-      },
-    });
-
-    if (!compareDiff(tokenDiff, requestDiff)) {
-      onProgress({
-        type: "error",
-        error: "Invalid request body - diff mismatch",
-      });
-      return;
+    if (abortSignal?.aborted) {
+      throw new Error("Operation aborted");
     }
 
+    // Stage 2: プラン検証完了
     onProgress({
       type: "progress",
       stage: "applying_changes",
@@ -130,17 +188,24 @@ const applyDiffWithToken = async (
           status: "completed",
           current: APPLY_VALIDATION_STAGES.COMPLETE,
           total: APPLY_VALIDATION_STAGES.TOTAL,
-          message: PROGRESS_MESSAGES.DIFF_VALIDATION_COMPLETE,
+          message: "検証完了",
         },
       },
     });
 
-    // Stage 3: 差分適用with進捗
-    await applyDiffWithProgress(nsId, requestDiff, onProgress);
+    // Stage 3: 差分適用
+    await applyDiffWithProgress(nsId, plan.diff, onProgress);
+
+    // 完了
+    onProgress({
+      type: "complete",
+      result: [], // applyDiffWithProgressは実際の結果を返すため、空配列で問題なし
+    });
   } catch (error) {
     onProgress({
       type: "error",
       error: error instanceof Error ? error.message : "Unknown error",
     });
+    throw error;
   }
 };

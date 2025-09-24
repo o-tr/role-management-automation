@@ -38,7 +38,7 @@ export const MemberAccountResolveDisplay: FC<Props> = ({
       {data.item.icon && (
         <Image
           src={data.item.icon}
-          alt={data.item.name}
+          alt={data.item.name ?? ""}
           className="w-6 h-6 mr-2 rounded-full"
           referrerPolicy="no-referrer"
           width={24}

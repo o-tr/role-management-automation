@@ -1,210 +1,149 @@
-import { processSSEChunk, processSSEFinalBuffer } from "@/lib/sse";
+import type { ProgressUpdate } from "@/app/api/ns/[nsId]/mappings/compare/route";
 import type { TMemberWithDiff } from "@/types/diff";
 import type { TNamespaceId } from "@/types/prisma";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-export type CompareProgressUpdate =
+export type CompareSSEState =
   | {
-      type: "progress";
-      stage: "fetching_members" | "calculating_diff" | "complete";
-      services: {
-        [key: string]: {
-          status: "pending" | "in_progress" | "completed" | "error";
-          current: number;
-          total: number | "unknown";
-          message: string;
-          error?: string;
-          isApproximate?: boolean;
-        };
-      };
+      state: "uninitialized";
+      diff: [];
+      progress: undefined;
+      token: undefined;
     }
   | {
-      type: "complete";
-      result: TMemberWithDiff[];
+      state: "error";
+      error: string;
+      diff: [];
+    }
+  | {
+      state: "success";
+      diff: TMemberWithDiff[];
+      progress: undefined;
       token: string;
     }
   | {
-      type: "error";
-      error: string;
+      state: "loading";
+      diff: TMemberWithDiff[];
+      progress?: ProgressUpdate;
+      token?: string;
     };
-
-export type CompareSSEState = {
-  isPending: boolean;
-  isError: boolean;
-  error?: string;
-  result?: TMemberWithDiff[];
-  token?: string;
-  progress?: CompareProgressUpdate;
-};
 
 export const useCompareSSE = (nsId: TNamespaceId) => {
   const [state, setState] = useState<CompareSSEState>({
-    isPending: false,
-    isError: false,
+    state: "uninitialized",
+    diff: [],
+    progress: undefined,
+    token: undefined,
   });
 
-  // AbortController ref for cancelling fetch requests
-  const controllerRef = useRef<AbortController | null>(null);
+  const eventSourceRef = useRef<EventSource | null>(null);
 
-  const compare = useCallback(async (): Promise<
-    | { status: "success"; result: TMemberWithDiff[]; token: string }
-    | { status: "error"; error: string }
-  > => {
-    // 既存の接続があれば中止する
-    if (controllerRef.current) {
-      controllerRef.current.abort();
+  // EventSource を安全に閉じるヘルパー関数
+  const closeEventSource = useCallback((eventSource: EventSource) => {
+    try {
+      if (eventSource.readyState !== EventSource.CLOSED) {
+        eventSource.close();
+      }
+    } catch (error) {
+      console.warn("EventSource close error:", error);
+    }
+  }, []);
+
+  const startCompare = useCallback(() => {
+    // 既存の接続があれば閉じる
+    if (eventSourceRef.current) {
+      closeEventSource(eventSourceRef.current);
+      eventSourceRef.current = null;
     }
 
     setState({
-      isPending: true,
-      isError: false,
-      result: undefined,
-      token: undefined,
+      state: "loading",
+      diff: [],
       progress: undefined,
+      token: undefined,
     });
 
-    try {
-      const controller = new AbortController();
-      controllerRef.current = controller;
+    const eventSource = new EventSource(`/api/ns/${nsId}/mappings/compare`);
+    eventSourceRef.current = eventSource;
 
-      const response = await fetch(`/api/ns/${nsId}/mappings/compare`, {
-        method: "GET",
-        signal: controller.signal,
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      // SSEストリームを読み取り
-      if (!response.body) {
-        throw new Error("No response body");
-      }
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-
+    eventSource.onmessage = (event) => {
       try {
-        while (true) {
-          const { done, value } = await reader.read();
+        const data: ProgressUpdate = JSON.parse(event.data);
 
-          if (done) break;
-
-          const { buffer: newBuffer, events } =
-            processSSEChunk<CompareProgressUpdate>(buffer, value, decoder);
-          buffer = newBuffer;
-
-          for (const data of events) {
-            if (data.type === "progress") {
-              setState((prev) => ({
-                ...prev,
-                progress: data,
-                // メモリ効率のため、古いresultは保持しない
-                result: undefined,
-                token: undefined,
-              }));
-            } else if (data.type === "complete") {
-              setState({
-                isPending: false,
-                isError: false,
-                result: data.result,
-                token: data.token,
-                // 完了時はprogressをクリア（メモリ節約）
-                progress: undefined,
-              });
-              return {
-                status: "success",
-                result: data.result,
-                token: data.token,
-              };
-            } else if (data.type === "error") {
-              setState({
-                isPending: false,
-                isError: true,
-                error: data.error,
-                result: undefined,
-                token: undefined,
-                // エラー時もprogressをクリア（メモリ節約）
-                progress: undefined,
-              });
-              return { status: "error", error: data.error };
-            }
-          }
+        if (data.type === "progress") {
+          setState((prev) => ({
+            state: "loading",
+            progress: data,
+            diff: [],
+          }));
+        } else if (data.type === "complete") {
+          setState({
+            state: "success",
+            diff: data.result,
+            progress: undefined,
+            token: data.token,
+          });
+          closeEventSource(eventSource);
+          eventSourceRef.current = null;
+        } else if (data.type === "error") {
+          setState({
+            state: "error",
+            error: data.error,
+            diff: [],
+          });
+          closeEventSource(eventSource);
+          eventSourceRef.current = null;
         }
-
-        // 最後のバッファ内容も処理
-        const finalEvents =
-          processSSEFinalBuffer<CompareProgressUpdate>(buffer);
-        for (const data of finalEvents) {
-          if (data.type === "complete") {
-            setState({
-              isPending: false,
-              isError: false,
-              result: data.result,
-              token: data.token,
-              // 完了時はprogressをクリア（メモリ節約）
-              progress: undefined,
-            });
-            return {
-              status: "success",
-              result: data.result,
-              token: data.token,
-            };
-          }
-          if (data.type === "error") {
-            setState({
-              isPending: false,
-              isError: true,
-              error: data.error,
-              result: undefined,
-              token: undefined,
-              // エラー時もprogressをクリア（メモリ節約）
-              progress: undefined,
-            });
-            return { status: "error", error: data.error };
-          }
-        }
-      } finally {
-        try {
-          reader.releaseLock();
-        } catch (e) {
-          console.warn("Reader release error:", e);
-        }
-        // clear controller reference
-        controllerRef.current = null;
-      }
-
-      return { status: "success", result: [], token: "" };
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "不明なエラー";
-      console.error("Compare error:", error);
-      setState({
-        isPending: false,
-        isError: true,
-        error: `差分の確認でエラーが発生しました: ${errorMessage}`,
-        result: undefined,
-        token: undefined,
-        progress: undefined,
-      });
-      // リソースリークを防ぐため、controllerRefをクリア
-      controllerRef.current = null;
-      return { status: "error", error: errorMessage };
-    }
-  }, [nsId]);
-
-  // クリーンアップ: 進行中の fetch を中止
-  useEffect(() => {
-    return () => {
-      if (controllerRef.current) {
-        controllerRef.current.abort();
+      } catch (error) {
+        console.error(
+          "Failed to parse SSE data:",
+          error,
+          "Raw data:",
+          event.data,
+        );
+        setState({
+          state: "error",
+          error: `データの解析に失敗しました: ${error instanceof Error ? error.message : "不明なエラー"}`,
+          diff: [],
+        });
+        closeEventSource(eventSource);
+        eventSourceRef.current = null;
       }
     };
-  }, []);
+
+    eventSource.onerror = (error) => {
+      console.error("SSE connection error:", error);
+      setState({
+        state: "error",
+        error: "サーバーとの接続でエラーが発生しました",
+        diff: [],
+      });
+      closeEventSource(eventSource);
+      eventSourceRef.current = null;
+    };
+
+    return () => {
+      closeEventSource(eventSource);
+    };
+  }, [nsId, closeEventSource]);
+
+  // クリーンアップ
+  useEffect(() => {
+    return () => {
+      if (eventSourceRef.current) {
+        closeEventSource(eventSourceRef.current);
+        eventSourceRef.current = null;
+      }
+    };
+  }, [closeEventSource]);
+
+  const refetch = useCallback(() => {
+    startCompare();
+  }, [startCompare]);
 
   return {
     ...state,
-    compare,
+    startCompare,
+    refetch,
   };
 };
