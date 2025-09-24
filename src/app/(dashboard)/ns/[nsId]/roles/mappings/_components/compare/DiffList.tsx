@@ -114,10 +114,7 @@ export const DiffList: FC<Props> = ({
 
   const onButtonClick = useCallback(async () => {
     if (compareState.state !== "success") return;
-    const result = await applyState.applyDiff(
-      compareState.diff,
-      compareState.token,
-    );
+    const result = await applyState.applyDiff(compareState.token);
     if (result.status === "success" && result.result) {
       onApplyResult?.(result.result);
       // 適用完了後に差分を再取得
