@@ -57,13 +57,6 @@ const verifyAndExtractPlan = (
   }
 };
 
-// リクエストボディがJWTトークン形式かどうかを判定
-const isJWTRequest = (
-  body: TApplyMappingRequestBody,
-): body is { token: string } => {
-  return typeof body === "object" && "token" in body && !Array.isArray(body);
-};
-
 // CommonProgressUpdateからApplyProgressUpdateへの変換関数
 const convertToApplyProgress = (
   commonProgress: CommonProgressUpdate,
@@ -126,90 +119,45 @@ export async function POST(
 
     const stream = new ReadableStream({
       start(controller) {
-        // JWTリクエストか従来のリクエストかを判定
-        if (isJWTRequest(requestBody)) {
-          // JWTベースの処理
-          getMemberWithDiffFromJWTAndApplyWithProgress(
-            params.nsId,
-            userId,
-            requestBody.token,
-            (progress) => {
-              if (isStreamClosed || abortController.signal.aborted) {
-                return;
-              }
-              try {
-                const data = `data: ${JSON.stringify(progress)}\n\n`;
-                controller.enqueue(new TextEncoder().encode(data));
-
-                if (progress.type === "complete" || progress.type === "error") {
-                  isStreamClosed = true;
-                  controller.close();
-                }
-              } catch (error) {
-                // Controller already closed, ignore the error
-                isStreamClosed = true;
-              }
-            },
-            abortController.signal,
-          ).catch((error) => {
+        getMemberWithDiffFromJWTAndApplyWithProgress(
+          params.nsId,
+          userId,
+          requestBody.token,
+          (progress) => {
             if (isStreamClosed || abortController.signal.aborted) {
               return;
             }
             try {
-              const errorData = `data: ${JSON.stringify({
-                type: "error",
-                error: error.message,
-              } satisfies ApplyProgressUpdate)}\n\n`;
-              controller.enqueue(new TextEncoder().encode(errorData));
-              isStreamClosed = true;
-              controller.close();
-            } catch {
-              // Controller already closed, ignore the error
-              isStreamClosed = true;
-            }
-          });
-        } else {
-          // 従来の処理（後方互換性のため）
-          getMemberWithDiffAndApplyWithProgress(
-            params.nsId,
-            userId,
-            requestBody as TMemberWithDiff[],
-            (progress) => {
-              if (isStreamClosed || abortController.signal.aborted) {
-                return;
-              }
-              try {
-                const data = `data: ${JSON.stringify(progress)}\n\n`;
-                controller.enqueue(new TextEncoder().encode(data));
+              const data = `data: ${JSON.stringify(progress)}\n\n`;
+              controller.enqueue(new TextEncoder().encode(data));
 
-                if (progress.type === "complete" || progress.type === "error") {
-                  isStreamClosed = true;
-                  controller.close();
-                }
-              } catch (error) {
-                // Controller already closed, ignore the error
+              if (progress.type === "complete" || progress.type === "error") {
                 isStreamClosed = true;
+                controller.close();
               }
-            },
-            abortController.signal,
-          ).catch((error) => {
-            if (isStreamClosed || abortController.signal.aborted) {
-              return;
-            }
-            try {
-              const errorData = `data: ${JSON.stringify({
-                type: "error",
-                error: error.message,
-              } satisfies ApplyProgressUpdate)}\n\n`;
-              controller.enqueue(new TextEncoder().encode(errorData));
-              isStreamClosed = true;
-              controller.close();
-            } catch {
+            } catch (error) {
               // Controller already closed, ignore the error
               isStreamClosed = true;
             }
-          });
-        }
+          },
+          abortController.signal,
+        ).catch((error) => {
+          if (isStreamClosed || abortController.signal.aborted) {
+            return;
+          }
+          try {
+            const errorData = `data: ${JSON.stringify({
+              type: "error",
+              error: error.message,
+            } satisfies ApplyProgressUpdate)}\n\n`;
+            controller.enqueue(new TextEncoder().encode(errorData));
+            isStreamClosed = true;
+            controller.close();
+          } catch {
+            // Controller already closed, ignore the error
+            isStreamClosed = true;
+          }
+        });
       },
       cancel() {
         isStreamClosed = true;
