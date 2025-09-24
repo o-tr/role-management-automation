@@ -9,6 +9,7 @@ export type CompareSSEState = {
   error?: string;
   diff: TMemberWithDiff[];
   progress?: ProgressUpdate;
+  token?: string;
 };
 
 export const useCompareSSE = (nsId: TNamespaceId) => {
@@ -17,6 +18,7 @@ export const useCompareSSE = (nsId: TNamespaceId) => {
     isError: false,
     diff: [],
     progress: undefined,
+    token: undefined,
   });
 
   const eventSourceRef = useRef<EventSource | null>(null);
@@ -44,6 +46,7 @@ export const useCompareSSE = (nsId: TNamespaceId) => {
       isError: false,
       diff: [],
       progress: undefined,
+      token: undefined,
     });
 
     const eventSource = new EventSource(`/api/ns/${nsId}/mappings/compare`);
@@ -67,6 +70,7 @@ export const useCompareSSE = (nsId: TNamespaceId) => {
             diff: data.result,
             // 完了時はprogressをクリア（メモリ節約）
             progress: undefined,
+            token: data.token,
           });
           closeEventSource(eventSource);
           eventSourceRef.current = null;
@@ -78,6 +82,7 @@ export const useCompareSSE = (nsId: TNamespaceId) => {
             diff: [],
             // エラー時もprogressをクリア（メモリ節約）
             progress: undefined,
+            token: undefined,
           });
           closeEventSource(eventSource);
           eventSourceRef.current = null;
@@ -95,6 +100,7 @@ export const useCompareSSE = (nsId: TNamespaceId) => {
           error: `データの解析に失敗しました: ${error instanceof Error ? error.message : "不明なエラー"}`,
           diff: [],
           progress: undefined,
+          token: undefined,
         });
         closeEventSource(eventSource);
         eventSourceRef.current = null;
@@ -109,6 +115,7 @@ export const useCompareSSE = (nsId: TNamespaceId) => {
         error: "サーバーとの接続でエラーが発生しました",
         diff: [],
         progress: undefined,
+        token: undefined,
       });
       closeEventSource(eventSource);
       eventSourceRef.current = null;

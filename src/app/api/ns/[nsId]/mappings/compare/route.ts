@@ -1,6 +1,7 @@
 import { validatePermission } from "@/lib/validatePermission";
 import type { TMemberWithDiff } from "@/types/diff";
 import type { TNamespaceId } from "@/types/prisma";
+import { getServerSession } from "next-auth/next";
 import type { NextRequest } from "next/server";
 import { getMemberWithDiffWithProgress } from "../_shared/getMemberWithDiffWithProgress";
 import type { CommonProgressUpdate } from "../_shared/types";
@@ -22,6 +23,7 @@ const convertToCompareProgress = (
     return {
       type: "complete",
       result: commonProgress.result,
+      token: commonProgress.token,
     };
   }
   return {
@@ -48,6 +50,7 @@ export type ProgressUpdate =
   | {
       type: "complete";
       result: TMemberWithDiff[];
+      token: string;
     }
   | {
       type: "error";
@@ -61,6 +64,16 @@ export async function GET(
   try {
     await validatePermission(params.nsId, "admin");
 
+    // セッション情報からユーザーIDを取得
+    const session = await getServerSession();
+    if (!session?.user?.email) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    const userId = session.user.email;
+
     const abortController = new AbortController();
     let isStreamClosed = false;
 
@@ -68,6 +81,7 @@ export async function GET(
       start(controller) {
         getMemberWithDiffWithProgress(
           params.nsId,
+          userId,
           (commonProgress) => {
             if (isStreamClosed || abortController.signal.aborted) {
               return;

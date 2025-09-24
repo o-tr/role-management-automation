@@ -7,6 +7,7 @@ import { compareDiff } from "@/lib/mapping/compareDiff";
 import { validatePermission } from "@/lib/validatePermission";
 import { type TMemberWithDiff, ZMemberWithDiff } from "@/types/diff";
 import type { TNamespaceId } from "@/types/prisma";
+import { getServerSession } from "next-auth/next";
 import type { NextRequest } from "next/server";
 import { z } from "zod";
 import { getMemberWithDiffWithProgress } from "../_shared/getMemberWithDiffWithProgress";
@@ -59,6 +60,16 @@ export async function POST(
   try {
     await validatePermission(params.nsId, "admin");
 
+    // セッション情報からユーザーIDを取得
+    const session = await getServerSession();
+    if (!session?.user?.email) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    const userId = session.user.email;
+
     const body = ZApplyMappingSchema.safeParse(await req.json());
 
     if (!body.success) {
@@ -73,6 +84,7 @@ export async function POST(
       start(controller) {
         getMemberWithDiffAndApplyWithProgress(
           params.nsId,
+          userId,
           requestBody,
           (progress) => {
             if (isStreamClosed || abortController.signal.aborted) {
@@ -137,6 +149,7 @@ type ProgressCallback = (progress: ApplyProgressUpdate) => void;
 
 const getMemberWithDiffAndApplyWithProgress = async (
   nsId: TNamespaceId,
+  userId: string,
   requestBody: TMemberWithDiff[],
   onProgress: ProgressCallback,
   abortSignal?: AbortSignal,
@@ -145,6 +158,7 @@ const getMemberWithDiffAndApplyWithProgress = async (
     // Stage 1: 共通の差分計算を使用
     const calculatedDiff = await getMemberWithDiffWithProgress(
       nsId,
+      userId,
       (commonProgress) => {
         if (abortSignal?.aborted) {
           return;

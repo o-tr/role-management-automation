@@ -3,12 +3,14 @@ import {
   DIFF_FETCH_STAGES,
   PROGRESS_MESSAGES,
 } from "@/lib/constants/progress";
+import { signPlan } from "@/lib/jwt/plan";
 import { calculateDiff, extractTargetGroups } from "@/lib/mapping/memberDiff";
 import { convertTSerializedMappingToTMapping } from "@/lib/prisma/convert/convertTSerializedMappingToTMapping";
 import { getExternalServiceGroupRoleMappingsByNamespaceId } from "@/lib/prisma/getExternalServiceGroupRoleMappingByNamespaceId";
 import { getExternalServiceGroups } from "@/lib/prisma/getExternalServiceGroups";
 import { getMembersWithRelation } from "@/lib/prisma/getMembersWithRelation";
 import type { TMemberWithDiff } from "@/types/diff";
+import type { TComparePlan, TGroupData, TTargetGroupData } from "@/types/plan";
 import type { TNamespaceId } from "@/types/prisma";
 import { getMembersWithProgress } from "../../services/accounts/[accountId]/groups/[groupId]/members/getMembersWithProgress";
 import type {
@@ -23,6 +25,7 @@ import type {
  */
 export const getMemberWithDiffWithProgress = async (
   nsId: TNamespaceId,
+  userId: string,
   onProgress: CommonProgressCallback,
   abortSignal?: AbortSignal,
 ): Promise<TMemberWithDiff[]> => {
@@ -275,11 +278,48 @@ export const getMemberWithDiffWithProgress = async (
       services: calculatingState,
     });
 
+    // JWTトークンを生成
+    const planData: TComparePlan = {
+      nsId,
+      userId,
+      createdAt: Date.now(),
+      diff: result,
+      groupMembers: groupMembers.map(
+        (gm): TTargetGroupData => ({
+          serviceAccountId: gm.serviceAccountId,
+          serviceGroupId: gm.serviceGroupId,
+          service: gm.service,
+          members: gm.members.map((member) => ({
+            userId: member.serviceId,
+            userName: member.serviceUsername,
+            roles: member.roleIds,
+          })),
+        }),
+      ),
+      groups: groups.map(
+        (g): TGroupData => ({
+          account: { id: g.account.id },
+          id: g.id,
+          service: g.service,
+          name: g.name,
+          groupId: g.groupId,
+        }),
+      ),
+    };
+
+    const token = signPlan({
+      nsId,
+      userId,
+      createdAt: planData.createdAt,
+      data: planData,
+    });
+
     // 完了の報告
     if (!abortSignal?.aborted) {
       onProgress({
         type: "complete",
         result,
+        token,
       });
     }
 
