@@ -24,13 +24,9 @@ const ZApplyMappingWithJWTSchema = z.object({
   token: z.string(),
 });
 
-// 従来形式との後方互換性のためのUnion型
-const ZApplyMappingSchema = z.union([
-  ZApplyMappingWithJWTSchema,
-  z.array(ZMemberWithDiff),
-]);
-
-export type TApplyMappingRequestBody = z.infer<typeof ZApplyMappingSchema>;
+export type TApplyMappingRequestBody = z.infer<
+  typeof ZApplyMappingWithJWTSchema
+>;
 
 // JWTトークンからプランを復元するヘルパー関数
 const verifyAndExtractPlan = (
@@ -107,7 +103,7 @@ export async function POST(
     }
     const userId = session.user.email;
 
-    const body = ZApplyMappingSchema.safeParse(await req.json());
+    const body = ZApplyMappingWithJWTSchema.safeParse(await req.json());
 
     if (!body.success) {
       throw new BadRequestException("Invalid request body");

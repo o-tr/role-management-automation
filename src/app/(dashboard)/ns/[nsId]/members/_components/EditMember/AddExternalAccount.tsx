@@ -51,7 +51,7 @@ export const AddExternalAccount: FC<{
         id: crypto.randomUUID() as TMemberExternalServiceAccountId,
         service: data.service,
         serviceId: data.serviceId,
-        name: data.name,
+        name: data.name ?? "",
         icon: data.icon || undefined,
         status: "ACTIVE",
         namespaceId: member.namespaceId,
