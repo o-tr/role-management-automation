@@ -21,21 +21,10 @@ export type TargetGroup = {
   service: ExternalServiceName;
 };
 
-// 招待送信済みユーザーをキャッシュするためのマップ
-const invitedUsersCache = new Map<string, Set<string>>();
-
-const getInvitedUsers = async (
+export const getInvitedUsers = async (
   serviceAccount: TExternalServiceAccount,
   groupId: string,
 ): Promise<Set<string>> => {
-  const cacheKey = `${serviceAccount.id}-${groupId}`;
-
-  // キャッシュがある場合は返す
-  const cached = invitedUsersCache.get(cacheKey);
-  if (cached) {
-    return cached;
-  }
-
   const invitedUsers = new Set<string>();
 
   try {
@@ -66,9 +55,6 @@ const getInvitedUsers = async (
     // エラーが発生した場合は空のSetを返す（招待チェックをスキップ）
     console.warn(`Failed to get invited users for group ${groupId}:`, error);
   }
-
-  // キャッシュに保存
-  invitedUsersCache.set(cacheKey, invitedUsers);
 
   return invitedUsers;
 };
@@ -182,11 +168,9 @@ export const calculateDiff = async (
   mappings: TMapping[],
   groupMembers: TExternalServiceGroupMembers[],
   groups: TExternalServiceGroupWithAccount[],
-  serviceAccounts?: TExternalServiceAccount[],
+  _serviceAccounts?: TExternalServiceAccount[],
+  invitedUsersMap?: Map<string, Set<string>>,
 ): Promise<TMemberWithDiff[]> => {
-  // VRChatの招待送信済みユーザーをキャッシュ
-  const invitedUsersMap = new Map<string, Set<string>>();
-
   const results: TMemberWithDiff[] = [];
 
   for (const member of members) {
@@ -263,26 +247,13 @@ export const calculateDiff = async (
           continue;
         }
 
-        // 招待送信済みユーザーをチェック（サービスアカウントが提供されている場合のみ）
+        // 招待送信済みユーザーをチェック（招待データが提供されている場合のみ）
         let isAlreadyInvited = false;
-        if (serviceAccounts) {
-          const serviceAccount = serviceAccounts.find(
-            (account) => account.id === group.account.id,
-          );
-          if (serviceAccount) {
-            const cacheKey = `${serviceAccount.id}-${group.groupId}`;
-            if (!invitedUsersMap.has(cacheKey)) {
-              const invitedUsers = await getInvitedUsers(
-                serviceAccount,
-                group.groupId,
-              );
-              invitedUsersMap.set(cacheKey, invitedUsers);
-            }
-
-            const invitedUsers = invitedUsersMap.get(cacheKey);
-            isAlreadyInvited =
-              invitedUsers?.has(targetAccount.serviceId) ?? false;
-          }
+        if (invitedUsersMap) {
+          const inviteKey = `${group.account.id}-${group.groupId}`;
+          const invitedUsers = invitedUsersMap.get(inviteKey);
+          isAlreadyInvited =
+            invitedUsers?.has(targetAccount.serviceId) ?? false;
         }
 
         diffItems.push({

@@ -5,6 +5,7 @@ import {
 } from "@/lib/constants/progress";
 import { signPlan } from "@/lib/jwt/plan";
 import { calculateDiff, extractTargetGroups } from "@/lib/mapping/memberDiff";
+import { getInvitedUsers } from "@/lib/mapping/memberDiff";
 import { convertTSerializedMappingToTMapping } from "@/lib/prisma/convert/convertTSerializedMappingToTMapping";
 import { getExternalServiceAccounts } from "@/lib/prisma/getExternalServiceAccounts";
 import { getExternalServiceGroupRoleMappingsByNamespaceId } from "@/lib/prisma/getExternalServiceGroupRoleMappingByNamespaceId";
@@ -266,12 +267,40 @@ export const getMemberWithDiffWithProgress = async (
       throw new Error("Operation aborted");
     }
 
+    // VRChatの招待送信済みユーザーを事前に取得
+    const invitedUsersMap = new Map<string, Set<string>>();
+    for (const group of groups) {
+      if (group.service === "VRCHAT") {
+        const serviceAccount = serviceAccounts.find(
+          (account) => account.id === group.account.id,
+        );
+        if (serviceAccount) {
+          try {
+            const invitedUsers = await getInvitedUsers(
+              serviceAccount,
+              group.groupId,
+            );
+            invitedUsersMap.set(
+              `${group.account.id}-${group.groupId}`,
+              invitedUsers,
+            );
+          } catch (error) {
+            console.warn(
+              `Failed to get invited users for group ${group.groupId}:`,
+              error,
+            );
+          }
+        }
+      }
+    }
+
     const result = await calculateDiff(
       members,
       mappings,
       groupMembers,
       groups,
       serviceAccounts,
+      invitedUsersMap,
     );
 
     // 計算完了
