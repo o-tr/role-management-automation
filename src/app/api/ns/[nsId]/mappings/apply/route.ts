@@ -1,19 +1,12 @@
-import {
-  APPLY_VALIDATION_STAGES,
-  PROGRESS_MESSAGES,
-} from "@/lib/constants/progress";
+import { APPLY_VALIDATION_STAGES } from "@/lib/constants/progress";
 import { BadRequestException } from "@/lib/exceptions/BadRequestException";
 import { verifyPlan } from "@/lib/jwt/plan";
-import { compareDiff } from "@/lib/mapping/compareDiff";
 import { validatePermission } from "@/lib/validatePermission";
-import { type TMemberWithDiff, ZMemberWithDiff } from "@/types/diff";
 import { type TComparePlan, ZTComparePlan } from "@/types/plan";
 import type { TNamespaceId } from "@/types/prisma";
 import { getServerSession } from "next-auth/next";
 import type { NextRequest } from "next/server";
 import { z } from "zod";
-import { getMemberWithDiffWithProgress } from "../_shared/getMemberWithDiffWithProgress";
-import type { CommonProgressUpdate } from "../_shared/types";
 import {
   type ApplyProgressUpdate,
   applyDiffWithProgress,
@@ -61,39 +54,6 @@ const verifyAndExtractPlan = (
       `Invalid JWT token: ${error instanceof Error ? error.message : "Unknown error"}`,
     );
   }
-};
-
-// CommonProgressUpdateからApplyProgressUpdateへの変換関数
-const convertToApplyProgress = (
-  commonProgress: CommonProgressUpdate,
-  stage: "fetching_members" | "calculating_diff" | "applying_changes",
-): ApplyProgressUpdate => {
-  if (commonProgress.type === "progress") {
-    return {
-      type: "progress",
-      stage,
-      services: commonProgress.services,
-    };
-  }
-  if (commonProgress.type === "complete") {
-    // complete時は次の段階（差分検証）に進むため、progressとして返す
-    return {
-      type: "progress",
-      stage: "applying_changes",
-      services: {
-        validation: {
-          status: "completed",
-          current: APPLY_VALIDATION_STAGES.COMPLETE,
-          total: APPLY_VALIDATION_STAGES.TOTAL,
-          message: PROGRESS_MESSAGES.DIFF_VALIDATION_COMPLETE,
-        },
-      },
-    };
-  }
-  return {
-    type: "error",
-    error: commonProgress.error,
-  };
 };
 
 export async function POST(
@@ -247,85 +207,5 @@ const getMemberWithDiffFromJWTAndApplyWithProgress = async (
       error: error instanceof Error ? error.message : "Unknown error",
     });
     throw error;
-  }
-};
-
-const getMemberWithDiffAndApplyWithProgress = async (
-  nsId: TNamespaceId,
-  userId: string,
-  requestBody: TMemberWithDiff[],
-  onProgress: ProgressCallback,
-  abortSignal?: AbortSignal,
-): Promise<void> => {
-  try {
-    // Stage 1: 共通の差分計算を使用
-    const calculatedDiff = await getMemberWithDiffWithProgress(
-      nsId,
-      userId,
-      (commonProgress) => {
-        if (abortSignal?.aborted) {
-          return;
-        }
-        // 差分計算段階の進捗を適用用に変換
-        if (commonProgress.type === "progress") {
-          const stage = commonProgress.stage;
-          onProgress(convertToApplyProgress(commonProgress, stage));
-        }
-        // complete時は何もしない（次の段階に進む）
-        if (commonProgress.type === "error") {
-          onProgress(
-            convertToApplyProgress(commonProgress, "fetching_members"),
-          );
-        }
-      },
-      abortSignal,
-    );
-
-    if (abortSignal?.aborted) {
-      throw new Error("Operation aborted");
-    }
-
-    // Stage 2: 差分検証
-    onProgress({
-      type: "progress",
-      stage: "applying_changes",
-      services: {
-        validation: {
-          status: "in_progress",
-          current: 0,
-          total: APPLY_VALIDATION_STAGES.TOTAL,
-          message: PROGRESS_MESSAGES.DIFF_VALIDATING,
-        },
-      },
-    });
-
-    if (!compareDiff(calculatedDiff, requestBody)) {
-      onProgress({
-        type: "error",
-        error: "Invalid request body - diff mismatch",
-      });
-      return;
-    }
-
-    onProgress({
-      type: "progress",
-      stage: "applying_changes",
-      services: {
-        validation: {
-          status: "completed",
-          current: APPLY_VALIDATION_STAGES.COMPLETE,
-          total: APPLY_VALIDATION_STAGES.TOTAL,
-          message: PROGRESS_MESSAGES.DIFF_VALIDATION_COMPLETE,
-        },
-      },
-    });
-
-    // Stage 3: 差分適用with進捗
-    await applyDiffWithProgress(nsId, requestBody, onProgress);
-  } catch (error) {
-    onProgress({
-      type: "error",
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
   }
 };
