@@ -1,5 +1,6 @@
 import type { TNamespaceId } from "@/types/prisma";
 import jwt from "jsonwebtoken";
+import { z } from "zod";
 
 export interface TPlanPayload {
   nsId: TNamespaceId;
@@ -7,6 +8,21 @@ export interface TPlanPayload {
   createdAt: number;
   data: unknown; // プラン固有のデータ
 }
+
+// Zod schema for JWT payload validation
+const ZTPlanPayload = z
+  .object({
+    nsId: z.string().uuid(), // Use UUID validation, will be cast to TNamespaceId
+    userId: z.string(),
+    createdAt: z.number(),
+    data: z.unknown(), // Accept any data type for the payload data
+    // JWT standard fields that might be present
+    iat: z.number().optional(),
+    exp: z.number().optional(),
+    iss: z.string().optional(),
+    sub: z.string().optional(),
+  })
+  .passthrough(); // Allow additional JWT fields that we don't need
 
 const JWT_EXPIRY = "30m"; // 30分
 
@@ -39,7 +55,21 @@ export function verifyPlan(token: string): TPlanPayload {
       throw new Error("Invalid token format");
     }
 
-    return decoded as TPlanPayload;
+    // Validate decoded JWT payload with Zod
+    const validationResult = ZTPlanPayload.safeParse(decoded);
+    if (!validationResult.success) {
+      throw new Error(
+        `Invalid JWT payload structure: ${validationResult.error.message}`,
+      );
+    }
+
+    // Extract only the fields we need for TPlanPayload and cast nsId to proper branded type
+    return {
+      nsId: validationResult.data.nsId as TNamespaceId,
+      userId: validationResult.data.userId,
+      createdAt: validationResult.data.createdAt,
+      data: validationResult.data.data,
+    };
   } catch (error) {
     if (error instanceof jwt.JsonWebTokenError) {
       throw new Error(`Invalid token: ${error.message}`);
