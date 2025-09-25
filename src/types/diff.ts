@@ -3,23 +3,52 @@ import { ZMappingActionType } from "./actions";
 import {
   ZExternalServiceGroupMember,
   ZExternalServiceGroupWithAccount,
+  ZMemberExternalServiceAccount,
   ZMemberWithRelation,
 } from "./prisma";
 
-export const ZDiffItem = z.object({
-  type: ZMappingActionType,
+const ZDiffStatusFields = {
+  status: z.enum(["success", "error", "skipped"]).optional(),
+  reason: z.string().optional(),
+};
+
+const ZDiffBase = z.object({
   serviceGroup: ZExternalServiceGroupWithAccount,
-  groupMember: ZExternalServiceGroupMember,
-  roleId: z.string(),
   ignore: z.boolean(),
 });
+
+const ZDiffRoleItem = ZDiffBase.extend({
+  type: z.string(),
+  groupMember: ZExternalServiceGroupMember,
+  roleId: z.string(),
+});
+
+const ZDiffRoleAddItem = ZDiffRoleItem.extend({
+  type: z.literal("add"),
+});
+
+const ZDiffRoleRemoveItem = ZDiffRoleItem.extend({
+  type: z.literal("remove"),
+});
+
+const ZDiffInviteItem = ZDiffBase.extend({
+  type: z.literal("invite-group"),
+  targetAccount: ZMemberExternalServiceAccount,
+});
+
+export const ZDiffItem = z.discriminatedUnion("type", [
+  ZDiffRoleAddItem,
+  ZDiffRoleRemoveItem,
+  ZDiffInviteItem,
+]);
 export type TDiffItem = z.infer<typeof ZDiffItem>;
 
 // 進捗表示時に使用される拡張されたDiffItem型
-export const ZExtendedDiffItem = ZDiffItem.extend({
-  status: z.enum(["success", "error", "skipped"]).optional(),
-  reason: z.string().optional(),
-});
+export const ZExtendedDiffItem = z.discriminatedUnion("type", [
+  ZDiffRoleAddItem.extend(ZDiffStatusFields),
+  ZDiffRoleRemoveItem.extend(ZDiffStatusFields),
+  ZDiffInviteItem.extend(ZDiffStatusFields),
+]);
 export type TExtendedDiffItem = z.infer<typeof ZExtendedDiffItem>;
 
 export const ZMemberWithDiff = z.object({

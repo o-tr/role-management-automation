@@ -95,9 +95,9 @@ const getVRChatMembers = async (
     serviceId: member.userId,
     name: member.user.displayName,
     icon: member.user.iconUrl,
-    roleIds: member.roleIds,
+    roleIds: member.roleIds || [],
     isEditable:
-      (getHighestRole(roles, member.roleIds)?.order ||
+      (getHighestRole(roles, member.roleIds || [])?.order ||
         Number.MAX_SAFE_INTEGER) > serviceAccountOrder ||
       member.user.id === user.id,
   }));

@@ -39,17 +39,30 @@ const ActionDisplay: FC<ActionDisplayProps> = ({ action, nsId }) => {
 
   const group = groups?.find((g) => g.id === action.targetServiceGroupId);
   const account = accounts?.find((a) => a.id === action.targetServiceAccountId);
-  const role = roles?.find((r) => r.id === action.targetServiceRoleId);
+  const role =
+    action.type === "add" || action.type === "remove"
+      ? roles?.find((r) => r.id === action.targetServiceRoleId)
+      : undefined;
 
   return (
     <Card className="p-2 flex flex-row items-center gap-2 flex-wrap">
       {account && <ServiceAccountDisplay account={account} />}
       {group && <ServiceGroupDisplay group={group} />}
-      <span>の</span>
-      {role && <ServiceGroupRoleDisplay role={role} />}
-      <span>を</span>
-      {action.type === "add" && <span>追加</span>}
-      {action.type === "remove" && <span>削除</span>}
+      {action.type === "invite-group" ? (
+        <span>に招待</span>
+      ) : (
+        <>
+          <span>の</span>
+          {role ? (
+            <ServiceGroupRoleDisplay role={role} />
+          ) : (
+            <span>ロール不明</span>
+          )}
+          <span>を</span>
+          {action.type === "add" && <span>追加</span>}
+          {action.type === "remove" && <span>削除</span>}
+        </>
+      )}
     </Card>
   );
 };
