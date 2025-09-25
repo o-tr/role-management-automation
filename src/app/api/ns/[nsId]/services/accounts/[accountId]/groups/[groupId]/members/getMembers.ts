@@ -71,7 +71,7 @@ const getVRChatMembers = async (
   const roles = await getGroupRoles(group.account, groupId);
   const serviceAccountOrder = getHighestRole(
     roles,
-    vrcGroup.myMember.roleIds || [],
+    vrcGroup.myMember.roleIds,
   )?.order;
 
   if (!serviceAccountOrder) {
