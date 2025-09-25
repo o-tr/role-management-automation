@@ -137,20 +137,23 @@ const ActionsItem: FC<ActionsItemProps> = ({ action, onChange, nsId }) => {
             if (nextType === action.type) {
               return;
             }
+
+            const baseProps = {
+              id: action.id,
+              targetServiceAccountId: action.targetServiceAccountId,
+              targetServiceGroupId: action.targetServiceGroupId,
+            };
+
             if (nextType === "invite-group") {
               onChange({
-                id: action.id,
-                targetServiceAccountId: action.targetServiceAccountId,
-                targetServiceGroupId: action.targetServiceGroupId,
+                ...baseProps,
                 type: nextType,
               });
               return;
             }
             if (action.type === "invite-group") {
               onChange({
-                id: action.id,
-                targetServiceAccountId: action.targetServiceAccountId,
-                targetServiceGroupId: action.targetServiceGroupId,
+                ...baseProps,
                 type: nextType,
                 targetServiceRoleId: "" as TServiceRoleId,
               });
