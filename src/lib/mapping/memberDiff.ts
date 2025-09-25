@@ -64,7 +64,6 @@ export const calculateDiff = async (
   mappings: TMapping[],
   groupMembers: TExternalServiceGroupMembers[],
   groups: TExternalServiceGroupWithAccount[],
-  _serviceAccounts?: TExternalServiceAccount[],
   invitedUsersMap?: Map<string, Set<string>>,
 ): Promise<TMemberWithDiff[]> => {
   const results: TMemberWithDiff[] = [];

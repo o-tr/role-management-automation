@@ -299,7 +299,6 @@ export const getMemberWithDiffWithProgress = async (
       mappings,
       groupMembers,
       groups,
-      serviceAccounts,
       invitedUsersMap,
     );
 
