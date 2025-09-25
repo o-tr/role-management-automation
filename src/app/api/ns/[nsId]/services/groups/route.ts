@@ -1,3 +1,4 @@
+import type { NextRequest } from "next/server";
 import { api } from "@/lib/api";
 import { getExternalServiceGroups } from "@/lib/prisma/getExternalServiceGroups";
 import { validatePermission } from "@/lib/validatePermission";
@@ -6,7 +7,6 @@ import type {
   TExternalServiceGroupWithAccount,
   TNamespaceId,
 } from "@/types/prisma";
-import type { NextRequest } from "next/server";
 
 export type GetExternalServiceGroupsResponse =
   | {

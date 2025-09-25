@@ -1,8 +1,8 @@
+import type { NextRequest } from "next/server";
+import { getServerSession } from "next-auth/next";
 import { validatePermission } from "@/lib/validatePermission";
 import type { TMemberWithDiff } from "@/types/diff";
 import type { TNamespaceId } from "@/types/prisma";
-import { getServerSession } from "next-auth/next";
-import type { NextRequest } from "next/server";
 import { getMemberWithDiffWithProgress } from "../_shared/getMemberWithDiffWithProgress";
 import type { CommonProgressUpdate } from "../_shared/types";
 

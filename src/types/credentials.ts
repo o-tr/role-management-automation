@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { ZDiscordToken } from "@/lib/discord/types/token";
 import {
   ZGitHubAppClientId,
@@ -8,7 +9,6 @@ import {
   ZVRCTwoFactorAuth,
   ZVRCUserId,
 } from "@/lib/vrchat/types/brand";
-import { z } from "zod";
 
 export const ZDiscordCredentials = z.object({
   token: ZDiscordToken,

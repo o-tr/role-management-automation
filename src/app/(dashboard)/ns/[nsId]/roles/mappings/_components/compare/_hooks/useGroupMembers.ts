@@ -1,7 +1,7 @@
-import type { GetExternalServiceGroupMembersResponse } from "@/app/api/ns/[nsId]/services/accounts/[accountId]/groups/[groupId]/members/route";
-import type { TargetGroup } from "@/lib/mapping/memberDiff";
 import { useMemo } from "react";
 import useSWR from "swr";
+import type { GetExternalServiceGroupMembersResponse } from "@/app/api/ns/[nsId]/services/accounts/[accountId]/groups/[groupId]/members/route";
+import type { TargetGroup } from "@/lib/mapping/memberDiff";
 
 const fetcher = (url: string) =>
   Promise.all(url.split(",").map((u) => fetch(u).then((res) => res.json())));

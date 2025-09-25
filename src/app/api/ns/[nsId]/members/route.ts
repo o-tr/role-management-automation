@@ -1,13 +1,13 @@
+import type { NextRequest } from "next/server";
 import { api } from "@/lib/api";
 import {
-  ZCreateOrUpdateMembers,
   createOrUpdateMember,
+  ZCreateOrUpdateMembers,
 } from "@/lib/prisma/createOrUpdateMember";
 import { getMembersWithRelation } from "@/lib/prisma/getMembersWithRelation";
 import { validatePermission } from "@/lib/validatePermission";
 import type { ErrorResponseType } from "@/types/api";
 import type { TMemberWithRelation, TNamespaceId } from "@/types/prisma";
-import type { NextRequest } from "next/server";
 
 export type AddMembersResponse =
   | {

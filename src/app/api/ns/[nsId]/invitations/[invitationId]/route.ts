@@ -1,9 +1,9 @@
+import type { NextRequest } from "next/server";
 import { api } from "@/lib/api";
 import { deleteNamespaceInvitation } from "@/lib/prisma/deleteNamespaceInvitation";
 import { validatePermission } from "@/lib/validatePermission";
 import type { ErrorResponseType } from "@/types/api";
 import type { TNamespaceId, TNamespaceInvitationId } from "@/types/prisma";
-import type { NextRequest } from "next/server";
 
 export type DeleteNamespaceInvitationResponse =
   | {

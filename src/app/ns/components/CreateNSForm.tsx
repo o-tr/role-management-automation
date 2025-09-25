@@ -1,12 +1,12 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { type FC, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useCreateNamespace } from "@/hooks/use-create-namespace";
 import type { TNamespace } from "@/types/prisma";
-import { useRouter } from "next/navigation";
-import { type FC, useId, useState } from "react";
 
 type Props = {
   onCreated?: (created: TNamespace) => void;

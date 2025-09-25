@@ -1,6 +1,6 @@
+import type { Tag } from "@prisma/client";
 import type { TColorCode } from "@/types/brand";
 import type { TNamespaceId, TTag, TTagId } from "@/types/prisma";
-import type { Tag } from "@prisma/client";
 
 export const formatTTag = (input: Tag): TTag => {
   return {

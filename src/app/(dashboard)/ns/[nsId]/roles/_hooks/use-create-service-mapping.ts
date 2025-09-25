@@ -1,8 +1,8 @@
+import { useState } from "react";
 import type {
   CreateMappingBody,
   CreateMappingResponse,
 } from "@/app/api/ns/[nsId]/mappings/route";
-import { useState } from "react";
 
 export const useCreateServiceMapping = (nsId: string) => {
   const [loading, setLoading] = useState(false);

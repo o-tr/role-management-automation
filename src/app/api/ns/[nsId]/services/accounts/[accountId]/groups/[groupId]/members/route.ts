@@ -1,3 +1,5 @@
+import type { ExternalServiceName } from "@prisma/client";
+import type { NextRequest } from "next/server";
 import { api } from "@/lib/api";
 import { NotFoundException } from "@/lib/exceptions/NotFoundException";
 import { getExternalServiceGroup } from "@/lib/prisma/getExternalServiceGroup";
@@ -9,8 +11,6 @@ import type {
   TExternalServiceGroupMember,
   TNamespaceId,
 } from "@/types/prisma";
-import type { ExternalServiceName } from "@prisma/client";
-import type { NextRequest } from "next/server";
 import { getMembers } from "./getMembers";
 
 export type TExternalServiceGroupMembers = {

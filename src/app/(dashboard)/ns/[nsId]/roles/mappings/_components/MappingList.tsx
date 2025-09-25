@@ -1,5 +1,8 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
+import { redirect } from "next/navigation";
+import { useState } from "react";
 import {
   CommonCheckboxCell,
   CommonCheckboxHeader,
@@ -8,6 +11,14 @@ import {
 } from "@/app/(dashboard)/ns/[nsId]/components/DataTable";
 import { useMappings } from "@/app/(dashboard)/ns/[nsId]/roles/_hooks/use-mappings";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { deleteMapping } from "@/requests/deleteMapping";
 import type { TMapping } from "@/types/prisma";
@@ -17,18 +28,6 @@ import {
 } from "../../_hooks/on-mappings-change";
 import { ActionsDisplay } from "./ActionsDisplay";
 import { ConditionsDisplay } from "./ConditionsDisplay";
-
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Loader2 } from "lucide-react";
-import { redirect } from "next/navigation";
-import { useState } from "react";
 import { EditMapping } from "./EditMapping";
 
 type InternalMapping = TMapping & { namespaceId: string };

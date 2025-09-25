@@ -1,6 +1,6 @@
-import type { TTag } from "@/types/prisma";
 import type { FC } from "react";
 import { TbTagFilled, TbX } from "react-icons/tb";
+import type { TTag } from "@/types/prisma";
 
 type Props = {
   tag: TTag;

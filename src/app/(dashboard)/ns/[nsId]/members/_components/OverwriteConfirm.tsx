@@ -1,3 +1,4 @@
+import type { FC } from "react";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -6,7 +7,6 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import type { FC } from "react";
 
 type Props = {
   open: boolean;

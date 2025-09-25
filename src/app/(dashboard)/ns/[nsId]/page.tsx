@@ -1,9 +1,9 @@
 "use client";
+import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useNamespace } from "@/hooks/use-namespace";
 import type { TNamespaceId } from "@/types/prisma";
-import Link from "next/link";
-import { redirect } from "next/navigation";
 import { DescriptionImage } from "./_assets/description.svg";
 
 export default function GroupPage({

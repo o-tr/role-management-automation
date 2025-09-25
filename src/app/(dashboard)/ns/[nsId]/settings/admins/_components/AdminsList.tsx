@@ -1,3 +1,5 @@
+import { redirect, useRouter } from "next/navigation";
+import type { FC } from "react";
 import type { AdminItem } from "@/app/api/ns/[nsId]/admins/route";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,8 +11,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import type { TNamespaceId } from "@/types/prisma";
-import { redirect, useRouter } from "next/navigation";
-import type { FC } from "react";
 import { DataTable, type TColumnDef } from "../../../components/DataTable";
 import { UserDisplay } from "../../../components/UserDisplay";
 import { useAdmins } from "../_hooks/useAdmins";

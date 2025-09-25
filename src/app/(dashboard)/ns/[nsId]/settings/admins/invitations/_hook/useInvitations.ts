@@ -1,6 +1,6 @@
+import useSWR from "swr";
 import type { GetNamespaceInvitationsResponse } from "@/app/api/ns/[nsId]/invitations/route";
 import type { TNamespaceId } from "@/types/prisma";
-import useSWR from "swr";
 import { useOnInvitationsChange } from "./onInvitationsChange";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());

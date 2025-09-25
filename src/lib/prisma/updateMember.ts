@@ -1,10 +1,10 @@
+import { z } from "zod";
 import {
   type TMemberId,
   type TMemberWithRelation,
   type TNamespaceId,
   ZExternalServiceName,
 } from "@/types/prisma";
-import { z } from "zod";
 import { prisma } from "../prisma";
 import { formatTMemberWithRelation } from "./format/formatTMemberWithRelation";
 import { getMemberWithRelation } from "./getMemberWithRelation";

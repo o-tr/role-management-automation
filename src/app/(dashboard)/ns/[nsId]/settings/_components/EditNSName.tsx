@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { type FC, useEffect, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -5,8 +7,6 @@ import { onNsChange } from "@/events/on-ns-change";
 import { useNamespace } from "@/hooks/use-namespace";
 import { useSetNamespaceName } from "@/hooks/use-set-namespace-name";
 import type { TNamespaceId } from "@/types/prisma";
-import { redirect } from "next/navigation";
-import { type FC, useEffect, useId, useState } from "react";
 
 type Props = {
   nsId: TNamespaceId;

@@ -1,8 +1,8 @@
+import { AlertCircle, CheckCircle, Clock, XCircle } from "lucide-react";
+import type { FC } from "react";
 import type { ApplyProgressUpdate } from "@/app/api/ns/[nsId]/mappings/apply/applyDiffWithProgress";
 import type { ProgressUpdate } from "@/app/api/ns/[nsId]/mappings/compare/route";
 import { Progress } from "@/components/ui/progress";
-import { AlertCircle, CheckCircle, Clock, XCircle } from "lucide-react";
-import type { FC } from "react";
 
 type Props = {
   progress: ProgressUpdate | ApplyProgressUpdate;

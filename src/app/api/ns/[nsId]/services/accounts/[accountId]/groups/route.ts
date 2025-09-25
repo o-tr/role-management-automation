@@ -1,3 +1,5 @@
+import type { NextRequest } from "next/server";
+import { z } from "zod";
 import { api } from "@/lib/api";
 import { BadRequestException } from "@/lib/exceptions/BadRequestException";
 import { NotFoundException } from "@/lib/exceptions/NotFoundException";
@@ -7,8 +9,6 @@ import { getExternalServiceGroupByGroupId } from "@/lib/prisma/getExternalServic
 import { validatePermission } from "@/lib/validatePermission";
 import type { ErrorResponseType } from "@/types/api";
 import type { TExternalServiceAccountId, TNamespaceId } from "@/types/prisma";
-import type { NextRequest } from "next/server";
-import { z } from "zod";
 import { getGroupDetail } from "./get-group-detail";
 
 export type CreateExternalServiceGroupResponse =

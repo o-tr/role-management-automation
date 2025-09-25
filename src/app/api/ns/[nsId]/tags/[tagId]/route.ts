@@ -1,13 +1,13 @@
+import type { NextRequest } from "next/server";
 import { api } from "@/lib/api";
 import { BadRequestException } from "@/lib/exceptions/BadRequestException";
 import { NotFoundException } from "@/lib/exceptions/NotFoundException";
 import { deleteTag } from "@/lib/prisma/deleteTag";
 import { getTag } from "@/lib/prisma/getTag";
-import { ZUpdateTagInput, updateTag } from "@/lib/prisma/updateTag";
+import { updateTag, ZUpdateTagInput } from "@/lib/prisma/updateTag";
 import { validatePermission } from "@/lib/validatePermission";
 import type { ErrorResponseType } from "@/types/api";
 import type { TNamespaceId, TTag, TTagId } from "@/types/prisma";
-import type { NextRequest } from "next/server";
 
 export type DeleteTagResponse =
   | {

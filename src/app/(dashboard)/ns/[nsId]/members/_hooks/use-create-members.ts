@@ -1,6 +1,6 @@
+import { useState } from "react";
 import type { AddMembersResponse } from "@/app/api/ns/[nsId]/members/route";
 import type { TCreateOrUpdateMembers } from "@/lib/prisma/createOrUpdateMember";
-import { useState } from "react";
 
 export const useCreateMembers = (nsId: string) => {
   const [loading, setLoading] = useState(false);

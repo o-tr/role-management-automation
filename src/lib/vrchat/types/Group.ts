@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { ZVRCGroupMember } from "./GroupMember";
 import { ZVRCGroupId } from "./brand";
+import { ZVRCGroupMember } from "./GroupMember";
 
 export const ZVRCGroup = z.object({
   id: ZVRCGroupId,

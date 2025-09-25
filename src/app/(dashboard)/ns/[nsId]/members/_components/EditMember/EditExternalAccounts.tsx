@@ -1,7 +1,7 @@
-import { Button } from "@/components/ui/button";
-import type { TMemberWithRelation } from "@/types/prisma";
 import type { Dispatch, FC, SetStateAction } from "react";
 import { TbTrash } from "react-icons/tb";
+import { Button } from "@/components/ui/button";
+import type { TMemberWithRelation } from "@/types/prisma";
 import { MemberExternalAccountDisplay } from "../../../components/MemberExternalAccountDisplay";
 import { AddExternalAccount } from "./AddExternalAccount";
 

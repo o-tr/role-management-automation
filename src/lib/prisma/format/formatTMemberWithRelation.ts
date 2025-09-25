@@ -1,9 +1,9 @@
+import type { Member, MemberExternalServiceAccount, Tag } from "@prisma/client";
 import type {
   TMemberId,
   TMemberWithRelation,
   TNamespaceId,
 } from "@/types/prisma";
-import type { Member, MemberExternalServiceAccount, Tag } from "@prisma/client";
 import { formatTMemberExternalServiceAccount } from "./formatTMemberExternalServiceAccount";
 import { formatTTag } from "./formatTTag";
 

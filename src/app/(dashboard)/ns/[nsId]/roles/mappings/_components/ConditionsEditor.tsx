@@ -1,3 +1,4 @@
+import type { FC } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FormItem } from "@/components/ui/form";
@@ -9,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  createNewMappingCondition,
   type TMappingComparator,
   type TMappingCondition,
   type TMappingConditionAnd,
@@ -22,9 +24,7 @@ import {
   ZMappingComparators,
   ZMappingKeys,
   ZMappingTypes,
-  createNewMappingCondition,
 } from "@/types/conditions";
-import type { FC } from "react";
 import { TagDisplay } from "../../../components/TagDisplay";
 import { useTags } from "../../_hooks/use-tags";
 

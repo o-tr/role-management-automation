@@ -13,8 +13,8 @@ import type {
   GitHubAccountUsername,
   GitHubOrganizationId,
 } from "@/lib/github/types/Account";
-import type { GitHubTeamSlug } from "@/lib/github/types/Team";
 import { ZGitHubGroupId, ZGitHubRoleId } from "@/lib/github/types/encoded";
+import type { GitHubTeamSlug } from "@/lib/github/types/Team";
 import { getExternalServiceAccountByServiceName } from "@/lib/prisma/getExternalServiceAccountByServiceName";
 import { addRoleToGroupMember } from "@/lib/vrchat/requests/addRoleToGroupMember";
 import { inviteUserToGroup } from "@/lib/vrchat/requests/inviteUserToGroup";

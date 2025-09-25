@@ -1,3 +1,5 @@
+import type { Table } from "@tanstack/react-table";
+import type { FC } from "react";
 import {
   DataTable,
   type TColumnDef,
@@ -5,8 +7,6 @@ import {
 import { MemberExternalAccountDisplay } from "@/app/(dashboard)/ns/[nsId]/components/MemberExternalAccountDisplay";
 import { TagDisplay } from "@/app/(dashboard)/ns/[nsId]/components/TagDisplay";
 import type { TMemberWithDiff } from "@/types/diff";
-import type { Table } from "@tanstack/react-table";
-import type { FC } from "react";
 import { DIffItemDisplay } from "./DiffItemDisplay";
 
 type InternalTMember = TMemberWithDiff & {

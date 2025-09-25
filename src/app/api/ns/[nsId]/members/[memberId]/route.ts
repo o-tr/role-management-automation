@@ -1,8 +1,9 @@
+import type { NextRequest } from "next/server";
 import { api } from "@/lib/api";
 import { NotFoundException } from "@/lib/exceptions/NotFoundException";
 import { deleteMember } from "@/lib/prisma/deleteMember";
 import { getMember } from "@/lib/prisma/getMember";
-import { ZMemberUpdateInput, updateMember } from "@/lib/prisma/updateMember";
+import { updateMember, ZMemberUpdateInput } from "@/lib/prisma/updateMember";
 import { validatePermission } from "@/lib/validatePermission";
 import type { ErrorResponseType } from "@/types/api";
 import type {
@@ -10,7 +11,6 @@ import type {
   TMemberWithRelation,
   TNamespaceId,
 } from "@/types/prisma";
-import type { NextRequest } from "next/server";
 
 export type DeleteMemberResponse =
   | {

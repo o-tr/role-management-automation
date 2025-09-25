@@ -1,3 +1,5 @@
+import type { FC } from "react";
+import { TbCheck, TbMinus, TbX } from "react-icons/tb";
 import { ServiceGroupDisplay } from "@/app/(dashboard)/ns/[nsId]/components/ServiceGroupDisplay";
 import { ServiceGroupRoleDisplay } from "@/app/(dashboard)/ns/[nsId]/components/ServiceGroupRoleDisplay";
 import type {
@@ -5,8 +7,6 @@ import type {
   ApplyDiffResultStatus,
 } from "@/app/api/ns/[nsId]/mappings/apply/applyDiffWithProgress";
 import type { TDiffItem } from "@/types/diff";
-import type { FC } from "react";
-import { TbCheck, TbMinus, TbX } from "react-icons/tb";
 import { useGroupRoles } from "../../../_hooks/use-group-roles";
 
 const statusMap = {

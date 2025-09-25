@@ -1,3 +1,4 @@
+import type { NextRequest } from "next/server";
 import { api } from "@/lib/api";
 import { NotFoundException } from "@/lib/exceptions/NotFoundException";
 import { deleteExternalServiceGroup } from "@/lib/prisma/deleteExternalServiceGroup";
@@ -9,7 +10,6 @@ import type {
   TExternalServiceGroupId,
   TNamespaceId,
 } from "@/types/prisma";
-import type { NextRequest } from "next/server";
 
 export type DeleteExternalServiceGroupResponse =
   | {

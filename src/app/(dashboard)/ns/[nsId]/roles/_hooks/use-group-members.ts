@@ -1,5 +1,5 @@
-import type { GetExternalServiceGroupMembersResponse } from "@/app/api/ns/[nsId]/services/accounts/[accountId]/groups/[groupId]/members/route";
 import useSWR from "swr";
+import type { GetExternalServiceGroupMembersResponse } from "@/app/api/ns/[nsId]/services/accounts/[accountId]/groups/[groupId]/members/route";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 

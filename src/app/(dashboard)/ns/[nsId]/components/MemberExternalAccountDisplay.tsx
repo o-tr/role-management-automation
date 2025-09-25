@@ -1,7 +1,7 @@
-import { Image } from "@/app/(dashboard)/ns/[nsId]/components/Image";
-import type { TMemberExternalServiceAccount } from "@/types/prisma";
 import type { FC } from "react";
 import { useCallback, useState } from "react";
+import { Image } from "@/app/(dashboard)/ns/[nsId]/components/Image";
+import type { TMemberExternalServiceAccount } from "@/types/prisma";
 
 type Props = {
   data: TMemberExternalServiceAccount;

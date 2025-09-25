@@ -1,7 +1,7 @@
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ProgressUpdate } from "@/app/api/ns/[nsId]/mappings/compare/route";
 import type { TMemberWithDiff } from "@/types/diff";
 import type { TNamespaceId } from "@/types/prisma";
-import { useCallback, useEffect, useRef, useState } from "react";
 
 export type CompareSSEState =
   | {

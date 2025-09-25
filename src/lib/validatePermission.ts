@@ -1,9 +1,9 @@
+import { getServerSession } from "next-auth/next";
 import type {
   TNamespaceId,
   TNamespaceWithOwnerAndAdmins,
   TUser,
 } from "@/types/prisma";
-import { getServerSession } from "next-auth/next";
 import { ForbiddenException } from "./exceptions/ForbiddenException";
 import { NotFoundException } from "./exceptions/NotFoundException";
 import { UnauthorizedException } from "./exceptions/UnauthorizedException";

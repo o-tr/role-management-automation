@@ -1,9 +1,9 @@
+import { type FC, useLayoutEffect } from "react";
 import { Image } from "@/app/(dashboard)/ns/[nsId]/components/Image";
 import type {
   ResolveResult,
   TResolveRequestType,
 } from "@/app/api/ns/[nsId]/members/resolve/[type]/[serviceId]/route";
-import { type FC, useLayoutEffect } from "react";
 import { useMemberResolve } from "../_hooks/use-member-resolve";
 
 type Props = {

@@ -1,7 +1,7 @@
 "use client";
-import { BreadcrumbContext } from "@/app/(dashboard)/ns/[nsId]/components/Breadcrumb";
 import { useParams } from "next/navigation";
 import { type FC, useContext, useLayoutEffect } from "react";
+import { BreadcrumbContext } from "@/app/(dashboard)/ns/[nsId]/components/Breadcrumb";
 
 type Props = {
   paths: { label: string; path: string }[];

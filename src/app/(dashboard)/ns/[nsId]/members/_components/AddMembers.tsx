@@ -1,3 +1,4 @@
+import { type FC, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,7 +11,6 @@ import type {
   TMemberWithRelation,
   TNamespaceId,
 } from "@/types/prisma";
-import { type FC, useMemo, useState } from "react";
 import { onMembersChange } from "../_hooks/on-members-change";
 import { useCreateMembers } from "../_hooks/use-create-members";
 import { EditMember } from "./EditMember/EditMember";

@@ -1,20 +1,18 @@
 "use client";
-import type { FC } from "react";
-
-import { Button } from "@/components/ui/button";
-import type {
-  TExternalServiceGroupWithAccount,
-  TNamespaceId,
-} from "@/types/prisma";
 import type { ColumnDef } from "@tanstack/react-table";
-
+import { redirect } from "next/navigation";
+import type { FC } from "react";
 import {
   CommonCheckboxCell,
   CommonCheckboxHeader,
   DataTable,
 } from "@/app/(dashboard)/ns/[nsId]/components/DataTable";
 import { Image } from "@/app/(dashboard)/ns/[nsId]/components/Image";
-import { redirect } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import type {
+  TExternalServiceGroupWithAccount,
+  TNamespaceId,
+} from "@/types/prisma";
 import { useServiceGroups } from "../../../../_hooks/use-service-groups";
 import { useOnServiceGroupChange } from "../../_hooks/on-groups-change";
 import { useDeleteServiceGroup } from "../../_hooks/use-delete-service-group";

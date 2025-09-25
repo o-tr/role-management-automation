@@ -1,7 +1,7 @@
 {
   "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
   "files": {
-    "ignore": ["./src/components/ui/*"]
+    "includes": ["**", "!src/components/ui/**/*"]
   },
   "formatter": {
     "indentStyle": "space",
@@ -15,7 +15,11 @@
       "correctness": {
         "noUnusedImports": "error",
         "noUnusedVariables": "error"
+      },
+      "suspicious": {
+        "noUnknownAtRules": "off"
       }
-    }
+    },
+    "domains": { "next": "all" }
   }
 }

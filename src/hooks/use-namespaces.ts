@@ -1,6 +1,6 @@
 "use client";
-import type { GetNamespacesResponse } from "@/app/api/ns/route";
 import useSWR from "swr";
+import type { GetNamespacesResponse } from "@/app/api/ns/route";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 

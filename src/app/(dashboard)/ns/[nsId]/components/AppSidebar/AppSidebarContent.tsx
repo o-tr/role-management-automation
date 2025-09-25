@@ -1,16 +1,4 @@
 "use client";
-import {
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
-} from "@/components/ui/sidebar";
-import { useCurrentNamespace } from "@/hooks/use-current-namespace";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { FC, ReactNode } from "react";
@@ -26,6 +14,18 @@ import {
   TbUserHexagon,
   TbUsersGroup,
 } from "react-icons/tb";
+import {
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupLabel,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
+} from "@/components/ui/sidebar";
+import { useCurrentNamespace } from "@/hooks/use-current-namespace";
 
 export const AppSidebarContent: FC = () => {
   const { namespace, nsId } = useCurrentNamespace();

@@ -1,7 +1,9 @@
 "use client";
 
+import { Avatar } from "@radix-ui/react-avatar";
 import { ChevronsUpDown, Plus } from "lucide-react";
-
+import Link from "next/link";
+import { type FC, useCallback, useLayoutEffect, useState } from "react";
 import { CreateNSForm } from "@/app/ns/components/CreateNSForm";
 import {
   Dialog,
@@ -29,9 +31,6 @@ import { useOnNsChange } from "@/events/on-ns-change";
 import { useCurrentNamespace } from "@/hooks/use-current-namespace";
 import { useNamespaces } from "@/hooks/use-namespaces";
 import type { TNamespace } from "@/types/prisma";
-import { Avatar } from "@radix-ui/react-avatar";
-import Link from "next/link";
-import { type FC, useCallback, useLayoutEffect, useState } from "react";
 
 export const NamespaceSwitcher: FC = () => {
   const { nsId } = useCurrentNamespace();
@@ -57,77 +56,69 @@ export const NamespaceSwitcher: FC = () => {
   useOnNsChange(onNsChange);
 
   return (
-    <>
-      <Dialog open={createDialogOpen}>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuButton
-                  size="lg"
-                  className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-                >
-                  {activeTeam && (
-                    <>
-                      <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                        <Avatar>{activeTeam.name[0]}</Avatar>
-                      </div>
-                      <div className="grid flex-1 text-left text-sm leading-tight">
-                        <span className="truncate font-semibold">
-                          {activeTeam.name}
-                        </span>
-                      </div>
-                    </>
-                  )}
-                  <ChevronsUpDown className="ml-auto" />
-                </SidebarMenuButton>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-                align="start"
-                side={isMobile ? "bottom" : "right"}
-                sideOffset={4}
+    <Dialog open={createDialogOpen}>
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <SidebarMenuButton
+                size="lg"
+                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
               >
-                <DropdownMenuLabel className="text-xs text-muted-foreground">
-                  Teams
-                </DropdownMenuLabel>
-                {namespaces?.map((namespace) => (
-                  <Link href={`/ns/${namespace.id}`} key={namespace.id}>
-                    <DropdownMenuItem
-                      key={namespace.name}
-                      className="gap-2 p-2"
-                    >
-                      {namespace.name}
-                    </DropdownMenuItem>
-                  </Link>
-                ))}
-                <DropdownMenuSeparator />
-                <DialogTrigger
-                  asChild
-                  onClick={() => setCreateDialogOpen(true)}
-                >
-                  <DropdownMenuItem className="gap-2 p-2">
-                    <div className="flex size-6 items-center justify-center rounded-md border bg-background">
-                      <Plus className="size-4" />
+                {activeTeam && (
+                  <>
+                    <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+                      <Avatar>{activeTeam.name[0]}</Avatar>
                     </div>
-                    <div className="font-medium text-muted-foreground">
-                      Add team
+                    <div className="grid flex-1 text-left text-sm leading-tight">
+                      <span className="truncate font-semibold">
+                        {activeTeam.name}
+                      </span>
                     </div>
+                  </>
+                )}
+                <ChevronsUpDown className="ml-auto" />
+              </SidebarMenuButton>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+              align="start"
+              side={isMobile ? "bottom" : "right"}
+              sideOffset={4}
+            >
+              <DropdownMenuLabel className="text-xs text-muted-foreground">
+                Teams
+              </DropdownMenuLabel>
+              {namespaces?.map((namespace) => (
+                <Link href={`/ns/${namespace.id}`} key={namespace.id}>
+                  <DropdownMenuItem key={namespace.name} className="gap-2 p-2">
+                    {namespace.name}
                   </DropdownMenuItem>
-                </DialogTrigger>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </SidebarMenuItem>
-        </SidebarMenu>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>グループを作成</DialogTitle>
-            <DialogDescription>
-              <CreateNSForm onCreated={() => setCreateDialogOpen(false)} />
-            </DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
-    </>
+                </Link>
+              ))}
+              <DropdownMenuSeparator />
+              <DialogTrigger asChild onClick={() => setCreateDialogOpen(true)}>
+                <DropdownMenuItem className="gap-2 p-2">
+                  <div className="flex size-6 items-center justify-center rounded-md border bg-background">
+                    <Plus className="size-4" />
+                  </div>
+                  <div className="font-medium text-muted-foreground">
+                    Add team
+                  </div>
+                </DropdownMenuItem>
+              </DialogTrigger>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </SidebarMenuItem>
+      </SidebarMenu>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>グループを作成</DialogTitle>
+          <DialogDescription>
+            <CreateNSForm onCreated={() => setCreateDialogOpen(false)} />
+          </DialogDescription>
+        </DialogHeader>
+      </DialogContent>
+    </Dialog>
   );
 };

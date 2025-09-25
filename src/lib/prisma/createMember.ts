@@ -1,5 +1,5 @@
-import type { TMember, TNamespaceId, TTagId } from "@/types/prisma";
 import type { ExternalServiceName } from "@prisma/client";
+import type { TMember, TNamespaceId, TTagId } from "@/types/prisma";
 import { prisma } from "../prisma";
 import { formatTMember } from "./format/formatTMember";
 

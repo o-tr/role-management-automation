@@ -1,3 +1,6 @@
+import type { ExternalServiceName } from "@prisma/client";
+import type { NextRequest } from "next/server";
+import { z } from "zod";
 import { api } from "@/lib/api";
 import { getSearchGuildMembers } from "@/lib/discord/requests/getSearchGuildMembers";
 import { getUser } from "@/lib/discord/requests/getUser";
@@ -27,9 +30,6 @@ import type {
   TMemberId,
   TNamespaceId,
 } from "@/types/prisma";
-import type { ExternalServiceName } from "@prisma/client";
-import type { NextRequest } from "next/server";
-import { z } from "zod";
 
 export const ZResolveRequestType = z.union([
   z.literal("DiscordUserId"),

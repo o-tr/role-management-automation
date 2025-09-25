@@ -1,3 +1,11 @@
+import type { ExternalServiceName } from "@prisma/client";
+import {
+  type Dispatch,
+  type FC,
+  type SetStateAction,
+  useEffect,
+  useState,
+} from "react";
 import type {
   ResolveResult,
   TResolveRequestType,
@@ -15,14 +23,6 @@ import type {
   TMemberExternalServiceAccountId,
   TMemberWithRelation,
 } from "@/types/prisma";
-import type { ExternalServiceName } from "@prisma/client";
-import {
-  type Dispatch,
-  type FC,
-  type SetStateAction,
-  useEffect,
-  useState,
-} from "react";
 import { MemberAccountResolveDisplay } from "../../../components/MemberAccountResolveDisplay";
 
 export const AddExternalAccount: FC<{

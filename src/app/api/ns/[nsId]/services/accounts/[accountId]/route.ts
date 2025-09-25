@@ -1,16 +1,16 @@
+import type { NextRequest } from "next/server";
 import { api } from "@/lib/api";
 import { BadRequestException } from "@/lib/exceptions/BadRequestException";
 import { NotFoundException } from "@/lib/exceptions/NotFoundException";
 import { deleteExternalServiceAccount } from "@/lib/prisma/deleteExternalServiceAccount";
 import { getExternalServiceAccount } from "@/lib/prisma/getExternalServiceAccount";
 import {
-  ZUpdateExternalServiceAccountInput,
   updateExternalServiceAccount,
+  ZUpdateExternalServiceAccountInput,
 } from "@/lib/prisma/updateExternalServiceAccount";
 import { validatePermission } from "@/lib/validatePermission";
 import type { ErrorResponseType } from "@/types/api";
 import type { TExternalServiceAccountId, TNamespaceId } from "@/types/prisma";
-import type { NextRequest } from "next/server";
 
 export type DeleteExternalServiceAccountResponse =
   | {

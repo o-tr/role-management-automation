@@ -1,3 +1,5 @@
+import type { NextRequest } from "next/server";
+import { z } from "zod";
 import { api } from "@/lib/api";
 import { NotFoundException } from "@/lib/exceptions/NotFoundException";
 import { deleteExternalServiceGroupRoleMapping } from "@/lib/prisma/deleteExternalServiceGroupRoleMapping";
@@ -12,8 +14,6 @@ import type {
   TNamespaceId,
   TSerializedMapping,
 } from "@/types/prisma";
-import type { NextRequest } from "next/server";
-import { z } from "zod";
 
 export type DeleteExternalServiceGroupMappingResponse =
   | {

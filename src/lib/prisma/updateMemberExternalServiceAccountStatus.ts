@@ -1,8 +1,8 @@
+import type { ExternalAccountStatus } from "@prisma/client";
 import type {
   TMemberExternalServiceAccountId,
   TNamespaceId,
 } from "@/types/prisma";
-import type { ExternalAccountStatus } from "@prisma/client";
 import { prisma } from "../prisma";
 
 export const updateMemberExternalServiceAccountStatus = async (

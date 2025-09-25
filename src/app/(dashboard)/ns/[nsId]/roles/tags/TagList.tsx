@@ -1,16 +1,14 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import type { TNamespaceId, TTag } from "@/types/prisma";
 import type { ColumnDef } from "@tanstack/react-table";
+import { redirect } from "next/navigation";
 import { useState } from "react";
-
 import {
   CommonCheckboxCell,
   CommonCheckboxHeader,
   DataTable,
 } from "@/app/(dashboard)/ns/[nsId]/components/DataTable";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -18,9 +16,10 @@ import {
   DialogHeader,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
 import { createTag } from "@/requests/createTag";
 import { deleteTag } from "@/requests/deleteTag";
-import { redirect } from "next/navigation";
+import type { TNamespaceId, TTag } from "@/types/prisma";
 import { TagDisplay } from "../../components/TagDisplay";
 import { onTagsChange } from "../_hooks/on-tags-change";
 import { useTags } from "../_hooks/use-tags";

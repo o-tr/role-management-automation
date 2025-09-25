@@ -1,9 +1,9 @@
 "use client";
+import { useMemo } from "react";
+import useSWR from "swr";
 import type { GetSerializedMappingsResponse } from "@/app/api/ns/[nsId]/mappings/route";
 import { convertTSerializedMappingToTMapping } from "@/lib/prisma/convert/convertTSerializedMappingToTMapping";
 import type { TMapping } from "@/types/prisma";
-import { useMemo } from "react";
-import useSWR from "swr";
 import { useOnServiceGroupMappingChange } from "./on-mappings-change";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());

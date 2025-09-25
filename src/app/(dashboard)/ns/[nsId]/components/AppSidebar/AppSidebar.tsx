@@ -1,8 +1,8 @@
 "use server";
-import { Sidebar, SidebarFooter, SidebarHeader } from "@/components/ui/sidebar";
 import Link from "next/link";
 import type { FC } from "react";
 import { TbBook } from "react-icons/tb";
+import { Sidebar, SidebarFooter, SidebarHeader } from "@/components/ui/sidebar";
 import { AppSidebarContent } from "./AppSidebarContent";
 import { NamespaceSwitcher } from "./NamespaceSwitcher";
 

@@ -1,6 +1,6 @@
-import type { TNamespaceId } from "@/types/prisma";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
+import type { TNamespaceId } from "@/types/prisma";
 
 export interface TPlanPayload {
   nsId: TNamespaceId;

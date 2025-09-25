@@ -1,8 +1,8 @@
 "use client";
-import { Badge } from "@/components/ui/badge";
-import { useNamespaces } from "@/hooks/use-namespaces";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
+import { useNamespaces } from "@/hooks/use-namespaces";
 
 export const GroupList = () => {
   const { namespaces, isPending, responseError } = useNamespaces();

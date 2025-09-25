@@ -1,3 +1,20 @@
+import {
+  type CellContext,
+  type ColumnDef,
+  type ColumnDefTemplate,
+  type ColumnFiltersState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
+  type Row,
+  type RowModel,
+  type SortingState,
+  type StringOrTemplateHeader,
+  type Table as TableType,
+  useReactTable,
+} from "@tanstack/react-table";
+import { type FC, useState } from "react";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
@@ -8,23 +25,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import {
-  type CellContext,
-  type ColumnDef,
-  type ColumnDefTemplate,
-  type ColumnFiltersState,
-  type Row,
-  type RowModel,
-  type SortingState,
-  type StringOrTemplateHeader,
-  type Table as TableType,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import { type FC, useState } from "react";
 import styles from "./DataTable.module.css";
 
 export type TColumnDef<T> = ColumnDef<T> & {

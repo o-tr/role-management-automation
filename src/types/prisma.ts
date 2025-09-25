@@ -1,6 +1,6 @@
+import { z } from "zod";
 import { ZGitHubAppInstallationId } from "@/lib/github/types/AppInstallation";
 import { ZVRCGroupId } from "@/lib/vrchat/types/brand";
-import { z } from "zod";
 import type { TMappingAction } from "./actions";
 import { ZColorCode } from "./brand";
 import type { TMappingCondition } from "./conditions";

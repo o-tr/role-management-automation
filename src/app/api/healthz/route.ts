@@ -1,5 +1,5 @@
-import { api } from "@/lib/api";
 import type { NextRequest } from "next/server";
+import { api } from "@/lib/api";
 
 export type GetHealthzResponse = {
   status: "success";

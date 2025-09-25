@@ -1,9 +1,9 @@
+import { useState } from "react";
 import type {
   CreateNamespaceInvitationResponse,
   TCreateNamespaceInvitationRequestBody,
 } from "@/app/api/ns/[nsId]/invitations/route";
 import type { TNamespaceId } from "@/types/prisma";
-import { useState } from "react";
 import { onInvitationsChange } from "./onInvitationsChange";
 
 export const useCreateInvitation = (nsId: TNamespaceId) => {

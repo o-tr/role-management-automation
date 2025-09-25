@@ -1,10 +1,3 @@
-import type {
-  ResolveResult,
-  TResolveRequestType,
-} from "@/app/api/ns/[nsId]/members/resolve/[type]/[serviceId]/route";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
-import { ZVRCUserId } from "@/lib/vrchat/types/brand";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
   type Dispatch,
@@ -14,6 +7,13 @@ import {
   useMemo,
   useState,
 } from "react";
+import type {
+  ResolveResult,
+  TResolveRequestType,
+} from "@/app/api/ns/[nsId]/members/resolve/[type]/[serviceId]/route";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
+import { ZVRCUserId } from "@/lib/vrchat/types/brand";
 import {
   CommonCheckboxCell,
   CommonCheckboxHeader,
@@ -106,6 +106,17 @@ export const MemberPreviewTable: FC<Props> = ({
     });
   }, [data_, keys]);
 
+  const createOnResolve = useCallback(
+    (rowIndex: number, dataIndex: number) => (data: ResolveResult) => {
+      setData((pv) => {
+        const nv = [...pv];
+        nv[rowIndex].data[dataIndex].data = data;
+        return nv;
+      });
+    },
+    [setData],
+  );
+
   const columns = useMemo<ColumnDef<RowObject>[]>(() => {
     return [
       {
@@ -120,16 +131,6 @@ export const MemberPreviewTable: FC<Props> = ({
           accessorKey: index.toString(),
           header: () => KeyServiceMap[keys[index]],
           cell: ({ row }) => {
-            const onResolve = useCallback(
-              (data: ResolveResult) => {
-                setData((pv) => {
-                  const nv = [...pv];
-                  nv[row.index].data[index].data = data;
-                  return nv;
-                });
-              },
-              [setData, row.index, index],
-            );
             if (keys[index] === "unknown") {
               return <div>{row.original.data[index].value}</div>;
             }
@@ -145,7 +146,7 @@ export const MemberPreviewTable: FC<Props> = ({
                 nsId={nsId}
                 type={keys[index]}
                 serviceId={row.original.data[index].value}
-                onResolve={onResolve}
+                onResolve={createOnResolve(row.index, index)}
               />
             );
           },
@@ -168,7 +169,7 @@ export const MemberPreviewTable: FC<Props> = ({
         size: 100,
       },
     ];
-  }, [keys, setData, nsId, disabled]);
+  }, [keys, nsId, disabled, createOnResolve, setData]);
   return (
     <DataTable
       columns={columns}

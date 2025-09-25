@@ -25,7 +25,10 @@ const getTwoFactorAuthToken = (
 const buildCookie = ({
   token,
   twoFactorAuth,
-}: { token?: VRCToken; twoFactorAuth?: VRCTwoFactorAuth }) => {
+}: {
+  token?: VRCToken;
+  twoFactorAuth?: VRCTwoFactorAuth;
+}) => {
   const result: string[] = [];
   if (token) result.push(`auth=${token}`);
   if (twoFactorAuth) result.push(`twoFactorAuth=${twoFactorAuth}`);

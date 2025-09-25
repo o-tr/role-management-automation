@@ -1,12 +1,12 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { type TMappingAction, createNewMappingAction } from "@/types/actions";
-import {
-  type TMappingCondition,
-  createNewMappingCondition,
-} from "@/types/conditions";
 import { type FC, type FormEvent, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { createNewMappingAction, type TMappingAction } from "@/types/actions";
+import {
+  createNewMappingCondition,
+  type TMappingCondition,
+} from "@/types/conditions";
 import { onServiceGroupMappingChange } from "../../_hooks/on-mappings-change";
 import { useCreateServiceMapping } from "../../_hooks/use-create-service-mapping";
 import { ActionsEditor } from "./ActionsEditor";

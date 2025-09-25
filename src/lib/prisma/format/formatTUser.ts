@@ -1,5 +1,5 @@
-import type { TUser, TUserId } from "@/types/prisma";
 import type { User } from "@prisma/client";
+import type { TUser, TUserId } from "@/types/prisma";
 
 export const formatTUser = (input: User): TUser => {
   return {

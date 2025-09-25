@@ -1,12 +1,8 @@
 "use client";
-import { useServiceAccounts } from "@/app/(dashboard)/ns/[nsId]/_hooks/use-service-accounts";
-import type { FC } from "react";
-import { useOnServiceAccountChange } from "../../_hooks/on-accounts-change";
-
-import { Button } from "@/components/ui/button";
-import type { FExternalServiceAccount, TNamespaceId } from "@/types/prisma";
 import type { ColumnDef } from "@tanstack/react-table";
-
+import { redirect } from "next/navigation";
+import type { FC } from "react";
+import { useServiceAccounts } from "@/app/(dashboard)/ns/[nsId]/_hooks/use-service-accounts";
 import {
   CommonCheckboxCell,
   CommonCheckboxHeader,
@@ -14,7 +10,9 @@ import {
 } from "@/app/(dashboard)/ns/[nsId]/components/DataTable";
 import { Image } from "@/app/(dashboard)/ns/[nsId]/components/Image";
 import { useDeleteServiceAccount } from "@/app/(dashboard)/ns/[nsId]/settings/services/_hooks/use-delete-service-accounts";
-import { redirect } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import type { FExternalServiceAccount, TNamespaceId } from "@/types/prisma";
+import { useOnServiceAccountChange } from "../../_hooks/on-accounts-change";
 
 type InternalServiceAccount = FExternalServiceAccount & { namespaceId: string };
 

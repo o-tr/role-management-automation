@@ -1,3 +1,4 @@
+import pLimit from "p-limit";
 import type {
   ResolveResponse,
   ResolveResult,
@@ -5,7 +6,6 @@ import type {
 } from "@/app/api/ns/[nsId]/members/resolve/[type]/[serviceId]/route";
 import { ZVRCUserId } from "@/lib/vrchat/types/brand";
 import type { TMemberWithRelation } from "@/types/prisma";
-import pLimit from "p-limit";
 import type { RowObject } from "../_components/AddPastedMembers";
 
 type TKeys = TResolveRequestType | "unknown";
