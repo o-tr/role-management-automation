@@ -316,21 +316,6 @@ type MemberListProps = {
 
 export function MemberList({ namespaceId, className }: MemberListProps) {
   const { members, isPending, responseError } = useMembers(namespaceId);
-  const [showDeletedAccounts, _setShowDeletedAccounts] = useState(false);
-
-  // フィルタリングされたメンバーデータ
-  const filteredMembers = useMemo(() => {
-    if (!members) return [];
-
-    if (showDeletedAccounts) {
-      return members; // 削除されたアカウントも含めて全て表示
-    }
-
-    // 削除されたアカウントのみのメンバーを除外し、アクティブなアカウントを持つメンバーのみ表示
-    return members.filter((member) =>
-      member.externalAccounts.some((account) => account.status === "ACTIVE"),
-    );
-  }, [members, showDeletedAccounts]);
 
   if (isPending) {
     return <div>loading...</div>;
@@ -350,7 +335,7 @@ export function MemberList({ namespaceId, className }: MemberListProps) {
     <div className={className}>
       <DataTable
         columns={columns}
-        data={filteredMembers}
+        data={members || []}
         footer={({ table }) => (
           <Footer table={table} namespaceId={namespaceId} />
         )}

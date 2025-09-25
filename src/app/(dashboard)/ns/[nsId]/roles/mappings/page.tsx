@@ -28,7 +28,6 @@ export default function GroupTagsPage({
 }) {
   const { namespace, isPending } = useNamespace({ namespaceId: params.nsId });
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [_isDiffModalOpen, _setIsDiffModalOpen] = useState(false);
   useOnServiceGroupMappingChange(() => setIsModalOpen(false));
 
   if (isPending || !namespace) {
