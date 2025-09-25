@@ -12,7 +12,7 @@
     "lint": "biome check src",
     "lint:fix": "biome check --unsafe --write src",
     "typecheck": "tsc --noEmit",
-    "prepare": "node -e \"process.env.CI || process.env.DOCKER || process.exit(1)\" || lefthook install"
+    "prepare": "lefthook install; prisma generate || true"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -94,9 +94,6 @@
     "typescript": "^5"
   },
   "pnpm": {
-    "onlyBuiltDependencies": [
-      "@biomejs/biome",
-      "lefthook"
-    ]
+    "onlyBuiltDependencies": ["@biomejs/biome", "lefthook"]
   }
 }
