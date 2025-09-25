@@ -103,7 +103,7 @@ const getVRChatMembersWithProgress = async (
   const roles = await getGroupRoles(group.account, groupId);
   const serviceAccountOrder = getHighestRole(
     roles,
-    vrcGroup.myMember.roleIds,
+    vrcGroup.myMember.roleIds || [],
   )?.order;
 
   // serviceAccountOrder may be 0 (valid value, typically owner), so only
@@ -130,9 +130,9 @@ const getVRChatMembersWithProgress = async (
     serviceId: member.userId,
     name: member.user.displayName,
     icon: member.user.iconUrl,
-    roleIds: member.roleIds,
+    roleIds: member.roleIds || [],
     isEditable:
-      (getHighestRole(roles, member.roleIds)?.order ||
+      (getHighestRole(roles, member.roleIds || [])?.order ||
         Number.MAX_SAFE_INTEGER) > serviceAccountOrder ||
       member.user.id === user.id,
   }));

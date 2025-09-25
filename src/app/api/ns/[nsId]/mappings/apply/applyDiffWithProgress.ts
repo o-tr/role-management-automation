@@ -302,7 +302,10 @@ const applyVRChatDiff = async (
         status: "success",
       };
     }
-    throw new Error(`Unsupported diff type: ${diff.type}`);
+    const _exhaustiveCheck: never = diff;
+    throw new Error(
+      `Unsupported diff type: ${(_exhaustiveCheck as { type: string }).type}`,
+    );
   } catch (e) {
     if (e instanceof Error) {
       return {
