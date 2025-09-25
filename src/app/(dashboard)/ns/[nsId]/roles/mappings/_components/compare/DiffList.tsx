@@ -10,13 +10,7 @@ import type {
   TMemberWithDiff,
 } from "@/types/diff";
 import type { TNamespaceId } from "@/types/prisma";
-import {
-  type FC,
-  type MutableRefObject,
-  useCallback,
-  useEffect,
-  useMemo,
-} from "react";
+import { type FC, useCallback, useEffect, useMemo } from "react";
 import { MappingDiffList } from "./MappingDiffList";
 import { ProgressDisplay } from "./ProgressDisplay";
 import { useApplyDiffSSE } from "./_hooks/use-apply-diff-sse";

@@ -101,7 +101,7 @@ export async function POST(
                 isStreamClosed = true;
                 controller.close();
               }
-            } catch (error) {
+            } catch (_error) {
               // Controller already closed, ignore the error
               isStreamClosed = true;
             }

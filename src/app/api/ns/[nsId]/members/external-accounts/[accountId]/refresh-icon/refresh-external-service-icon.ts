@@ -9,7 +9,7 @@ import { getExternalServiceGroupsByAccountId } from "@/lib/prisma/getExternalSer
 import { updateMemberExternalServiceAccountStatus } from "@/lib/prisma/updateMemberExternalServiceAccountStatus";
 import { getUserById as getVRCUserById } from "@/lib/vrchat/requests/getUserById";
 import type { VRCUserId } from "@/lib/vrchat/types/brand";
-import { ZDiscordCredentials, ZGithubCredentials } from "@/types/credentials";
+import { ZDiscordCredentials } from "@/types/credentials";
 import type {
   TExternalServiceAccount,
   TMemberExternalServiceAccount,

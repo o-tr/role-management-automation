@@ -1,10 +1,8 @@
 import type {
-  TNamespaceInvitation,
   TNamespaceInvitationToken,
   TNamespaceInvitationWithRelation,
 } from "@/types/prisma";
 import { prisma } from "../prisma";
-import { formatTNamespaceInvitation } from "./format/formatTNamespaceInvitation";
 import { formatTNamespaceInvitationWithRelation } from "./format/formatTNamespaceInvitationWithRelation";
 
 export const getNamespaceInvitationWithRelationByToken = async (

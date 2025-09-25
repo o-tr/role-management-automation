@@ -32,7 +32,7 @@ export type UpdateExternalServiceAccountResponse =
 
 export const DELETE = api(
   async (
-    req: NextRequest,
+    _req: NextRequest,
     {
       params,
     }: { params: { nsId: TNamespaceId; accountId: TExternalServiceAccountId } },

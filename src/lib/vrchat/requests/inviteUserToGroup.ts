@@ -54,7 +54,7 @@ export const inviteUserToGroup = (
           if (typeof data?.message === "string") {
             message = data.message;
           }
-        } catch (error) {
+        } catch (_error) {
           // VRChat sometimes returns empty bodies; ignore JSON parse failures.
           message = undefined;
         }

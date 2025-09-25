@@ -47,7 +47,7 @@ export const columns: TColumnDef<InternalMapping>[] = [
     cell: ({ row }) => {
       const [isToggling, setIsToggling] = useState(false);
 
-      const handleToggle = async (enabled: boolean) => {
+      const handleToggle = async (_enabled: boolean) => {
         setIsToggling(true);
         try {
           const response = await fetch(

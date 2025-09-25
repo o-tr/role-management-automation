@@ -38,10 +38,7 @@ import { MemberExternalAccountDisplay } from "../../components/MemberExternalAcc
 import { MultipleTagPicker } from "../../components/MultipleTagPicker";
 import { TagDisplay } from "../../components/TagDisplay";
 import { useTags } from "../../roles/_hooks/use-tags";
-import {
-  onMembersChange,
-  useOnMembersChange,
-} from "../_hooks/on-members-change";
+import { onMembersChange } from "../_hooks/on-members-change";
 import { useMembers } from "../_hooks/use-members";
 import { usePatchMember } from "../_hooks/use-patch-member";
 import { AddTag } from "./EditMember/AddTag";
@@ -250,7 +247,7 @@ type MemberListProps = {
 
 export function MemberList({ namespaceId, className }: MemberListProps) {
   const { members, isPending, responseError } = useMembers(namespaceId);
-  const [showDeletedAccounts, setShowDeletedAccounts] = useState(false);
+  const [showDeletedAccounts, _setShowDeletedAccounts] = useState(false);
 
   // フィルタリングされたメンバーデータ
   const filteredMembers = useMemo(() => {

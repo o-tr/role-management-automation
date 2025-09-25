@@ -7,7 +7,7 @@ import { ZUpdateTagInput, updateTag } from "@/lib/prisma/updateTag";
 import { validatePermission } from "@/lib/validatePermission";
 import type { ErrorResponseType } from "@/types/api";
 import type { TNamespaceId, TTag, TTagId } from "@/types/prisma";
-import { type NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 export type DeleteTagResponse =
   | {
@@ -24,7 +24,7 @@ export type UpdateTagResponse =
 
 export const DELETE = api(
   async (
-    req: NextRequest,
+    _req: NextRequest,
     { params }: { params: { nsId: TNamespaceId; tagId: TTagId } },
   ): Promise<DeleteTagResponse> => {
     await validatePermission(params.nsId, "admin");

@@ -1,10 +1,6 @@
 import type { TMappingAction } from "@/types/actions";
 import type { TMappingCondition } from "@/types/conditions";
-import type {
-  TMappingId,
-  TNamespaceId,
-  TSerializedMapping,
-} from "@/types/prisma";
+import type { TNamespaceId, TSerializedMapping } from "@/types/prisma";
 import { prisma } from "../prisma";
 import { formatTSerializedMapping } from "./format/formatTSerializedMapping";
 

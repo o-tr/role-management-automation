@@ -58,7 +58,7 @@ export type ProgressUpdate =
     };
 
 export async function GET(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: { nsId: TNamespaceId } },
 ) {
   try {
@@ -95,7 +95,7 @@ export async function GET(
                 isStreamClosed = true;
                 controller.close();
               }
-            } catch (error) {
+            } catch (_error) {
               // Controller already closed, ignore the error
               isStreamClosed = true;
             }

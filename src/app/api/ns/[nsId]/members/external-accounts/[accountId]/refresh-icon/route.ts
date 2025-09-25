@@ -22,7 +22,7 @@ export type RefreshMemberExternalAccountIconResponse =
 
 export const POST = api(
   async (
-    req: NextRequest,
+    _req: NextRequest,
     {
       params,
     }: {

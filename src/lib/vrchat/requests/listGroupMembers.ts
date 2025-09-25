@@ -1,9 +1,7 @@
 import { filterObject } from "@/lib/filterObject";
 import { requests } from "@/lib/requests";
-import { sleep } from "@/lib/sleep";
 import { ZVRChatCredentials } from "@/types/credentials";
 import type { TExternalServiceAccount } from "@/types/prisma";
-import type { ExternalServiceAccount } from "@prisma/client";
 import { z } from "zod";
 import { VRCHAT_USER_AGENT } from "../const";
 import { buildCookie } from "../cookie";

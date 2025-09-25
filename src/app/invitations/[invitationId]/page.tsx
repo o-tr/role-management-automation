@@ -5,7 +5,7 @@ import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useAcceptInvitation } from "../_hooks/useAcceptInvitation";
 import { useInvitation } from "../_hooks/useInvitation";
 

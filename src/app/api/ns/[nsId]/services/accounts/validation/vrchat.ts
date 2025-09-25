@@ -25,7 +25,7 @@ export const getAccountCredentials = async (
       }),
       icon: result.user.currentAvatarThumbnailImageUrl,
     };
-  } catch (e) {
+  } catch (_e) {
     return undefined;
   }
 };

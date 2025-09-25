@@ -31,13 +31,12 @@ import { useNamespaces } from "@/hooks/use-namespaces";
 import type { TNamespace } from "@/types/prisma";
 import { Avatar } from "@radix-ui/react-avatar";
 import Link from "next/link";
-import { useParams } from "next/navigation";
 import { type FC, useCallback, useLayoutEffect, useState } from "react";
 
 export const NamespaceSwitcher: FC = () => {
   const { nsId } = useCurrentNamespace();
 
-  const { namespaces, isPending, refetch } = useNamespaces();
+  const { namespaces, refetch } = useNamespaces();
   const { isMobile } = useSidebar();
   const [activeTeam, setActiveTeam] = useState<TNamespace | undefined>();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);

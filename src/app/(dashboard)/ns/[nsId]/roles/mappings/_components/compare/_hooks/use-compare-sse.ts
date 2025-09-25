@@ -71,7 +71,7 @@ export const useCompareSSE = (nsId: TNamespaceId) => {
         const data: ProgressUpdate = JSON.parse(event.data);
 
         if (data.type === "progress") {
-          setState((prev) => ({
+          setState((_prev) => ({
             state: "loading",
             progress: data,
             diff: [],

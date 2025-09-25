@@ -1,9 +1,7 @@
 import {
-  type TMemberExternalServiceAccountId,
   type TMemberId,
   type TMemberWithRelation,
   type TNamespaceId,
-  type TTagId,
   ZExternalServiceName,
 } from "@/types/prisma";
 import { z } from "zod";

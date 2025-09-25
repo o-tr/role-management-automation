@@ -55,7 +55,7 @@ export const POST = api(
 
 export const GET = api(
   async (
-    req: NextRequest,
+    _req: NextRequest,
     { params }: { params: { nsId: TNamespaceId } },
   ): Promise<GetTagsResponse> => {
     await validatePermission(params.nsId, "admin");

@@ -17,7 +17,6 @@ import {
   type RowModel,
   type SortingState,
   type StringOrTemplateHeader,
-  TableOptions,
   type Table as TableType,
   flexRender,
   getCoreRowModel,
@@ -25,7 +24,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { type FC, useEffect, useState } from "react";
+import { type FC, useState } from "react";
 import styles from "./DataTable.module.css";
 
 export type TColumnDef<T> = ColumnDef<T> & {

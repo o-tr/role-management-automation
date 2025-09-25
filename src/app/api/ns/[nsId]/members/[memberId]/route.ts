@@ -10,7 +10,7 @@ import type {
   TMemberWithRelation,
   TNamespaceId,
 } from "@/types/prisma";
-import { type NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 export type DeleteMemberResponse =
   | {
@@ -27,7 +27,7 @@ export type UpdateMemberResponse =
 
 export const DELETE = api(
   async (
-    req: NextRequest,
+    _req: NextRequest,
     { params }: { params: { nsId: TNamespaceId; memberId: TMemberId } },
   ): Promise<DeleteMemberResponse> => {
     await validatePermission(params.nsId, "admin");

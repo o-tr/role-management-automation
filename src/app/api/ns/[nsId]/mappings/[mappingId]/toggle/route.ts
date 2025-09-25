@@ -20,7 +20,7 @@ export type ToggleMappingResponse =
 
 export const POST = api(
   async (
-    req: NextRequest,
+    _req: NextRequest,
     { params }: { params: { nsId: TNamespaceId; mappingId: TMappingId } },
   ): Promise<ToggleMappingResponse> => {
     await validatePermission(params.nsId, "admin");

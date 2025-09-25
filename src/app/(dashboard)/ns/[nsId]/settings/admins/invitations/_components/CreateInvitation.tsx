@@ -1,16 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { onNsChange } from "@/events/on-ns-change";
-import { useNamespace } from "@/hooks/use-namespace";
-import { useSetNamespaceName } from "@/hooks/use-set-namespace-name";
 import { cn } from "@/lib/utils";
 import type { TNamespaceId } from "@/types/prisma";
 import {
@@ -22,7 +18,7 @@ import {
   setSeconds,
 } from "date-fns";
 import { ja } from "date-fns/locale";
-import { type FC, type FormEvent, useEffect, useId, useState } from "react";
+import { type FC, type FormEvent, useId, useState } from "react";
 import { TbCalendar } from "react-icons/tb";
 import {
   onInvitationsChange,

@@ -15,7 +15,7 @@ export type DeleteAdminResponse =
 
 export const DELETE = api(
   async (
-    req: NextRequest,
+    _req: NextRequest,
     { params }: { params: { nsId: TNamespaceId; userId: TUserId } },
   ): Promise<DeleteAdminResponse> => {
     const namespace = await validatePermission(params.nsId, "owner");

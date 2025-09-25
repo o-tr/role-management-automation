@@ -1,8 +1,4 @@
 "use client";
-
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { FaGithub } from "react-icons/fa";
 import ReactMarkdown from "react-markdown";
 import rehypeHighlight from "rehype-highlight";
 import remarkGfm from "remark-gfm";

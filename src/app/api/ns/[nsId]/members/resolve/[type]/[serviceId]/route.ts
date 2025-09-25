@@ -21,7 +21,7 @@ import { validatePermission } from "@/lib/validatePermission";
 import { getUserById as getVRCUserById } from "@/lib/vrchat/requests/getUserById";
 import type { VRCUserId } from "@/lib/vrchat/types/brand";
 import type { ErrorResponseType } from "@/types/api";
-import { ZDiscordCredentials, ZGithubCredentials } from "@/types/credentials";
+import { ZDiscordCredentials } from "@/types/credentials";
 import type {
   TExternalServiceAccount,
   TMemberId,
@@ -49,7 +49,7 @@ export type ResolveResponse =
 
 export const GET = api(
   async (
-    req: NextRequest,
+    _req: NextRequest,
     {
       params,
     }: { params: { nsId: TNamespaceId; type: string; serviceId: string } },

@@ -20,7 +20,7 @@ export type PostAcceptInvitationResponse =
 
 export const POST = api(
   async (
-    req: NextRequest,
+    _req: NextRequest,
     { params }: { params: { token: TNamespaceInvitationToken } },
   ): Promise<PostAcceptInvitationResponse> => {
     const user = await requireLoggedIn();

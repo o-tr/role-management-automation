@@ -3,7 +3,6 @@ import type {
   TResolveRequestType,
 } from "@/app/api/ns/[nsId]/members/resolve/[type]/[serviceId]/route";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/components/ui/use-toast";
 import { ZVRCUserId } from "@/lib/vrchat/types/brand";
 import type { ColumnDef } from "@tanstack/react-table";

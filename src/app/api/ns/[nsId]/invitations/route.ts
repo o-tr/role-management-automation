@@ -63,7 +63,7 @@ export type GetNamespaceInvitationsResponse =
 
 export const GET = api(
   async (
-    req: NextRequest,
+    _req: NextRequest,
     { params }: { params: { nsId: TNamespaceId } },
   ): Promise<GetNamespaceInvitationsResponse> => {
     await validatePermission(params.nsId, "owner");

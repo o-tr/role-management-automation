@@ -1,8 +1,5 @@
 import { requests } from "@/lib/requests";
-import {
-  type VRChatCredentials,
-  ZVRChatCredentials,
-} from "@/types/credentials";
+import { ZVRChatCredentials } from "@/types/credentials";
 import type { TExternalServiceAccount } from "@/types/prisma";
 import { VRCHAT_USER_AGENT } from "../const";
 import { buildCookie } from "../cookie";

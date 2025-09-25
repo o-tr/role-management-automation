@@ -21,7 +21,7 @@ export type GetExternalServiceGroupRolesResponse =
 
 export const GET = api(
   async (
-    req: NextRequest,
+    _req: NextRequest,
     {
       params,
     }: {

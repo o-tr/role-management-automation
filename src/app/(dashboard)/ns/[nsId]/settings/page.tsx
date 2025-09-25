@@ -17,7 +17,7 @@ type Props = {
 };
 
 export default function GroupSettingsPage({ params: { nsId } }: Props) {
-  const { namespace, isPending, refetch } = useNamespace({ namespaceId: nsId });
+  const { namespace, isPending } = useNamespace({ namespaceId: nsId });
   if (isPending) {
     return <p>Loading...</p>;
   }

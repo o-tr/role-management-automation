@@ -19,7 +19,7 @@ export type DeleteExternalServiceGroupResponse =
 
 export const DELETE = api(
   async (
-    req: NextRequest,
+    _req: NextRequest,
     {
       params,
     }: {

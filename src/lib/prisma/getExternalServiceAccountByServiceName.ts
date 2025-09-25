@@ -1,8 +1,4 @@
-import {
-  type TExternalServiceAccount,
-  TExternalServiceAccountId,
-  type TNamespaceId,
-} from "@/types/prisma";
+import type { TExternalServiceAccount, TNamespaceId } from "@/types/prisma";
 import type { ExternalServiceName } from "@prisma/client";
 import { prisma } from "../prisma";
 import { formatTExternalServiceAccount } from "./format/formatTExternalServiceAccount";

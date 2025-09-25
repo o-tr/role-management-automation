@@ -5,7 +5,7 @@ import {
 import { MemberExternalAccountDisplay } from "@/app/(dashboard)/ns/[nsId]/components/MemberExternalAccountDisplay";
 import { TagDisplay } from "@/app/(dashboard)/ns/[nsId]/components/TagDisplay";
 import type { TMemberWithDiff } from "@/types/diff";
-import type { RowModel, Table } from "@tanstack/react-table";
+import type { Table } from "@tanstack/react-table";
 import type { FC } from "react";
 import { DIffItemDisplay } from "./DiffItemDisplay";
 

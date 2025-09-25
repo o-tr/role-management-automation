@@ -20,7 +20,7 @@ export type GetAvailableGroupsResponse =
 
 export const GET = api(
   async (
-    req: NextRequest,
+    _req: NextRequest,
     {
       params,
     }: { params: { nsId: TNamespaceId; accountId: TExternalServiceAccountId } },

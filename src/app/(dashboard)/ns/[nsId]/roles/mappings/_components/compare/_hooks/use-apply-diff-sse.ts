@@ -1,6 +1,5 @@
 import type { ApplyProgressUpdate } from "@/app/api/ns/[nsId]/mappings/apply/applyDiffWithProgress";
 import { processSSEChunk, processSSEFinalBuffer } from "@/lib/sse";
-import type { TMemberWithDiff } from "@/types/diff";
 import type { TNamespaceId } from "@/types/prisma";
 import { useCallback, useEffect, useRef, useState } from "react";
 

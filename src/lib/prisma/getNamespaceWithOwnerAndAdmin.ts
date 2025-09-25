@@ -1,7 +1,6 @@
 import type {
   TNamespaceId,
   TNamespaceWithOwnerAndAdmins,
-  TUserId,
 } from "@/types/prisma";
 import { prisma } from "../prisma";
 import { formatTNamespaceWithOwnerAndAdmins } from "./format/formatTNamespaceWithOwnerAndAdmins";

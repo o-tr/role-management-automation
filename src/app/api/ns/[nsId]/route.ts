@@ -24,7 +24,7 @@ export type GetNamespaceDetailResponse =
 
 export const GET = api(
   async (
-    req: NextRequest,
+    _req: NextRequest,
     { params }: { params: { nsId: TNamespaceId } },
   ): Promise<GetNamespaceDetailResponse> => {
     const namespace = await validatePermission(params.nsId, "admin");

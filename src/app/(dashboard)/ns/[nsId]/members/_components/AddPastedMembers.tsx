@@ -38,7 +38,7 @@ type TKeys =
   | "GitHubUsername" // string
   | "unknown";
 
-const Keys = [
+const _Keys = [
   "DiscordUserId",
   "DiscordUsername",
   "VRCUserId",

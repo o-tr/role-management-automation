@@ -1,8 +1,6 @@
 import { MarkdownRenderer } from "@/components/markdown-renderer";
-import { Button } from "@/components/ui/button";
 import { getUserGuideContent } from "@/lib/readme";
 import type { Metadata } from "next";
-import Link from "next/link";
 
 // 静的生成を有効にし、ユーザーガイドが変更された場合に再生成
 export const revalidate = false; // 静的生成（ISG無効）

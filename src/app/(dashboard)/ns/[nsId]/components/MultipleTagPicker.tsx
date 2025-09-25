@@ -35,7 +35,7 @@ export const MultipleTagPicker: FC<Props> = ({
     (tag) => !selectedTags.includes(tag.id) && tag.name.includes(inputValue),
   );
 
-  const [isFocused, setIsFocused] = useState(false);
+  const [_isFocused, setIsFocused] = useState(false);
 
   const inputId = useId();
 

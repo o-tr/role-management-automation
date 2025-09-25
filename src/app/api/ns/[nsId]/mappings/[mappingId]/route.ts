@@ -36,7 +36,7 @@ export type UpdateMappingBody = z.infer<typeof updateMappingSchema>;
 
 export const DELETE = api(
   async (
-    req: NextRequest,
+    _req: NextRequest,
     { params }: { params: { nsId: TNamespaceId; mappingId: TMappingId } },
   ): Promise<DeleteExternalServiceGroupMappingResponse> => {
     await validatePermission(params.nsId, "admin");

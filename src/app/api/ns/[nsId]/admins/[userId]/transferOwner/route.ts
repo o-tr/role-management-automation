@@ -15,7 +15,7 @@ export type PostTransferNamespaceOwnerResponse =
 
 export const POST = api(
   async (
-    req: NextRequest,
+    _req: NextRequest,
     {
       params: { userId, nsId },
     }: { params: { nsId: TNamespaceId; userId: TUserId } },

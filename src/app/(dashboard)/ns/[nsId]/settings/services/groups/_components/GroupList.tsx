@@ -14,7 +14,6 @@ import {
   DataTable,
 } from "@/app/(dashboard)/ns/[nsId]/components/DataTable";
 import { Image } from "@/app/(dashboard)/ns/[nsId]/components/Image";
-import { Checkbox } from "@/components/ui/checkbox";
 import { redirect } from "next/navigation";
 import { useServiceGroups } from "../../../../_hooks/use-service-groups";
 import { useOnServiceGroupChange } from "../../_hooks/on-groups-change";

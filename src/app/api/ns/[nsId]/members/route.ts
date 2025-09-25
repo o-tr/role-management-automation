@@ -7,7 +7,7 @@ import { getMembersWithRelation } from "@/lib/prisma/getMembersWithRelation";
 import { validatePermission } from "@/lib/validatePermission";
 import type { ErrorResponseType } from "@/types/api";
 import type { TMemberWithRelation, TNamespaceId } from "@/types/prisma";
-import { type NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 export type AddMembersResponse =
   | {
@@ -45,7 +45,7 @@ export const POST = api(
 
 export const GET = api(
   async (
-    req: NextRequest,
+    _req: NextRequest,
     { params }: { params: { nsId: TNamespaceId } },
   ): Promise<GetMembersResponse> => {
     await validatePermission(params.nsId, "admin");

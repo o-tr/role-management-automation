@@ -1,8 +1,5 @@
 "use client";
-import type { NamespaceDetailResponse } from "@/app/api/ns/[nsId]/route";
 import type { GetNamespacesResponse } from "@/app/api/ns/route";
-import type { TNamespace } from "@/types/prisma";
-import { useCallback, useEffect, useState } from "react";
 import useSWR from "swr";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());

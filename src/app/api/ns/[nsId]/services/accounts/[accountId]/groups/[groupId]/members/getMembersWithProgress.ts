@@ -22,11 +22,7 @@ import { listGroupMembers } from "@/lib/vrchat/requests/listGroupMembers";
 import type { VRCGroupMember } from "@/lib/vrchat/types/GroupMember";
 import type { VRCGroupRole } from "@/lib/vrchat/types/GroupRole";
 import { ZVRCGroupId } from "@/lib/vrchat/types/brand";
-import {
-  ZDiscordCredentials,
-  ZGithubCredentials,
-  ZVRChatCredentials,
-} from "@/types/credentials";
+import { ZDiscordCredentials, ZVRChatCredentials } from "@/types/credentials";
 import type {
   TExternalServiceGroupMember,
   TExternalServiceGroupWithAccount,

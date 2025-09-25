@@ -20,7 +20,7 @@ const columns: TColumnDef<TNamespaceInvitation>[] = [
           const url = `${location.origin}/invitations/${row.original.token}`;
           await navigator.clipboard.writeText(url);
           setCopySuccess(true);
-        } catch (err) {
+        } catch (_err) {
           setCopySuccess(false);
         }
       };

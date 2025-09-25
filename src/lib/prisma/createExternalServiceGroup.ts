@@ -1,10 +1,8 @@
-import {
-  type TExternalServiceAccountId,
-  type TExternalServiceGroup,
-  TExternalServiceGroupId,
-  type TNamespaceId,
+import type {
+  TExternalServiceAccountId,
+  TExternalServiceGroup,
+  TNamespaceId,
 } from "@/types/prisma";
-import { ExternalServiceGroup } from "@prisma/client";
 import { prisma } from "../prisma";
 import { formatTExternalServiceGroup } from "./format/formatTExternalServiceGroup";
 

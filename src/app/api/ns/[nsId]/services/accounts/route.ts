@@ -41,7 +41,7 @@ const createServiceAccountSchema = z.object({
 
 export const GET = api(
   async (
-    req: NextRequest,
+    _req: NextRequest,
     { params }: { params: { nsId: TNamespaceId } },
   ): Promise<GetExternalServiceAccountsResponse> => {
     await validatePermission(params.nsId, "admin");

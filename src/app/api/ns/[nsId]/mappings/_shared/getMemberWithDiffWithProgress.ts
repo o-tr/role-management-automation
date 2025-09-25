@@ -15,11 +15,7 @@ import type { TMemberWithDiff } from "@/types/diff";
 import type { TComparePlan, TGroupData, TTargetGroupData } from "@/types/plan";
 import type { TNamespaceId } from "@/types/prisma";
 import { getMembersWithProgress } from "../../services/accounts/[accountId]/groups/[groupId]/members/getMembersWithProgress";
-import type {
-  CommonProgressCallback,
-  CommonProgressUpdate,
-  ServiceProgressState,
-} from "./types";
+import type { CommonProgressCallback, ServiceProgressState } from "./types";
 
 /**
  * メンバー情報を取得して差分を計算する共通関数

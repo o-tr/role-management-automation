@@ -15,7 +15,6 @@ import {
   createNewMappingAction,
 } from "@/types/actions";
 import type {
-  TAvailableGroup,
   TExternalServiceAccountId,
   TExternalServiceGroupId,
   TServiceRoleId,

@@ -11,6 +11,10 @@
     "rules": {
       "style": {
         "useNodejsImportProtocol": "off"
+      },
+      "correctness": {
+        "noUnusedImports": "error",
+        "noUnusedVariables": "error"
       }
     }
   }

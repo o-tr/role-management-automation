@@ -11,7 +11,6 @@ import {
   CommonCheckboxHeader,
   DataTable,
 } from "@/app/(dashboard)/ns/[nsId]/components/DataTable";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -22,7 +21,6 @@ import {
 import { createTag } from "@/requests/createTag";
 import { deleteTag } from "@/requests/deleteTag";
 import { redirect } from "next/navigation";
-import { TbTag } from "react-icons/tb";
 import { TagDisplay } from "../../components/TagDisplay";
 import { onTagsChange } from "../_hooks/on-tags-change";
 import { useTags } from "../_hooks/use-tags";
