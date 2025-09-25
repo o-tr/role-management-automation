@@ -1,7 +1,7 @@
+import { useCallback, useState } from "react";
 import type { UpdateTagResponse } from "@/app/api/ns/[nsId]/tags/[tagId]/route";
 import type { UpdateTagInput } from "@/lib/prisma/updateTag";
 import type { TNamespaceId, TTagId } from "@/types/prisma";
-import { useCallback, useState } from "react";
 
 export const useUpdateTag = (nsId: TNamespaceId, tagId: TTagId) => {
   const [loading, setLoading] = useState(false);

@@ -1,10 +1,10 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { FaGithub } from "react-icons/fa";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
 import { Redirector } from "@/components/redirector";
 import { Button } from "@/components/ui/button";
 import { getReadmeContent } from "@/lib/readme";
-import type { Metadata } from "next";
-import Link from "next/link";
-import { FaGithub } from "react-icons/fa";
 
 // 静的生成を有効にし、READMEが変更された場合に再生成
 export const revalidate = false; // 静的生成（ISG無効）

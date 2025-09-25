@@ -1,9 +1,9 @@
+import pLimit from "p-limit";
+import useSWR from "swr";
 import type {
   ResolveResponse,
   TResolveRequestType,
 } from "@/app/api/ns/[nsId]/members/resolve/[type]/[serviceId]/route";
-import pLimit from "p-limit";
-import useSWR from "swr";
 
 const limit = pLimit(5);
 

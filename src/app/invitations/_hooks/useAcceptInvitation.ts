@@ -1,6 +1,6 @@
+import { useState } from "react";
 import type { PostAcceptInvitationResponse } from "@/app/api/invitations/[token]/accept/route";
 import type { TNamespaceInvitationToken } from "@/types/prisma";
-import { useState } from "react";
 
 export const useAcceptInvitation = (
   invitationToken: TNamespaceInvitationToken,

@@ -1,6 +1,6 @@
+import type { FC } from "react";
 import { Card } from "@/components/ui/card";
 import type { TMappingAction } from "@/types/actions";
-import type { FC } from "react";
 import { useServiceAccounts } from "../../../_hooks/use-service-accounts";
 import { useServiceGroups } from "../../../_hooks/use-service-groups";
 import { ServiceAccountDisplay } from "../../../components/ServiceAccountDisplay";
@@ -16,7 +16,7 @@ type Props = {
 export const ActionsDisplay: FC<Props> = ({ actions, nsId }) => {
   return (
     <div className="space-y-2">
-      {actions.map((action, i) => (
+      {actions.map((action, _i) => (
         <ActionDisplay key={action.id} action={action} nsId={nsId} />
       ))}
     </div>

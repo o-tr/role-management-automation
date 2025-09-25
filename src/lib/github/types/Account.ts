@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { ZGitHubAppInstallationId } from "./AppInstallation";
 
 export const ZGitHubAccountId = z
   .number()

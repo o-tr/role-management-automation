@@ -1,3 +1,4 @@
+import type { NextRequest } from "next/server";
 import { api } from "@/lib/api";
 import { BadRequestException } from "@/lib/exceptions/BadRequestException";
 import { NotFoundException } from "@/lib/exceptions/NotFoundException";
@@ -5,7 +6,6 @@ import { updateNamespace } from "@/lib/prisma/updateNamespace";
 import { validatePermission } from "@/lib/validatePermission";
 import type { ErrorResponseType } from "@/types/api";
 import type { TNamespaceId, TUserId } from "@/types/prisma";
-import type { NextRequest } from "next/server";
 
 export type PostTransferNamespaceOwnerResponse =
   | {
@@ -15,7 +15,7 @@ export type PostTransferNamespaceOwnerResponse =
 
 export const POST = api(
   async (
-    req: NextRequest,
+    _req: NextRequest,
     {
       params: { userId, nsId },
     }: { params: { nsId: TNamespaceId; userId: TUserId } },

@@ -1,12 +1,10 @@
-import { prisma } from "@/lib/prisma";
+import { type NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { z } from "zod";
 import { createNamespace } from "@/lib/prisma/createNamespace";
 import { filterFNamespaceWithOwnerAndAdmins } from "@/lib/prisma/filter/filterFNamespaceWithOwnerAndAdmins";
 import { getNamespacesWithOwnerAndAdmins } from "@/lib/prisma/getNamespacesWithOwnerAndAdmins";
 import type { ErrorResponseType } from "@/types/api";
-import { FNamespaceWithOwnerAndAdmins } from "@/types/prisma";
-import { getServerSession } from "next-auth/next";
-import { type NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 import type { NamespaceDetailResponse } from "./[nsId]/route";
 
 export type GetNamespacesResponse =
@@ -17,7 +15,7 @@ export type GetNamespacesResponse =
   | ErrorResponseType;
 
 export async function GET(
-  req: NextRequest,
+  _req: NextRequest,
 ): Promise<NextResponse<GetNamespacesResponse>> {
   const session = await getServerSession();
 

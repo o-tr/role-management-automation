@@ -1,9 +1,4 @@
-import type {
-  TMemberId,
-  TNamespaceId,
-  TNamespaceWithRelation,
-  TTagId,
-} from "@/types/prisma";
+import type { TNamespaceId, TNamespaceWithRelation } from "@/types/prisma";
 import { prisma } from "../prisma";
 import { formatTNamespaceWithRelation } from "./format/formatTNamespaceWithRelation";
 

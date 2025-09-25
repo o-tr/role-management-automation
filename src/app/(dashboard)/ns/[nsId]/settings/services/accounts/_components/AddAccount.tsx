@@ -1,4 +1,6 @@
 "use client";
+import type { ExternalServiceName } from "@prisma/client";
+import { type ChangeEvent, type FC, type FormEvent, useState } from "react";
 import { useCreateServiceAccount } from "@/app/(dashboard)/ns/[nsId]/settings/services/_hooks/use-create-service-account";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -25,8 +27,6 @@ import {
   ZGithubCredentials,
   ZVRChatCredentialsInput,
 } from "@/types/credentials";
-import type { ExternalServiceName } from "@prisma/client";
-import { type ChangeEvent, type FC, type FormEvent, useState } from "react";
 import { onServiceAccountChange } from "../../_hooks/on-accounts-change";
 
 export type Props = {

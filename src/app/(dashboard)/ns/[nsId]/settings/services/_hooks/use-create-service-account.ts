@@ -1,6 +1,6 @@
-import type { CreateExternalServiceAccountResponse } from "@/app/api/ns/[nsId]/services/accounts/route";
 import type { ExternalServiceName } from "@prisma/client";
 import { useState } from "react";
+import type { CreateExternalServiceAccountResponse } from "@/app/api/ns/[nsId]/services/accounts/route";
 import { onServiceAccountChange } from "./on-accounts-change";
 
 type AuthenticationBody = {

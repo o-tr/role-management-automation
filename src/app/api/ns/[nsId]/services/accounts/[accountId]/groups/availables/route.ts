@@ -1,3 +1,4 @@
+import type { NextRequest } from "next/server";
 import { api } from "@/lib/api";
 import { NotFoundException } from "@/lib/exceptions/NotFoundException";
 import { getExternalServiceAccount } from "@/lib/prisma/getExternalServiceAccount";
@@ -8,7 +9,6 @@ import type {
   TExternalServiceAccountId,
   TNamespaceId,
 } from "@/types/prisma";
-import type { NextRequest } from "next/server";
 import { getAvailableGroups } from "./get-available-groups";
 
 export type GetAvailableGroupsResponse =
@@ -20,7 +20,7 @@ export type GetAvailableGroupsResponse =
 
 export const GET = api(
   async (
-    req: NextRequest,
+    _req: NextRequest,
     {
       params,
     }: { params: { nsId: TNamespaceId; accountId: TExternalServiceAccountId } },

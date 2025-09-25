@@ -1,11 +1,11 @@
 "use client";
-import { Button } from "@/components/ui/button";
-import type { TNamespaceInvitationId } from "@/types/prisma";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
-import { signIn } from "next-auth/react";
 import Link from "next/link";
-import { redirect, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { Button } from "@/components/ui/button";
+import type { TNamespaceInvitationId } from "@/types/prisma";
 import { useAcceptInvitation } from "../_hooks/useAcceptInvitation";
 import { useInvitation } from "../_hooks/useInvitation";
 

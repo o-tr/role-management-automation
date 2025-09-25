@@ -1,5 +1,5 @@
-import type { ErrorResponseType } from "@/types/api";
 import { type NextRequest, NextResponse } from "next/server";
+import type { ErrorResponseType } from "@/types/api";
 import { BaseException } from "./exceptions/BaseException";
 
 export const api = <

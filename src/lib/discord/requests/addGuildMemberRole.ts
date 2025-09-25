@@ -1,6 +1,5 @@
 import { requests } from "@/lib/requests";
 import { discordLimit } from "../plimit";
-import { ZDiscordGuildList } from "../types/application";
 import type { DiscordGuildId, DiscordGuildRoleId } from "../types/guild";
 import type { DiscordToken } from "../types/token";
 import type { DiscordUserId } from "../types/user";

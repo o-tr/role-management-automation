@@ -1,6 +1,6 @@
+import useSWR from "swr";
 import type { GetAdminsResponse } from "@/app/api/ns/[nsId]/admins/route";
 import type { TNamespaceId } from "@/types/prisma";
-import useSWR from "swr";
 import { useOnAdminsChange } from "./onAdminsChange";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());

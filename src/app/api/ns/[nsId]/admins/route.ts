@@ -1,9 +1,9 @@
+import type { NextRequest } from "next/server";
 import { api } from "@/lib/api";
 import { filterFUser } from "@/lib/prisma/filter/filterFUser";
 import { validatePermission } from "@/lib/validatePermission";
 import type { ErrorResponseType } from "@/types/api";
-import { type FUser, type TNamespaceId, TUser } from "@/types/prisma";
-import type { NextRequest } from "next/server";
+import type { FUser, TNamespaceId } from "@/types/prisma";
 
 export type AdminItem = FUser & {
   namespaceId: TNamespaceId;
@@ -19,7 +19,7 @@ export type GetAdminsResponse =
 
 export const GET = api(
   async (
-    req: NextRequest,
+    _req: NextRequest,
     { params }: { params: { nsId: TNamespaceId } },
   ): Promise<GetAdminsResponse> => {
     const namespace = await validatePermission(params.nsId, "owner");

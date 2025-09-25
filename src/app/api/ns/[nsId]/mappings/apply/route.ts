@@ -1,12 +1,12 @@
+import type { NextRequest } from "next/server";
+import { getServerSession } from "next-auth/next";
+import { z } from "zod";
 import { APPLY_VALIDATION_STAGES } from "@/lib/constants/progress";
 import { BadRequestException } from "@/lib/exceptions/BadRequestException";
 import { verifyPlan } from "@/lib/jwt/plan";
 import { validatePermission } from "@/lib/validatePermission";
 import { type TComparePlan, ZTComparePlan } from "@/types/plan";
 import type { TNamespaceId } from "@/types/prisma";
-import { getServerSession } from "next-auth/next";
-import type { NextRequest } from "next/server";
-import { z } from "zod";
 import {
   type ApplyProgressUpdate,
   applyDiffWithProgress,
@@ -101,7 +101,7 @@ export async function POST(
                 isStreamClosed = true;
                 controller.close();
               }
-            } catch (error) {
+            } catch (_error) {
               // Controller already closed, ignore the error
               isStreamClosed = true;
             }

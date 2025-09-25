@@ -13,20 +13,16 @@ import type {
   GitHubAccount,
   GitHubOrganizationId,
 } from "@/lib/github/types/Account";
-import type { GitHubTeamSlug } from "@/lib/github/types/Team";
 import { type GitHubRoleId, ZGitHubGroupId } from "@/lib/github/types/encoded";
+import type { GitHubTeamSlug } from "@/lib/github/types/Team";
 import { getAuthUser } from "@/lib/vrchat/requests/getAuthUser";
 import { getGroup } from "@/lib/vrchat/requests/getGroup";
 import { getGroupRoles } from "@/lib/vrchat/requests/getGroupRoles";
 import { listGroupMembers } from "@/lib/vrchat/requests/listGroupMembers";
+import { ZVRCGroupId } from "@/lib/vrchat/types/brand";
 import type { VRCGroupMember } from "@/lib/vrchat/types/GroupMember";
 import type { VRCGroupRole } from "@/lib/vrchat/types/GroupRole";
-import { ZVRCGroupId } from "@/lib/vrchat/types/brand";
-import {
-  ZDiscordCredentials,
-  ZGithubCredentials,
-  ZVRChatCredentials,
-} from "@/types/credentials";
+import { ZDiscordCredentials, ZVRChatCredentials } from "@/types/credentials";
 import type {
   TExternalServiceGroupMember,
   TExternalServiceGroupWithAccount,

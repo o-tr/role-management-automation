@@ -1,5 +1,5 @@
-import type { TNamespace, TNamespaceId } from "@/types/prisma";
 import type { Namespace } from "@prisma/client";
+import type { TNamespace, TNamespaceId } from "@/types/prisma";
 
 export const formatTNamespace = (input: Namespace | TNamespace): TNamespace => {
   return {

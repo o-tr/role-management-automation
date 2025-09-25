@@ -1,17 +1,14 @@
+import { getServerSession } from "next-auth/next";
 import type {
-  TNamespace,
   TNamespaceId,
   TNamespaceWithOwnerAndAdmins,
   TUser,
 } from "@/types/prisma";
-import { User } from "@prisma/client";
-import { getServerSession } from "next-auth/next";
 import { ForbiddenException } from "./exceptions/ForbiddenException";
 import { NotFoundException } from "./exceptions/NotFoundException";
 import { UnauthorizedException } from "./exceptions/UnauthorizedException";
 import { getNamespaceWithOwnerAndAdmins } from "./prisma/getNamespaceWithOwnerAndAdmin";
 import { getUserByEmail } from "./prisma/getUserByEmail";
-import { UnauthorizedError } from "./vrchat/retry";
 
 export const requireLoggedIn = async (): Promise<TUser> => {
   const session = await getServerSession();

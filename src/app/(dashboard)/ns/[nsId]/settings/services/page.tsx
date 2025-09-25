@@ -1,5 +1,5 @@
-import type { TNamespaceId } from "@/types/prisma";
 import { redirect } from "next/navigation";
+import type { TNamespaceId } from "@/types/prisma";
 
 export default async function GroupProvidersPage({
   params,

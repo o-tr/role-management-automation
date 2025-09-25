@@ -1,3 +1,5 @@
+import type { NextRequest } from "next/server";
+import { z } from "zod";
 import { api } from "@/lib/api";
 import { BadRequestException } from "@/lib/exceptions/BadRequestException";
 import { createExternalServiceAccount } from "@/lib/prisma/createExternalServiceAccount";
@@ -10,8 +12,6 @@ import {
   type TNamespaceId,
   ZExternalServiceName,
 } from "@/types/prisma";
-import type { NextRequest } from "next/server";
-import { z } from "zod";
 import { validateCredential } from "./validation";
 
 export type CreateExternalServiceAccountResponse =
@@ -41,7 +41,7 @@ const createServiceAccountSchema = z.object({
 
 export const GET = api(
   async (
-    req: NextRequest,
+    _req: NextRequest,
     { params }: { params: { nsId: TNamespaceId } },
   ): Promise<GetExternalServiceAccountsResponse> => {
     await validatePermission(params.nsId, "admin");

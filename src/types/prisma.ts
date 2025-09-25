@@ -1,8 +1,6 @@
-import { ZGitHubAccountId } from "@/lib/github/types/Account";
+import { z } from "zod";
 import { ZGitHubAppInstallationId } from "@/lib/github/types/AppInstallation";
 import { ZVRCGroupId } from "@/lib/vrchat/types/brand";
-import type { ExternalServiceName } from "@prisma/client";
-import { z } from "zod";
 import type { TMappingAction } from "./actions";
 import { ZColorCode } from "./brand";
 import type { TMappingCondition } from "./conditions";

@@ -1,7 +1,7 @@
-import type { NamespaceDetailResponse } from "@/app/api/ns/[nsId]/route";
-import type { TNamespaceId } from "@/types/prisma";
 import { redirect, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import type { NamespaceDetailResponse } from "@/app/api/ns/[nsId]/route";
+import type { TNamespaceId } from "@/types/prisma";
 import { useNamespace } from "./use-namespace";
 import { useNamespaces } from "./use-namespaces";
 

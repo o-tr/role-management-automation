@@ -1,3 +1,4 @@
+import { type FC, useCallback, useRef, useState } from "react";
 import type { ApplyDiffResult } from "@/app/api/ns/[nsId]/mappings/apply/applyDiffWithProgress";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,7 +10,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import type { TNamespaceId } from "@/types/prisma";
-import { type FC, useCallback, useRef, useState } from "react";
 import { DiffList } from "./DiffList";
 import { MappingDiffList } from "./MappingDiffList";
 

@@ -1,8 +1,6 @@
 import type {
-  TMemberId,
   TNamespaceId,
   TNamespaceWithRelation,
-  TTagId,
   TUserId,
 } from "@/types/prisma";
 import { prisma } from "../prisma";

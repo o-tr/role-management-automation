@@ -1,8 +1,8 @@
-import { Button } from "@/components/ui/button";
-import type { TNamespaceId, TNamespaceInvitation } from "@/types/prisma";
 import { redirect } from "next/navigation";
 import { useState } from "react";
 import { TbCopy, TbCopyCheck, TbCopyX } from "react-icons/tb";
+import { Button } from "@/components/ui/button";
+import type { TNamespaceId, TNamespaceInvitation } from "@/types/prisma";
 import { DataTable, type TColumnDef } from "../../../../components/DataTable";
 import { useDeleteInvitation } from "../_hook/useDeleteInvitation";
 import { useInvitations } from "../_hook/useInvitations";
@@ -20,7 +20,7 @@ const columns: TColumnDef<TNamespaceInvitation>[] = [
           const url = `${location.origin}/invitations/${row.original.token}`;
           await navigator.clipboard.writeText(url);
           setCopySuccess(true);
-        } catch (err) {
+        } catch (_err) {
           setCopySuccess(false);
         }
       };

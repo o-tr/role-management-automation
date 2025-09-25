@@ -1,5 +1,5 @@
-import type { GetExternalServiceAccountsResponse } from "@/app/api/ns/[nsId]/services/accounts/route";
 import useSWR from "swr";
+import type { GetExternalServiceAccountsResponse } from "@/app/api/ns/[nsId]/services/accounts/route";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 

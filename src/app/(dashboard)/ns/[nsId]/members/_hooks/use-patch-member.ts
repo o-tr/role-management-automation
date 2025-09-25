@@ -1,6 +1,6 @@
+import { useState } from "react";
 import type { UpdateMemberResponse } from "@/app/api/ns/[nsId]/members/[memberId]/route";
 import type { TMemberUpdateInput } from "@/lib/prisma/updateMember";
-import { useState } from "react";
 
 export const usePatchMember = (nsId: string) => {
   const [loading, setLoading] = useState(false);

@@ -1,11 +1,11 @@
+import pLimit from "p-limit";
 import { requests } from "@/lib/requests";
 import { ZVRChatCredentials } from "@/types/credentials";
 import type { TExternalServiceAccount } from "@/types/prisma";
-import pLimit from "p-limit";
 import { VRCHAT_USER_AGENT } from "../const";
 import { buildCookie } from "../cookie";
 import { vrchatLimit } from "../plimit";
-import { RateLimitError, UnauthorizedError, retry } from "../retry";
+import { RateLimitError, retry, UnauthorizedError } from "../retry";
 import type { VRCGroupId, VRCUserId } from "../types/brand";
 
 const inviteLimit = pLimit(1);
@@ -54,7 +54,7 @@ export const inviteUserToGroup = (
           if (typeof data?.message === "string") {
             message = data.message;
           }
-        } catch (error) {
+        } catch (_error) {
           // VRChat sometimes returns empty bodies; ignore JSON parse failures.
           message = undefined;
         }

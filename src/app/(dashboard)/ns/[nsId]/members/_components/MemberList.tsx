@@ -1,23 +1,19 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import type {
-  TMemberWithRelation,
-  TNamespaceId,
-  TTag,
-  TTagId,
-} from "@/types/prisma";
 import type {
   ColumnDef,
   StringOrTemplateHeader,
   Table,
 } from "@tanstack/react-table";
-
+import { redirect } from "next/navigation";
+import { type FC, useEffect, useMemo, useState } from "react";
+import { TbFilter, TbPlus } from "react-icons/tb";
 import {
   CommonCheckboxCell,
   CommonCheckboxHeader,
   DataTable,
 } from "@/app/(dashboard)/ns/[nsId]/components/DataTable";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -31,17 +27,17 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { deleteMember } from "@/requests/deleteMember";
-import { redirect } from "next/navigation";
-import { type FC, useCallback, useEffect, useMemo, useState } from "react";
-import { TbFilter, TbPlus } from "react-icons/tb";
+import type {
+  TMemberWithRelation,
+  TNamespaceId,
+  TTag,
+  TTagId,
+} from "@/types/prisma";
 import { MemberExternalAccountDisplay } from "../../components/MemberExternalAccountDisplay";
 import { MultipleTagPicker } from "../../components/MultipleTagPicker";
 import { TagDisplay } from "../../components/TagDisplay";
 import { useTags } from "../../roles/_hooks/use-tags";
-import {
-  onMembersChange,
-  useOnMembersChange,
-} from "../_hooks/on-members-change";
+import { onMembersChange } from "../_hooks/on-members-change";
 import { useMembers } from "../_hooks/use-members";
 import { usePatchMember } from "../_hooks/use-patch-member";
 import { AddTag } from "./EditMember/AddTag";
@@ -243,6 +239,76 @@ const deleteMembers = async (groupId: string, tagIds: string[]) => {
   await Promise.all(tagIds.map((tagId) => deleteMember(groupId, tagId)));
 };
 
+const Footer: FC<{
+  table: Table<TMemberWithRelation>;
+  namespaceId: TNamespaceId;
+}> = ({ table, namespaceId }) => {
+  const { patchMembers } = usePatchMember(namespaceId);
+  const { tags } = useTags(namespaceId);
+  const selected = table.getSelectedRowModel();
+  const [selectedTags, setSelectedTags] = useState<TTagId[]>([]);
+  if (!selected.rows.length) {
+    return <div className="h-[40px]">&nbsp;</div>;
+  }
+
+  return (
+    <div className="h-[40px]">
+      <Button
+        variant="outline"
+        onClick={async () => {
+          await deleteMembers(
+            namespaceId,
+            selected.rows.map((v) => v.original.id),
+          );
+          onMembersChange();
+        }}
+      >
+        選択した {selected.rows.length} 件を削除
+      </Button>
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button variant="outline">
+            選択した {selected.rows.length} 件にタグを追加
+          </Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>タグを追加</DialogTitle>
+          </DialogHeader>
+          {tags && (
+            <MultipleTagPicker
+              tags={tags}
+              selectedTags={selectedTags}
+              onChange={setSelectedTags}
+            />
+          )}
+          <Button
+            variant="outline"
+            onClick={async () => {
+              await Promise.all(
+                selected.rows.map(({ original: member }) => {
+                  member.tags = [
+                    ...member.tags,
+                    ...selectedTags.map((tagId) => ({
+                      id: tagId as TTagId,
+                      name: "",
+                      namespaceId: namespaceId,
+                    })),
+                  ];
+                  return patchMembers(member.id, member);
+                }),
+              );
+              onMembersChange();
+            }}
+          >
+            タグを追加
+          </Button>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+};
+
 type MemberListProps = {
   namespaceId: TNamespaceId;
   className?: string;
@@ -250,91 +316,6 @@ type MemberListProps = {
 
 export function MemberList({ namespaceId, className }: MemberListProps) {
   const { members, isPending, responseError } = useMembers(namespaceId);
-  const [showDeletedAccounts, setShowDeletedAccounts] = useState(false);
-
-  // フィルタリングされたメンバーデータ
-  const filteredMembers = useMemo(() => {
-    if (!members) return [];
-
-    if (showDeletedAccounts) {
-      return members; // 削除されたアカウントも含めて全て表示
-    }
-
-    // 削除されたアカウントのみのメンバーを除外し、アクティブなアカウントを持つメンバーのみ表示
-    return members.filter((member) =>
-      member.externalAccounts.some((account) => account.status === "ACTIVE"),
-    );
-  }, [members, showDeletedAccounts]);
-
-  const Footer = useCallback<FC<{ table: Table<TMemberWithRelation> }>>(
-    ({ table }) => {
-      const { patchMembers } = usePatchMember(namespaceId);
-      const { tags } = useTags(namespaceId);
-      const selected = table.getSelectedRowModel();
-      const [selectedTags, setSelectedTags] = useState<TTagId[]>([]);
-      if (!selected.rows.length) {
-        return <div className="h-[40px]">&nbsp;</div>;
-      }
-
-      return (
-        <div className="h-[40px]">
-          <Button
-            variant="outline"
-            onClick={async () => {
-              await deleteMembers(
-                namespaceId,
-                selected.rows.map((v) => v.original.id),
-              );
-              onMembersChange();
-            }}
-          >
-            選択した {selected.rows.length} 件を削除
-          </Button>
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline">
-                選択した {selected.rows.length} 件にタグを追加
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>タグを追加</DialogTitle>
-              </DialogHeader>
-              {tags && (
-                <MultipleTagPicker
-                  tags={tags}
-                  selectedTags={selectedTags}
-                  onChange={setSelectedTags}
-                />
-              )}
-              <Button
-                variant="outline"
-                onClick={async () => {
-                  await Promise.all(
-                    selected.rows.map(({ original: member }) => {
-                      member.tags = [
-                        ...member.tags,
-                        ...selectedTags.map((tagId) => ({
-                          id: tagId as TTagId,
-                          name: "",
-                          namespaceId: namespaceId,
-                        })),
-                      ];
-                      return patchMembers(member.id, member);
-                    }),
-                  );
-                  onMembersChange();
-                }}
-              >
-                タグを追加
-              </Button>
-            </DialogContent>
-          </Dialog>
-        </div>
-      );
-    },
-    [namespaceId],
-  );
 
   if (isPending) {
     return <div>loading...</div>;
@@ -352,7 +333,13 @@ export function MemberList({ namespaceId, className }: MemberListProps) {
 
   return (
     <div className={className}>
-      <DataTable columns={columns} data={filteredMembers} footer={Footer} />
+      <DataTable
+        columns={columns}
+        data={members || []}
+        footer={({ table }) => (
+          <Footer table={table} namespaceId={namespaceId} />
+        )}
+      />
     </div>
   );
 }

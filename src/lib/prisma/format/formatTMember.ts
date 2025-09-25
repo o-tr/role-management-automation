@@ -1,5 +1,5 @@
-import type { TMember, TMemberId, TNamespaceId } from "@/types/prisma";
 import type { Member } from "@prisma/client";
+import type { TMember, TMemberId, TNamespaceId } from "@/types/prisma";
 
 export const formatTMember = (input: Member): TMember => {
   return {

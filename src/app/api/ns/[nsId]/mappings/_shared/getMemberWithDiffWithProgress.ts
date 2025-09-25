@@ -4,8 +4,11 @@ import {
   PROGRESS_MESSAGES,
 } from "@/lib/constants/progress";
 import { signPlan } from "@/lib/jwt/plan";
-import { calculateDiff, extractTargetGroups } from "@/lib/mapping/memberDiff";
-import { getInvitedUsers } from "@/lib/mapping/memberDiff";
+import {
+  calculateDiff,
+  extractTargetGroups,
+  getInvitedUsers,
+} from "@/lib/mapping/memberDiff";
 import { convertTSerializedMappingToTMapping } from "@/lib/prisma/convert/convertTSerializedMappingToTMapping";
 import { getExternalServiceAccounts } from "@/lib/prisma/getExternalServiceAccounts";
 import { getExternalServiceGroupRoleMappingsByNamespaceId } from "@/lib/prisma/getExternalServiceGroupRoleMappingByNamespaceId";
@@ -15,11 +18,7 @@ import type { TMemberWithDiff } from "@/types/diff";
 import type { TComparePlan, TGroupData, TTargetGroupData } from "@/types/plan";
 import type { TNamespaceId } from "@/types/prisma";
 import { getMembersWithProgress } from "../../services/accounts/[accountId]/groups/[groupId]/members/getMembersWithProgress";
-import type {
-  CommonProgressCallback,
-  CommonProgressUpdate,
-  ServiceProgressState,
-} from "./types";
+import type { CommonProgressCallback, ServiceProgressState } from "./types";
 
 /**
  * メンバー情報を取得して差分を計算する共通関数

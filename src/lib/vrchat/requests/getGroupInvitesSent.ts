@@ -1,15 +1,11 @@
-import { requests } from "@/lib/requests";
-import {
-  type VRChatCredentials,
-  ZVRChatCredentials,
-} from "@/types/credentials";
-import type { TExternalServiceAccount } from "@/types/prisma";
 import { z } from "zod";
+import { requests } from "@/lib/requests";
+import { ZVRChatCredentials } from "@/types/credentials";
+import type { TExternalServiceAccount } from "@/types/prisma";
 import { VRCHAT_USER_AGENT } from "../const";
 import { buildCookie } from "../cookie";
 import { vrchatLimit } from "../plimit";
-import { UnauthorizedError, retry } from "../retry";
-import { ZVRCGroup } from "../types/Group";
+import { retry, UnauthorizedError } from "../retry";
 import { ZVRCGroupMember } from "../types/GroupMember";
 
 type Options = {

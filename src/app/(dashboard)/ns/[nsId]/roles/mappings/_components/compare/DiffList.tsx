@@ -1,3 +1,4 @@
+import { type FC, useCallback, useEffect, useMemo } from "react";
 import type {
   ApplyDiffResult,
   ApplyProgressUpdate,
@@ -10,17 +11,10 @@ import type {
   TMemberWithDiff,
 } from "@/types/diff";
 import type { TNamespaceId } from "@/types/prisma";
-import {
-  type FC,
-  type MutableRefObject,
-  useCallback,
-  useEffect,
-  useMemo,
-} from "react";
-import { MappingDiffList } from "./MappingDiffList";
-import { ProgressDisplay } from "./ProgressDisplay";
 import { useApplyDiffSSE } from "./_hooks/use-apply-diff-sse";
 import { useCompareSSE } from "./_hooks/use-compare-sse";
+import { MappingDiffList } from "./MappingDiffList";
+import { ProgressDisplay } from "./ProgressDisplay";
 
 // Pure helper: map compareState.diff with apply progress to inject per-diff status/reason
 export const mapDiffWithProgress = (

@@ -1,3 +1,4 @@
+import type { NextRequest } from "next/server";
 import { api } from "@/lib/api";
 import { NotFoundException } from "@/lib/exceptions/NotFoundException";
 import { getExternalServiceGroupRoleMapping } from "@/lib/prisma/getExternalServiceGroupRoleMapping";
@@ -9,7 +10,6 @@ import type {
   TNamespaceId,
   TSerializedMapping,
 } from "@/types/prisma";
-import type { NextRequest } from "next/server";
 
 export type ToggleMappingResponse =
   | {
@@ -20,7 +20,7 @@ export type ToggleMappingResponse =
 
 export const POST = api(
   async (
-    req: NextRequest,
+    _req: NextRequest,
     { params }: { params: { nsId: TNamespaceId; mappingId: TMappingId } },
   ): Promise<ToggleMappingResponse> => {
     await validatePermission(params.nsId, "admin");

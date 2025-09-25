@@ -1,8 +1,8 @@
+import { type FC, type FormEvent, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { TMappingAction } from "@/types/actions";
 import type { TMappingCondition } from "@/types/conditions";
 import type { TMapping } from "@/types/prisma";
-import { type FC, type FormEvent, useState } from "react";
 import { onServiceGroupMappingChange } from "../../_hooks/on-mappings-change";
 import { useUpdateServiceMapping } from "../../_hooks/use-update-service-mapping";
 import { ActionsEditor } from "./ActionsEditor";

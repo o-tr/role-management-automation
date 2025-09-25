@@ -1,3 +1,5 @@
+import type { NextRequest } from "next/server";
+import { z } from "zod";
 import { api } from "@/lib/api";
 import { BadRequestException } from "@/lib/exceptions/BadRequestException";
 import { createTag } from "@/lib/prisma/createTag";
@@ -6,8 +8,6 @@ import { validatePermission } from "@/lib/validatePermission";
 import type { ErrorResponseType } from "@/types/api";
 import { ZColorCode } from "@/types/brand";
 import type { TNamespaceId, TTag } from "@/types/prisma";
-import type { NextRequest } from "next/server";
-import { z } from "zod";
 
 export type CreateTagResponse =
   | {
@@ -55,7 +55,7 @@ export const POST = api(
 
 export const GET = api(
   async (
-    req: NextRequest,
+    _req: NextRequest,
     { params }: { params: { nsId: TNamespaceId } },
   ): Promise<GetTagsResponse> => {
     await validatePermission(params.nsId, "admin");

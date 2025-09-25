@@ -4,7 +4,7 @@ import type { TExternalServiceAccount } from "@/types/prisma";
 import { VRCHAT_USER_AGENT } from "../const";
 import { buildCookie } from "../cookie";
 import { vrchatLimit } from "../plimit";
-import { UnauthorizedError, retry } from "../retry";
+import { retry, UnauthorizedError } from "../retry";
 import { ZVRCUserGroups } from "../types/UserGroups";
 
 export const getUserGroups = retry(async (account: TExternalServiceAccount) => {

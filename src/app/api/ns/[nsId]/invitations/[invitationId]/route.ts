@@ -1,18 +1,9 @@
+import type { NextRequest } from "next/server";
 import { api } from "@/lib/api";
-import { NotFoundException } from "@/lib/exceptions/NotFoundException";
 import { deleteNamespaceInvitation } from "@/lib/prisma/deleteNamespaceInvitation";
-import { getNamespaceInvitation } from "@/lib/prisma/getNamespaceInvitation";
-import { getNamespaceInvitationWithRelationByToken } from "@/lib/prisma/getNamespaceInvitationWithRelationByToken";
 import { validatePermission } from "@/lib/validatePermission";
 import type { ErrorResponseType } from "@/types/api";
-import type {
-  TNamespaceId,
-  TNamespaceInvitation,
-  TNamespaceInvitationId,
-  TNamespaceInvitationToken,
-  TNamespaceInvitationWithRelation,
-} from "@/types/prisma";
-import type { NextRequest } from "next/server";
+import type { TNamespaceId, TNamespaceInvitationId } from "@/types/prisma";
 
 export type DeleteNamespaceInvitationResponse =
   | {
@@ -22,7 +13,7 @@ export type DeleteNamespaceInvitationResponse =
 
 export const DELETE = api(
   async (
-    req: NextRequest,
+    _req: NextRequest,
     {
       params,
     }: { params: { nsId: TNamespaceId; invitationId: TNamespaceInvitationId } },

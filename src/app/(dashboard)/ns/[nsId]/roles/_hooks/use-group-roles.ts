@@ -1,5 +1,5 @@
-import type { GetExternalServiceGroupRolesResponse } from "@/app/api/ns/[nsId]/services/accounts/[accountId]/groups/[groupId]/roles/route";
 import useSWR from "swr";
+import type { GetExternalServiceGroupRolesResponse } from "@/app/api/ns/[nsId]/services/accounts/[accountId]/groups/[groupId]/roles/route";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 

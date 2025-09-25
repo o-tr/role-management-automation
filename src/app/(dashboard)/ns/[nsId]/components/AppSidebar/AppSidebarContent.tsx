@@ -1,4 +1,19 @@
 "use client";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import type { FC, ReactNode } from "react";
+import {
+  TbBuildings,
+  TbCloudCode,
+  TbMailShare,
+  TbPlugConnected,
+  TbSettings,
+  TbTags,
+  TbTool,
+  TbUserCode,
+  TbUserHexagon,
+  TbUsersGroup,
+} from "react-icons/tb";
 import {
   SidebarContent,
   SidebarGroup,
@@ -11,25 +26,6 @@ import {
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 import { useCurrentNamespace } from "@/hooks/use-current-namespace";
-import { useNamespace } from "@/hooks/use-namespace";
-import { useNamespaces } from "@/hooks/use-namespaces";
-import type { TNamespaceId } from "@/types/prisma";
-import Link from "next/link";
-import { redirect, useParams, usePathname } from "next/navigation";
-import { type FC, type ReactNode, useEffect, useState } from "react";
-import {
-  TbBook,
-  TbBuildings,
-  TbCloudCode,
-  TbMailShare,
-  TbPlugConnected,
-  TbSettings,
-  TbTags,
-  TbTool,
-  TbUserCode,
-  TbUserHexagon,
-  TbUsersGroup,
-} from "react-icons/tb";
 
 export const AppSidebarContent: FC = () => {
   const { namespace, nsId } = useCurrentNamespace();

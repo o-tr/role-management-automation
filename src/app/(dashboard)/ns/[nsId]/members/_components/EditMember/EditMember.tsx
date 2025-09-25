@@ -1,7 +1,7 @@
+import { type FC, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { TMemberWithRelation } from "@/types/prisma";
-import { type FC, useState } from "react";
 import { EditExternalAccounts } from "./EditExternalAccounts";
 import { EditTags } from "./EditTags";
 

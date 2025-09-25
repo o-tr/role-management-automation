@@ -1,3 +1,4 @@
+import type { ExternalServiceName } from "@prisma/client";
 import type { TExternalServiceGroupMembers } from "@/app/api/ns/[nsId]/services/accounts/[accountId]/groups/[groupId]/members/route";
 import { getGroupInvitesSent } from "@/lib/vrchat/requests/getGroupInvitesSent";
 import { ZVRCGroupId } from "@/lib/vrchat/types/brand";
@@ -13,7 +14,6 @@ import type {
   TMemberWithRelation,
   TTag,
 } from "@/types/prisma";
-import type { ExternalServiceName } from "@prisma/client";
 
 export type TargetGroup = {
   serviceAccountId: TExternalServiceAccountId;

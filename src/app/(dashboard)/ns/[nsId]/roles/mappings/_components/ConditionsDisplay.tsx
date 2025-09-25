@@ -1,10 +1,10 @@
+import type { FC } from "react";
 import { Card } from "@/components/ui/card";
 import type {
   TMappingComparator,
   TMappingCondition,
   TMappingKey,
 } from "@/types/conditions";
-import type { FC } from "react";
 import { TagDisplay } from "../../../components/TagDisplay";
 import { useTags } from "../../_hooks/use-tags";
 

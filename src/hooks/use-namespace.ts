@@ -1,7 +1,7 @@
 "use client";
+import useSWR from "swr";
 import type { GetNamespaceDetailResponse } from "@/app/api/ns/[nsId]/route";
 import type { TNamespaceId } from "@/types/prisma";
-import useSWR from "swr";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 

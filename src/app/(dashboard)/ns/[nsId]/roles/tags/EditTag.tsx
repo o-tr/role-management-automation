@@ -1,3 +1,5 @@
+import { type FormEvent, useState } from "react";
+import { HexColorPicker } from "react-colorful";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,8 +17,6 @@ import {
 } from "@/components/ui/popover";
 import type { TColorCode } from "@/types/brand";
 import type { TNamespaceId, TTag } from "@/types/prisma";
-import { type FormEvent, useState } from "react";
-import { HexColorPicker } from "react-colorful";
 import { onTagsChange } from "../_hooks/on-tags-change";
 import { useUpdateTag } from "../_hooks/use-update-tag";
 

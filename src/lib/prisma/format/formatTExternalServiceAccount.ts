@@ -1,9 +1,9 @@
+import type { ExternalServiceAccount } from "@prisma/client";
 import type {
   TExternalServiceAccount,
   TExternalServiceAccountId,
   TNamespaceId,
 } from "@/types/prisma";
-import type { ExternalServiceAccount } from "@prisma/client";
 
 export const formatTExternalServiceAccount = (
   input: ExternalServiceAccount,

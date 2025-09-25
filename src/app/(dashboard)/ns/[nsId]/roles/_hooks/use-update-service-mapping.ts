@@ -1,8 +1,8 @@
+import { useCallback, useState } from "react";
 import type {
   UpdateExternalServiceGroupMappingResponse,
   UpdateMappingBody,
 } from "@/app/api/ns/[nsId]/mappings/[mappingId]/route";
-import { useCallback, useState } from "react";
 
 export const useUpdateServiceMapping = (nsId: string, mappingId: string) => {
   const [loading, setLoading] = useState(false);
