@@ -25,4 +25,9 @@ const nextConfig = {
   },
 };
 
+// docker buildの際にnext.jsのスタンドアロン出力を有効化
+if (process.env.BUILD_STANDALONE === "1") {
+  nextConfig.output = "standalone";
+}
+
 export default nextConfig;
