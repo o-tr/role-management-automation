@@ -3,19 +3,22 @@ import {
   DIFF_FETCH_STAGES,
   PROGRESS_MESSAGES,
 } from "@/lib/constants/progress";
-import { calculateDiff, extractTargetGroups } from "@/lib/mapping/memberDiff";
+import { signPlan } from "@/lib/jwt/plan";
+import {
+  calculateDiff,
+  extractTargetGroups,
+  getInvitedUsers,
+} from "@/lib/mapping/memberDiff";
 import { convertTSerializedMappingToTMapping } from "@/lib/prisma/convert/convertTSerializedMappingToTMapping";
+import { getExternalServiceAccounts } from "@/lib/prisma/getExternalServiceAccounts";
 import { getExternalServiceGroupRoleMappingsByNamespaceId } from "@/lib/prisma/getExternalServiceGroupRoleMappingByNamespaceId";
 import { getExternalServiceGroups } from "@/lib/prisma/getExternalServiceGroups";
 import { getMembersWithRelation } from "@/lib/prisma/getMembersWithRelation";
 import type { TMemberWithDiff } from "@/types/diff";
+import type { TComparePlan, TGroupData, TTargetGroupData } from "@/types/plan";
 import type { TNamespaceId } from "@/types/prisma";
 import { getMembersWithProgress } from "../../services/accounts/[accountId]/groups/[groupId]/members/getMembersWithProgress";
-import type {
-  CommonProgressCallback,
-  CommonProgressUpdate,
-  ServiceProgressState,
-} from "./types";
+import type { CommonProgressCallback, ServiceProgressState } from "./types";
 
 /**
  * メンバー情報を取得して差分を計算する共通関数
@@ -23,7 +26,9 @@ import type {
  */
 export const getMemberWithDiffWithProgress = async (
   nsId: TNamespaceId,
+  userId: string,
   onProgress: CommonProgressCallback,
+  abortSignal?: AbortSignal,
 ): Promise<TMemberWithDiff[]> => {
   try {
     // 初期状態の報告
@@ -88,6 +93,9 @@ export const getMemberWithDiffWithProgress = async (
     const groups = await getExternalServiceGroups(nsId);
     const targetGroups = extractTargetGroups(groups, mappings);
 
+    // サービスアカウント取得
+    const serviceAccounts = await getExternalServiceAccounts(nsId);
+
     // 初期データ取得完了
     onProgress({
       type: "progress",
@@ -142,6 +150,10 @@ export const getMemberWithDiffWithProgress = async (
     // 各グループのメンバーを並行取得
     const groupMembers = await Promise.all(
       targetGroups.map(async (targetGroup) => {
+        if (abortSignal?.aborted) {
+          throw new Error("Operation aborted");
+        }
+
         const group = groups.find(
           (g) =>
             g.account.id === targetGroup.serviceAccountId &&
@@ -172,18 +184,24 @@ export const getMemberWithDiffWithProgress = async (
           const groupMembersResult = await getMembersWithProgress(
             group,
             (current, total) => {
+              if (abortSignal?.aborted) {
+                return;
+              }
               progressState[groupKey] = {
                 status: "in_progress",
                 current,
                 total: total || "unknown",
                 message: `${groupDisplayName} のメンバー取得中... (${current}${total ? `/${total}` : ""})`,
               };
-              onProgress({
-                type: "progress",
-                stage: "fetching_members",
-                services: { ...progressState },
-              });
+              if (!abortSignal?.aborted) {
+                onProgress({
+                  type: "progress",
+                  stage: "fetching_members",
+                  services: { ...progressState },
+                });
+              }
             },
+            abortSignal,
           );
 
           // 完了の報告
@@ -244,7 +262,44 @@ export const getMemberWithDiffWithProgress = async (
       services: calculatingState,
     });
 
-    const result = calculateDiff(members, mappings, groupMembers, groups);
+    if (abortSignal?.aborted) {
+      throw new Error("Operation aborted");
+    }
+
+    // VRChatの招待送信済みユーザーを事前に取得
+    const invitedUsersMap = new Map<string, Set<string>>();
+    for (const group of groups) {
+      if (group.service === "VRCHAT") {
+        const serviceAccount = serviceAccounts.find(
+          (account) => account.id === group.account.id,
+        );
+        if (serviceAccount) {
+          try {
+            const invitedUsers = await getInvitedUsers(
+              serviceAccount,
+              group.groupId,
+            );
+            invitedUsersMap.set(
+              `${group.account.id}-${group.groupId}`,
+              invitedUsers,
+            );
+          } catch (error) {
+            console.warn(
+              `Failed to get invited users for group ${group.groupId}:`,
+              error,
+            );
+          }
+        }
+      }
+    }
+
+    const result = await calculateDiff(
+      members,
+      mappings,
+      groupMembers,
+      groups,
+      invitedUsersMap,
+    );
 
     // 計算完了
     calculatingState.calculation = {
@@ -260,11 +315,50 @@ export const getMemberWithDiffWithProgress = async (
       services: calculatingState,
     });
 
-    // 完了の報告
-    onProgress({
-      type: "complete",
-      result,
+    // JWTトークンを生成
+    const planData: TComparePlan = {
+      nsId,
+      userId,
+      createdAt: Date.now(),
+      diff: result,
+      groupMembers: groupMembers.map(
+        (gm): TTargetGroupData => ({
+          serviceAccountId: gm.serviceAccountId,
+          serviceGroupId: gm.serviceGroupId,
+          service: gm.service,
+          members: gm.members.map((member) => ({
+            userId: member.serviceId,
+            userName: member.serviceUsername,
+            roles: member.roleIds,
+          })),
+        }),
+      ),
+      groups: groups.map(
+        (g): TGroupData => ({
+          account: { id: g.account.id },
+          id: g.id,
+          service: g.service,
+          name: g.name,
+          groupId: g.groupId,
+        }),
+      ),
+    };
+
+    const token = signPlan({
+      nsId,
+      userId,
+      createdAt: planData.createdAt,
+      data: planData,
     });
+
+    // 完了の報告
+    if (!abortSignal?.aborted) {
+      onProgress({
+        type: "complete",
+        result,
+        token,
+      });
+    }
 
     return result;
   } catch (error) {

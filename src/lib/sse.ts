@@ -18,7 +18,7 @@ export const processSSEChunk = <T = unknown>(
     if (!jsonData) continue;
     try {
       events.push(JSON.parse(jsonData) as T);
-    } catch (e) {
+    } catch (_e) {
       // swallow parsing errors; caller may log if desired
     }
   }
@@ -35,7 +35,7 @@ export const processSSEFinalBuffer = <T = unknown>(buffer: string): T[] => {
   if (!jsonData) return events;
   try {
     events.push(JSON.parse(jsonData) as T);
-  } catch (e) {
+  } catch (_e) {
     // ignore
   }
   return events;

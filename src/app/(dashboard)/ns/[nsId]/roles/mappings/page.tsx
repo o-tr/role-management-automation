@@ -1,4 +1,5 @@
 "use client";
+import { useState } from "react";
 import { BreadcrumbUpdater } from "@/app/(dashboard)/ns/[nsId]/components/Breadcrumb/BreadcrumbUpdater";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,11 +11,10 @@ import {
 } from "@/components/ui/dialog";
 import { useNamespace } from "@/hooks/use-namespace";
 import type { TNamespaceId } from "@/types/prisma";
-import { useState } from "react";
 import { useOnServiceGroupMappingChange } from "../_hooks/on-mappings-change";
 import { AddMapping } from "./_components/AddMapping";
-import { MappingList } from "./_components/MappingList";
 import { Compare } from "./_components/compare/Compare";
+import { MappingList } from "./_components/MappingList";
 
 const paths = [
   { label: "ロール管理", path: "/ns/[nsId]/roles" },
@@ -28,7 +28,6 @@ export default function GroupTagsPage({
 }) {
   const { namespace, isPending } = useNamespace({ namespaceId: params.nsId });
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isDiffModalOpen, setIsDiffModalOpen] = useState(false);
   useOnServiceGroupMappingChange(() => setIsModalOpen(false));
 
   if (isPending || !namespace) {

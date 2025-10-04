@@ -1,3 +1,4 @@
+import { z } from "zod";
 import {
   type TMemberId,
   type TNamespaceId,
@@ -5,7 +6,6 @@ import {
   ZMemberId,
   ZTagId,
 } from "@/types/prisma";
-import { z } from "zod";
 import { prisma } from "../prisma";
 import { createMember } from "./createMember";
 import { updateMember } from "./updateMember";

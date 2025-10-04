@@ -1,8 +1,12 @@
+import type { ExternalServiceName } from "@prisma/client";
 import type { TExternalServiceGroupMembers } from "@/app/api/ns/[nsId]/services/accounts/[accountId]/groups/[groupId]/members/route";
+import { getGroupInvitesSent } from "@/lib/vrchat/requests/getGroupInvitesSent";
+import { ZVRCGroupId } from "@/lib/vrchat/types/brand";
 import type { TMappingAction } from "@/types/actions";
 import type { TMappingCondition } from "@/types/conditions";
 import type { TDiffItem, TMemberWithDiff } from "@/types/diff";
 import type {
+  TExternalServiceAccount,
   TExternalServiceAccountId,
   TExternalServiceGroupId,
   TExternalServiceGroupWithAccount,
@@ -10,7 +14,6 @@ import type {
   TMemberWithRelation,
   TTag,
 } from "@/types/prisma";
-import type { ExternalServiceName } from "@prisma/client";
 
 export type TargetGroup = {
   serviceAccountId: TExternalServiceAccountId;
@@ -18,72 +21,154 @@ export type TargetGroup = {
   service: ExternalServiceName;
 };
 
-export const calculateDiff = (
+export const getInvitedUsers = async (
+  serviceAccount: TExternalServiceAccount,
+  groupId: string,
+): Promise<Set<string>> => {
+  const invitedUsers = new Set<string>();
+
+  try {
+    const vrchatGroupId = ZVRCGroupId.parse(groupId);
+    let offset = 0;
+    let hasMore = true;
+
+    while (hasMore) {
+      const invites = await getGroupInvitesSent(serviceAccount, vrchatGroupId, {
+        limit: 100,
+        offset,
+      });
+
+      if (invites.length === 0) {
+        hasMore = false;
+      } else {
+        for (const invite of invites) {
+          invitedUsers.add(invite.userId);
+        }
+        offset += invites.length;
+        // 100未満の場合は最後のページなので終了
+        if (invites.length < 100) {
+          hasMore = false;
+        }
+      }
+    }
+  } catch (error) {
+    // エラーが発生した場合は空のSetを返す（招待チェックをスキップ）
+    console.warn(`Failed to get invited users for group ${groupId}:`, error);
+  }
+
+  return invitedUsers;
+};
+
+export const calculateDiff = async (
   members: TMemberWithRelation[],
   mappings: TMapping[],
   groupMembers: TExternalServiceGroupMembers[],
   groups: TExternalServiceGroupWithAccount[],
-): TMemberWithDiff[] => {
-  return members
-    .map<TMemberWithDiff>((member) => {
-      const tags = member.tags;
-      const actions = evaluateMappings(tags, mappings);
-      const filteredGroupMembers = extractGroupMembers(member, groupMembers);
-      const result = actions.map<TDiffItem | undefined>((action) => {
-        const group = groups.find(
-          (group) =>
-            group.account.id === action.targetServiceAccountId &&
-            group.id === action.targetServiceGroupId,
-        );
-        if (!group?.service) {
-          return undefined;
-        }
-        const groupMember = filteredGroupMembers.find(
-          (groupMember) =>
-            groupMember.group.serviceAccountId === group.account.id &&
-            groupMember.group.serviceGroupId === group.id,
-        );
-        if (!groupMember) {
-          return undefined;
-        }
-        if (action.type === "add") {
-          if (
-            groupMember.groupMember.roleIds.includes(action.targetServiceRoleId)
-          ) {
-            return undefined;
-          }
-          return {
-            type: "add",
-            serviceGroup: group,
-            groupMember: groupMember.groupMember,
-            roleId: action.targetServiceRoleId,
-            ignore: !groupMember.groupMember.isEditable,
-          };
-        }
-        if (action.type === "remove") {
-          if (
-            !groupMember.groupMember.roleIds.includes(
-              action.targetServiceRoleId,
-            )
-          ) {
-            return undefined;
-          }
-          return {
-            type: "remove",
-            serviceGroup: group,
-            groupMember: groupMember.groupMember,
-            roleId: action.targetServiceRoleId,
-            ignore: !groupMember.groupMember.isEditable,
-          };
-        }
-      });
+  invitedUsersMap?: Map<string, Set<string>>,
+): Promise<TMemberWithDiff[]> => {
+  const results: TMemberWithDiff[] = [];
 
-      return {
+  for (const member of members) {
+    const tags = member.tags;
+    const actions = evaluateMappings(tags, mappings);
+    const filteredGroupMembers = extractGroupMembers(member, groupMembers);
+
+    const diffItems: TDiffItem[] = [];
+
+    for (const action of actions) {
+      const group = groups.find(
+        (group) =>
+          group.account.id === action.targetServiceAccountId &&
+          group.id === action.targetServiceGroupId,
+      );
+      if (!group?.service) {
+        continue;
+      }
+
+      const groupMember = filteredGroupMembers.find(
+        (groupMember) =>
+          groupMember.group.serviceAccountId === group.account.id &&
+          groupMember.group.serviceGroupId === group.id,
+      );
+
+      if (!groupMember && action.type !== "invite-group") {
+        continue;
+      }
+
+      if (action.type === "add") {
+        if (!groupMember) {
+          continue;
+        }
+        if (
+          groupMember.groupMember.roleIds.includes(action.targetServiceRoleId)
+        ) {
+          continue;
+        }
+        diffItems.push({
+          type: "add",
+          serviceGroup: group,
+          groupMember: groupMember.groupMember,
+          roleId: action.targetServiceRoleId,
+          ignore: !groupMember.groupMember.isEditable,
+        });
+      } else if (action.type === "remove") {
+        if (!groupMember) {
+          continue;
+        }
+        if (
+          !groupMember.groupMember.roleIds.includes(action.targetServiceRoleId)
+        ) {
+          continue;
+        }
+        diffItems.push({
+          type: "remove",
+          serviceGroup: group,
+          groupMember: groupMember.groupMember,
+          roleId: action.targetServiceRoleId,
+          ignore: !groupMember.groupMember.isEditable,
+        });
+      } else if (action.type === "invite-group") {
+        if (group.service !== "VRCHAT") {
+          continue;
+        }
+        if (groupMember) {
+          continue;
+        }
+
+        const targetAccount = member.externalAccounts.find(
+          (externalAccount) => externalAccount.service === group.service,
+        );
+        if (!targetAccount) {
+          continue;
+        }
+
+        // 招待送信済みユーザーをチェック（招待データが提供されている場合のみ）
+        let isAlreadyInvited = false;
+        if (invitedUsersMap) {
+          const inviteKey = `${group.account.id}-${group.groupId}`;
+          const invitedUsers = invitedUsersMap.get(inviteKey);
+          isAlreadyInvited =
+            invitedUsers?.has(targetAccount.serviceId) ?? false;
+        }
+
+        diffItems.push({
+          type: "invite-group",
+          serviceGroup: group,
+          targetAccount,
+          ignore: isAlreadyInvited,
+        });
+      }
+    }
+
+    if (diffItems.length > 0) {
+      results.push({
         member,
-        diff: result.filter((v) => !!v),
-      };
-    })
-    .filter((v) => v.diff.length > 0);
+        diff: diffItems,
+      });
+    }
+  }
+
+  return results;
 };
 
 const extractGroupMembers = (
@@ -113,6 +198,9 @@ const extractGroupMembers = (
 const evaluateMappings = (tags: TTag[], mappings: TMapping[]) => {
   const actions: TMappingAction[] = [];
   for (const mapping of mappings) {
+    if (!mapping.enabled) {
+      continue;
+    }
     const conditions = mapping.conditions;
     if (evaluateConditions(tags, conditions)) {
       actions.push(...mapping.actions);
@@ -153,6 +241,9 @@ export const extractTargetGroups = (
   const targets: TargetGroup[] = [];
 
   for (const mapping of mappings) {
+    if (!mapping.enabled) {
+      continue;
+    }
     for (const action of mapping.actions) {
       if (
         targets.some(

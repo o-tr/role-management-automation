@@ -1,5 +1,5 @@
-import type { GetMembersResponse } from "@/app/api/ns/[nsId]/members/route";
 import useSWR from "swr";
+import type { GetMembersResponse } from "@/app/api/ns/[nsId]/members/route";
 import { useOnMembersChange } from "./on-members-change";
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());

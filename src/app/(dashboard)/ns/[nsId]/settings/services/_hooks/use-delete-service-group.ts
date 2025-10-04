@@ -1,5 +1,5 @@
-import { deleteServiceGroup as deleteServiceGroupRequest } from "@/requests/deleteServiceGroup";
 import { useCallback, useState } from "react";
+import { deleteServiceGroup as deleteServiceGroupRequest } from "@/requests/deleteServiceGroup";
 import { onServiceGroupChange } from "./on-groups-change";
 
 export const useDeleteServiceGroup = (nsId: string) => {

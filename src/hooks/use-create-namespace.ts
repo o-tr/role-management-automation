@@ -1,5 +1,5 @@
-import type { CreateNamespaceResponse } from "@/app/api/ns/route";
 import { useState } from "react";
+import type { CreateNamespaceResponse } from "@/app/api/ns/route";
 
 export const useCreateNamespace = () => {
   const [isLoading, setIsLoading] = useState(false);

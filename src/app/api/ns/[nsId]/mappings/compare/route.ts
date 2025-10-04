@@ -1,7 +1,8 @@
+import type { NextRequest } from "next/server";
+import { getServerSession } from "next-auth/next";
 import { validatePermission } from "@/lib/validatePermission";
 import type { TMemberWithDiff } from "@/types/diff";
 import type { TNamespaceId } from "@/types/prisma";
-import type { NextRequest } from "next/server";
 import { getMemberWithDiffWithProgress } from "../_shared/getMemberWithDiffWithProgress";
 import type { CommonProgressUpdate } from "../_shared/types";
 
@@ -22,6 +23,7 @@ const convertToCompareProgress = (
     return {
       type: "complete",
       result: commonProgress.result,
+      token: commonProgress.token,
     };
   }
   return {
@@ -48,6 +50,7 @@ export type ProgressUpdate =
   | {
       type: "complete";
       result: TMemberWithDiff[];
+      token: string;
     }
   | {
       type: "error";
@@ -55,30 +58,70 @@ export type ProgressUpdate =
     };
 
 export async function GET(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: { nsId: TNamespaceId } },
 ) {
   try {
     await validatePermission(params.nsId, "admin");
 
+    // セッション情報からユーザーIDを取得
+    const session = await getServerSession();
+    if (!session?.user?.email) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    const userId = session.user.email;
+
+    const abortController = new AbortController();
+    let isStreamClosed = false;
+
     const stream = new ReadableStream({
       start(controller) {
-        getMemberWithDiffWithProgress(params.nsId, (commonProgress) => {
-          const progress = convertToCompareProgress(commonProgress);
-          const data = `data: ${JSON.stringify(progress)}\n\n`;
-          controller.enqueue(new TextEncoder().encode(data));
+        getMemberWithDiffWithProgress(
+          params.nsId,
+          userId,
+          (commonProgress) => {
+            if (isStreamClosed || abortController.signal.aborted) {
+              return;
+            }
+            try {
+              const progress = convertToCompareProgress(commonProgress);
+              const data = `data: ${JSON.stringify(progress)}\n\n`;
+              controller.enqueue(new TextEncoder().encode(data));
 
-          if (progress.type === "complete" || progress.type === "error") {
-            controller.close();
+              if (progress.type === "complete" || progress.type === "error") {
+                isStreamClosed = true;
+                controller.close();
+              }
+            } catch (_error) {
+              // Controller already closed, ignore the error
+              isStreamClosed = true;
+            }
+          },
+          abortController.signal,
+        ).catch((error) => {
+          if (isStreamClosed || abortController.signal.aborted) {
+            return;
           }
-        }).catch((error) => {
-          const errorData = `data: ${JSON.stringify({
-            type: "error",
-            error: error.message,
-          } satisfies ProgressUpdate)}\n\n`;
-          controller.enqueue(new TextEncoder().encode(errorData));
-          controller.close();
+          try {
+            const errorData = `data: ${JSON.stringify({
+              type: "error",
+              error: error.message,
+            } satisfies ProgressUpdate)}\n\n`;
+            controller.enqueue(new TextEncoder().encode(errorData));
+            isStreamClosed = true;
+            controller.close();
+          } catch {
+            // Controller already closed, ignore the error
+            isStreamClosed = true;
+          }
         });
+      },
+      cancel() {
+        isStreamClosed = true;
+        abortController.abort();
       },
     });
 

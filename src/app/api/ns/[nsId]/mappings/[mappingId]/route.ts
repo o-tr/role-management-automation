@@ -1,3 +1,5 @@
+import type { NextRequest } from "next/server";
+import { z } from "zod";
 import { api } from "@/lib/api";
 import { NotFoundException } from "@/lib/exceptions/NotFoundException";
 import { deleteExternalServiceGroupRoleMapping } from "@/lib/prisma/deleteExternalServiceGroupRoleMapping";
@@ -12,8 +14,6 @@ import type {
   TNamespaceId,
   TSerializedMapping,
 } from "@/types/prisma";
-import type { NextRequest } from "next/server";
-import { z } from "zod";
 
 export type DeleteExternalServiceGroupMappingResponse =
   | {
@@ -28,14 +28,15 @@ export type UpdateExternalServiceGroupMappingResponse =
     }
   | ErrorResponseType;
 const updateMappingSchema = z.object({
-  conditions: ZMappingCondition,
-  actions: z.array(ZMappingAction),
+  conditions: ZMappingCondition.optional(),
+  actions: z.array(ZMappingAction).optional(),
+  enabled: z.boolean().optional(),
 });
 export type UpdateMappingBody = z.infer<typeof updateMappingSchema>;
 
 export const DELETE = api(
   async (
-    req: NextRequest,
+    _req: NextRequest,
     { params }: { params: { nsId: TNamespaceId; mappingId: TMappingId } },
   ): Promise<DeleteExternalServiceGroupMappingResponse> => {
     await validatePermission(params.nsId, "admin");

@@ -1,3 +1,5 @@
+import type { NextRequest } from "next/server";
+import { z } from "zod";
 import { api } from "@/lib/api";
 import { BadRequestException } from "@/lib/exceptions/BadRequestException";
 import { createExternalServiceGroupRoleMapping } from "@/lib/prisma/createExternalServiceGroupRoleMapping";
@@ -15,8 +17,6 @@ import type {
   TSerializedMapping,
   TTagId,
 } from "@/types/prisma";
-import { type NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 import { getGroupRoles } from "../services/accounts/[accountId]/groups/[groupId]/roles/get-group-roles";
 
 export type CreateMappingResponse =
@@ -126,6 +126,9 @@ const extractServiceGroups = (actions: TMappingAction[]) => {
   }[] = [];
 
   for (const action of actions) {
+    if (action.type === "invite-group") {
+      continue;
+    }
     const role = roles.find(
       (r) =>
         r.accountId === action.targetServiceAccountId &&
@@ -147,7 +150,7 @@ const extractServiceGroups = (actions: TMappingAction[]) => {
 
 export const GET = api(
   async (
-    req: NextRequest,
+    _req: NextRequest,
     { params }: { params: { nsId: TNamespaceId } },
   ): Promise<GetSerializedMappingsResponse> => {
     await validatePermission(params.nsId, "admin");

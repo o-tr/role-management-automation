@@ -1,6 +1,6 @@
+import { useCallback, useLayoutEffect, useState } from "react";
 import type { GetAvailableGroupsResponse } from "@/app/api/ns/[nsId]/services/accounts/[accountId]/groups/availables/route";
 import type { TAvailableGroup } from "@/types/prisma";
-import { useCallback, useLayoutEffect, useState } from "react";
 
 export const useAvailableGroups = (nsId: string, accountId: string) => {
   const [groups, setGroups] = useState<TAvailableGroup[]>([]);

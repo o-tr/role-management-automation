@@ -1,13 +1,13 @@
+import { z } from "zod";
 import { filterObject } from "@/lib/filterObject";
 import { requests } from "@/lib/requests";
-import { z } from "zod";
 import { discordLimit } from "../plimit";
 import { type DiscordGuildId, ZDiscordGuildMember } from "../types/guild";
 import type { DiscordToken } from "../types/token";
 
 type Options = {
   limit?: number;
-  after?: number;
+  after?: string;
 };
 
 export const listGuildMembers = async (
@@ -18,7 +18,7 @@ export const listGuildMembers = async (
   const query = new URLSearchParams(
     filterObject({
       limit: options.limit?.toString(),
-      after: options.after?.toString(),
+      after: options.after,
     } as Record<string, string>),
   );
   const response = await discordLimit(() =>

@@ -1,3 +1,6 @@
+import Link from "next/link";
+import type { ReactNode } from "react";
+import { TbBook } from "react-icons/tb";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -6,9 +9,6 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
-import Link from "next/link";
-import type { ReactNode } from "react";
-import { TbBook } from "react-icons/tb";
 import { AppSidebar } from "./ns/[nsId]/components/AppSidebar";
 import {
   BreadcrumbDisplay,

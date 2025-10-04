@@ -1,6 +1,6 @@
+import type { FC } from "react";
 import { Image } from "@/app/(dashboard)/ns/[nsId]/components/Image";
 import type { FExternalServiceAccount } from "@/types/prisma";
-import type { FC } from "react";
 
 type Props = {
   account: FExternalServiceAccount;

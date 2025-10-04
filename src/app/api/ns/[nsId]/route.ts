@@ -1,3 +1,5 @@
+import type { NextRequest } from "next/server";
+import { z } from "zod";
 import { api } from "@/lib/api";
 import { BadRequestException } from "@/lib/exceptions/BadRequestException";
 import { filterFNamespaceWithOwnerAndAdmins } from "@/lib/prisma/filter/filterFNamespaceWithOwnerAndAdmins";
@@ -8,8 +10,6 @@ import type {
   FNamespaceWithOwnerAndAdmins,
   TNamespaceId,
 } from "@/types/prisma";
-import type { NextRequest } from "next/server";
-import { z } from "zod";
 
 export type NamespaceDetailResponse = FNamespaceWithOwnerAndAdmins & {
   isOwner: boolean;
@@ -24,7 +24,7 @@ export type GetNamespaceDetailResponse =
 
 export const GET = api(
   async (
-    req: NextRequest,
+    _req: NextRequest,
     { params }: { params: { nsId: TNamespaceId } },
   ): Promise<GetNamespaceDetailResponse> => {
     const namespace = await validatePermission(params.nsId, "admin");

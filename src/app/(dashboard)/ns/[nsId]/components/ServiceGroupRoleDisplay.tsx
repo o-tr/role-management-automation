@@ -1,6 +1,6 @@
-import type { TExternalServiceGroupRole } from "@/types/prisma";
 import type { FC } from "react";
 import { TbTagsFilled } from "react-icons/tb";
+import type { TExternalServiceGroupRole } from "@/types/prisma";
 
 type Props = {
   role: TExternalServiceGroupRole;

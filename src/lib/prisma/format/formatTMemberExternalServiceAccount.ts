@@ -1,13 +1,13 @@
 import type {
+  ExternalServiceName,
+  MemberExternalServiceAccount,
+} from "@prisma/client";
+import type {
   TMemberExternalServiceAccount,
   TMemberExternalServiceAccountId,
   TMemberId,
   TNamespaceId,
 } from "@/types/prisma";
-import type {
-  ExternalServiceName,
-  MemberExternalServiceAccount,
-} from "@prisma/client";
 
 export const formatTMemberExternalServiceAccount = (
   input: MemberExternalServiceAccount,

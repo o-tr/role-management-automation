@@ -1,8 +1,13 @@
+import type { ExternalServiceName } from "@prisma/client";
+import type { NextRequest } from "next/server";
+import { z } from "zod";
 import { api } from "@/lib/api";
 import { getSearchGuildMembers } from "@/lib/discord/requests/getSearchGuildMembers";
 import { getUser } from "@/lib/discord/requests/getUser";
 import type { DiscordGuildId } from "@/lib/discord/types/guild";
 import type { DiscordUserId, DiscordUsername } from "@/lib/discord/types/user";
+import { BadRequestException } from "@/lib/exceptions/BadRequestException";
+import { NotFoundException } from "@/lib/exceptions/NotFoundException";
 import { generateInstallationAccessToken } from "@/lib/github/generateInstallationAccessToken";
 import { getUserById as getGitHubUserById } from "@/lib/github/requests/getUserById";
 import { getUserByUsername as getGitHubUserByUsername } from "@/lib/github/requests/getUserByUsername";
@@ -19,15 +24,12 @@ import { validatePermission } from "@/lib/validatePermission";
 import { getUserById as getVRCUserById } from "@/lib/vrchat/requests/getUserById";
 import type { VRCUserId } from "@/lib/vrchat/types/brand";
 import type { ErrorResponseType } from "@/types/api";
-import { ZDiscordCredentials, ZGithubCredentials } from "@/types/credentials";
+import { ZDiscordCredentials } from "@/types/credentials";
 import type {
   TExternalServiceAccount,
   TMemberId,
   TNamespaceId,
 } from "@/types/prisma";
-import type { ExternalServiceName } from "@prisma/client";
-import type { NextRequest } from "next/server";
-import { z } from "zod";
 
 export const ZResolveRequestType = z.union([
   z.literal("DiscordUserId"),
@@ -47,7 +49,7 @@ export type ResolveResponse =
 
 export const GET = api(
   async (
-    req: NextRequest,
+    _req: NextRequest,
     {
       params,
     }: { params: { nsId: TNamespaceId; type: string; serviceId: string } },
@@ -66,7 +68,7 @@ export const GET = api(
 
 export type ResolveResult = {
   memberId?: TMemberId;
-  name: string;
+  name: string | null;
   icon?: string;
   service: ExternalServiceName;
   serviceId: string;
@@ -84,7 +86,7 @@ const resolve = async (
     service,
   );
   if (!serviceAccount) {
-    throw new Error(`Service account not found: ${service}`);
+    throw new NotFoundException(`Service account not found: ${service}`);
   }
   switch (type) {
     case "VRCUserId":
@@ -107,7 +109,7 @@ const resolve = async (
         serviceAccount,
       );
     default:
-      throw new Error(`Unsupported service: ${service}`);
+      throw new BadRequestException(`Unsupported service: ${service}`);
   }
 };
 
@@ -176,7 +178,7 @@ const resolveDiscordUserName = async (
     serviceAccount.namespaceId,
     serviceAccount.id,
   );
-  if (!guilds) throw new Error("Guild not found");
+  if (!guilds) throw new NotFoundException("Guild not found");
   for (const guild of guilds) {
     const members = await getSearchGuildMembers(
       data.token,
@@ -196,7 +198,7 @@ const resolveDiscordUserName = async (
       service: "DISCORD" as ExternalServiceName,
     };
   }
-  throw new Error("User not found");
+  throw new NotFoundException("User not found");
 };
 
 const resolveGitHubUserId = async (
@@ -209,7 +211,7 @@ const resolveGitHubUserId = async (
       serviceAccount.id,
     )
   )?.[0];
-  if (!group) throw new Error("Group not found");
+  if (!group) throw new NotFoundException("Group not found");
   const { installationId } = ZGitHubGroupId.parse(JSON.parse(group.groupId));
   const token = await generateInstallationAccessToken(
     serviceAccount,
@@ -235,7 +237,7 @@ const resolveGitHubUsername = async (
       serviceAccount.id,
     )
   )?.[0];
-  if (!group) throw new Error("Group not found");
+  if (!group) throw new NotFoundException("Group not found");
   const { installationId } = ZGitHubGroupId.parse(JSON.parse(group.groupId));
   const token = await generateInstallationAccessToken(
     serviceAccount,

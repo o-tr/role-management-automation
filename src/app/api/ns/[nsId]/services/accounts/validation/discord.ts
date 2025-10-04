@@ -14,7 +14,7 @@ export const isValidBotToken = async (credential: string) => {
             : undefined,
         }
       : undefined;
-  } catch (e) {
+  } catch (_e) {
     return undefined;
   }
 };

@@ -1,5 +1,8 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
+import { redirect } from "next/navigation";
+import { useState } from "react";
 import {
   CommonCheckboxCell,
   CommonCheckboxHeader,
@@ -8,15 +11,6 @@ import {
 } from "@/app/(dashboard)/ns/[nsId]/components/DataTable";
 import { useMappings } from "@/app/(dashboard)/ns/[nsId]/roles/_hooks/use-mappings";
 import { Button } from "@/components/ui/button";
-import { deleteMapping } from "@/requests/deleteMapping";
-import type { TMapping } from "@/types/prisma";
-import {
-  onServiceGroupMappingChange,
-  useOnServiceGroupMappingChange,
-} from "../../_hooks/on-mappings-change";
-import { ActionsDisplay } from "./ActionsDisplay";
-import { ConditionsDisplay } from "./ConditionsDisplay";
-
 import {
   Dialog,
   DialogContent,
@@ -25,8 +19,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { redirect } from "next/navigation";
-import { useState } from "react";
+import { Switch } from "@/components/ui/switch";
+import { deleteMapping } from "@/requests/deleteMapping";
+import type { TMapping } from "@/types/prisma";
+import {
+  onServiceGroupMappingChange,
+  useOnServiceGroupMappingChange,
+} from "../../_hooks/on-mappings-change";
+import { ActionsDisplay } from "./ActionsDisplay";
+import { ConditionsDisplay } from "./ConditionsDisplay";
 import { EditMapping } from "./EditMapping";
 
 type InternalMapping = TMapping & { namespaceId: string };
@@ -40,30 +41,75 @@ export const columns: TColumnDef<InternalMapping>[] = [
     maxSize: 50,
   },
   {
+    id: "enabled",
+    header: "有効",
+    cell: ({ row }) => {
+      const [isToggling, setIsToggling] = useState(false);
+
+      const handleToggle = async (_enabled: boolean) => {
+        setIsToggling(true);
+        try {
+          const response = await fetch(
+            `/api/ns/${row.original.namespaceId}/mappings/${row.original.id}/toggle`,
+            {
+              method: "POST",
+            },
+          );
+          if (response.ok) {
+            onServiceGroupMappingChange();
+          }
+        } catch (error) {
+          console.error("Failed to toggle mapping:", error);
+        } finally {
+          setIsToggling(false);
+        }
+      };
+
+      return (
+        <div className="flex items-center gap-2">
+          <Switch
+            checked={row.original.enabled}
+            onCheckedChange={handleToggle}
+            disabled={isToggling}
+            aria-busy={isToggling}
+          />
+          {isToggling ? (
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          ) : null}
+        </div>
+      );
+    },
+    size: 80,
+  },
+  {
     id: "condition",
     header: "条件",
     cell: ({ row }) => (
-      <div className="flex flex-col">
+      <div
+        className={`flex flex-col ${!row.original.enabled ? "opacity-50" : ""}`}
+      >
         <ConditionsDisplay
           conditions={row.original.conditions}
           nsId={row.original.namespaceId}
         />
       </div>
     ),
-    widthPercent: 30,
+    widthPercent: 25,
   },
   {
     id: "actions",
     header: "アクション",
     cell: ({ row }) => (
-      <div className="flex flex-col">
+      <div
+        className={`flex flex-col ${!row.original.enabled ? "opacity-50" : ""}`}
+      >
         <ActionsDisplay
           actions={row.original.actions}
           nsId={row.original.namespaceId}
         />
       </div>
     ),
-    widthPercent: 60,
+    widthPercent: 55,
   },
   {
     id: "buttons",

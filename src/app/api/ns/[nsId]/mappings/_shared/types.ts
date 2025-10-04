@@ -21,6 +21,7 @@ export type CommonProgressUpdate =
   | {
       type: "complete";
       result: TMemberWithDiff[];
+      token: string;
     }
   | {
       type: "error";

@@ -1,5 +1,5 @@
-import type { CreateExternalServiceGroupResponse } from "@/app/api/ns/[nsId]/services/accounts/[accountId]/groups/route";
 import { useCallback, useState } from "react";
+import type { CreateExternalServiceGroupResponse } from "@/app/api/ns/[nsId]/services/accounts/[accountId]/groups/route";
 import { onServiceAccountChange } from "./on-accounts-change";
 
 export const useCreateServiceGroup = (nsId: string, accountId: string) => {

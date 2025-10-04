@@ -1,10 +1,3 @@
-import type {
-  ResolveResult,
-  TResolveRequestType,
-} from "@/app/api/ns/[nsId]/members/resolve/[type]/[serviceId]/route";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { ZVRCUserId } from "@/lib/vrchat/types/brand";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
   type Dispatch,
@@ -12,13 +5,23 @@ import {
   type SetStateAction,
   useCallback,
   useMemo,
+  useState,
 } from "react";
+import type {
+  ResolveResult,
+  TResolveRequestType,
+} from "@/app/api/ns/[nsId]/members/resolve/[type]/[serviceId]/route";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
+import { ZVRCUserId } from "@/lib/vrchat/types/brand";
 import {
   CommonCheckboxCell,
   CommonCheckboxHeader,
   DataTable,
 } from "../../components/DataTable";
 import { MemberAccountResolveDisplay } from "../../components/MemberAccountResolveDisplay";
+import { useMembers } from "../_hooks/use-members";
+import { generateMemberPreviewCsv } from "../_utils/generateMemberPreviewCsv";
 import type { RowObject } from "./AddPastedMembers";
 
 type TKeys = TResolveRequestType | "unknown";
@@ -47,6 +50,39 @@ export const MemberPreviewTable: FC<Props> = ({
   setData,
   disabled,
 }) => {
+  const { members, isPending: isMembersPending } = useMembers(nsId);
+  const [exporting, setExporting] = useState(false);
+  const { toast } = useToast();
+
+  const handleExportCsv = async () => {
+    setExporting(true);
+    try {
+      const csvContent = await generateMemberPreviewCsv({
+        nsId,
+        data,
+        keys,
+        members,
+      });
+      const blob = new Blob([csvContent], {
+        type: "text/csv;charset=utf-8;",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "member-preview.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error(e);
+      toast({
+        title: "CSV生成に失敗しました",
+        description: "しばらくしてから再度お試しください。",
+        variant: "destructive",
+      });
+    } finally {
+      setExporting(false);
+    }
+  };
   const data = useMemo(() => {
     return data_.map((row) => {
       return {
@@ -70,6 +106,17 @@ export const MemberPreviewTable: FC<Props> = ({
     });
   }, [data_, keys]);
 
+  const createOnResolve = useCallback(
+    (rowIndex: number, dataIndex: number) => (data: ResolveResult) => {
+      setData((pv) => {
+        const nv = [...pv];
+        nv[rowIndex].data[dataIndex].data = data;
+        return nv;
+      });
+    },
+    [setData],
+  );
+
   const columns = useMemo<ColumnDef<RowObject>[]>(() => {
     return [
       {
@@ -84,16 +131,6 @@ export const MemberPreviewTable: FC<Props> = ({
           accessorKey: index.toString(),
           header: () => KeyServiceMap[keys[index]],
           cell: ({ row }) => {
-            const onResolve = useCallback(
-              (data: ResolveResult) => {
-                setData((pv) => {
-                  const nv = [...pv];
-                  nv[row.index].data[index].data = data;
-                  return nv;
-                });
-              },
-              [setData, row.index, index],
-            );
             if (keys[index] === "unknown") {
               return <div>{row.original.data[index].value}</div>;
             }
@@ -109,7 +146,7 @@ export const MemberPreviewTable: FC<Props> = ({
                 nsId={nsId}
                 type={keys[index]}
                 serviceId={row.original.data[index].value}
-                onResolve={onResolve}
+                onResolve={createOnResolve(row.index, index)}
               />
             );
           },
@@ -132,7 +169,7 @@ export const MemberPreviewTable: FC<Props> = ({
         size: 100,
       },
     ];
-  }, [keys, setData, nsId, disabled]);
+  }, [keys, nsId, disabled, createOnResolve, setData]);
   return (
     <DataTable
       columns={columns}
@@ -151,6 +188,18 @@ export const MemberPreviewTable: FC<Props> = ({
               }}
             >
               選択した {selected.rows.length} 件を削除
+            </Button>
+            <Button
+              className="ml-2"
+              variant="outline"
+              onClick={handleExportCsv}
+              disabled={disabled || exporting || isMembersPending}
+            >
+              {isMembersPending
+                ? "データ読込中..."
+                : exporting
+                  ? "CSVを生成中..."
+                  : "CSVをダウンロード"}
             </Button>
           </div>
         );

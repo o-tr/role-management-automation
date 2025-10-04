@@ -1,22 +1,39 @@
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ProgressUpdate } from "@/app/api/ns/[nsId]/mappings/compare/route";
 import type { TMemberWithDiff } from "@/types/diff";
 import type { TNamespaceId } from "@/types/prisma";
-import { useCallback, useEffect, useRef, useState } from "react";
 
-export type CompareSSEState = {
-  isPending: boolean;
-  isError: boolean;
-  error?: string;
-  diff: TMemberWithDiff[];
-  progress?: ProgressUpdate;
-};
+export type CompareSSEState =
+  | {
+      state: "uninitialized";
+      diff: [];
+      progress: undefined;
+      token: undefined;
+    }
+  | {
+      state: "error";
+      error: string;
+      diff: [];
+    }
+  | {
+      state: "success";
+      diff: TMemberWithDiff[];
+      progress: undefined;
+      token: string;
+    }
+  | {
+      state: "loading";
+      diff: TMemberWithDiff[];
+      progress?: ProgressUpdate;
+      token?: string;
+    };
 
 export const useCompareSSE = (nsId: TNamespaceId) => {
   const [state, setState] = useState<CompareSSEState>({
-    isPending: false,
-    isError: false,
+    state: "uninitialized",
     diff: [],
     progress: undefined,
+    token: undefined,
   });
 
   const eventSourceRef = useRef<EventSource | null>(null);
@@ -40,10 +57,10 @@ export const useCompareSSE = (nsId: TNamespaceId) => {
     }
 
     setState({
-      isPending: true,
-      isError: false,
+      state: "loading",
       diff: [],
       progress: undefined,
+      token: undefined,
     });
 
     const eventSource = new EventSource(`/api/ns/${nsId}/mappings/compare`);
@@ -54,30 +71,25 @@ export const useCompareSSE = (nsId: TNamespaceId) => {
         const data: ProgressUpdate = JSON.parse(event.data);
 
         if (data.type === "progress") {
-          setState((prev) => ({
-            ...prev,
+          setState((_prev) => ({
+            state: "loading",
             progress: data,
-            // メモリ効率のため、progress更新時は古いdiffは保持しない
-            diff: prev.diff,
+            diff: [],
           }));
         } else if (data.type === "complete") {
           setState({
-            isPending: false,
-            isError: false,
+            state: "success",
             diff: data.result,
-            // 完了時はprogressをクリア（メモリ節約）
             progress: undefined,
+            token: data.token,
           });
           closeEventSource(eventSource);
           eventSourceRef.current = null;
         } else if (data.type === "error") {
           setState({
-            isPending: false,
-            isError: true,
+            state: "error",
             error: data.error,
             diff: [],
-            // エラー時もprogressをクリア（メモリ節約）
-            progress: undefined,
           });
           closeEventSource(eventSource);
           eventSourceRef.current = null;
@@ -90,11 +102,9 @@ export const useCompareSSE = (nsId: TNamespaceId) => {
           event.data,
         );
         setState({
-          isPending: false,
-          isError: true,
+          state: "error",
           error: `データの解析に失敗しました: ${error instanceof Error ? error.message : "不明なエラー"}`,
           diff: [],
-          progress: undefined,
         });
         closeEventSource(eventSource);
         eventSourceRef.current = null;
@@ -104,11 +114,9 @@ export const useCompareSSE = (nsId: TNamespaceId) => {
     eventSource.onerror = (error) => {
       console.error("SSE connection error:", error);
       setState({
-        isPending: false,
-        isError: true,
+        state: "error",
         error: "サーバーとの接続でエラーが発生しました",
         diff: [],
-        progress: undefined,
       });
       closeEventSource(eventSource);
       eventSourceRef.current = null;

@@ -1,5 +1,5 @@
-import type { TMemberWithRelation } from "@/types/prisma";
 import type { Dispatch, FC, SetStateAction } from "react";
+import type { TMemberWithRelation } from "@/types/prisma";
 import { TagDisplay } from "../../../components/TagDisplay";
 import { AddTag } from "./AddTag";
 

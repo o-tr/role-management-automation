@@ -1,9 +1,9 @@
+import { z } from "zod";
 import type {
   TExternalServiceAccount,
   TExternalServiceAccountId,
   TNamespaceId,
 } from "@/types/prisma";
-import { z } from "zod";
 import { prisma } from "../prisma";
 import { formatTExternalServiceAccount } from "./format/formatTExternalServiceAccount";
 

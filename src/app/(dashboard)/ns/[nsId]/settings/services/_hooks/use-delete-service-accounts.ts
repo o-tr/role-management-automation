@@ -1,5 +1,5 @@
-import { deleteServiceAccount as deleteServiceAccountRequest } from "@/requests/deleteServiceAccount";
 import { useState } from "react";
+import { deleteServiceAccount as deleteServiceAccountRequest } from "@/requests/deleteServiceAccount";
 import { onServiceAccountChange } from "./on-accounts-change";
 
 export const useDeleteServiceAccount = () => {

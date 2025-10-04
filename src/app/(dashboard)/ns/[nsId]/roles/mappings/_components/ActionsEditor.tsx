@@ -1,3 +1,4 @@
+import type { Dispatch, FC, SetStateAction } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FormItem } from "@/components/ui/form";
@@ -9,18 +10,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  createNewMappingAction,
   type TMappingAction,
   type TMappingActionType,
   ZMappingActions,
-  createNewMappingAction,
 } from "@/types/actions";
 import type {
-  TAvailableGroup,
   TExternalServiceAccountId,
   TExternalServiceGroupId,
   TServiceRoleId,
 } from "@/types/prisma";
-import type { Dispatch, FC, SetStateAction } from "react";
 import { useServiceAccounts } from "../../../_hooks/use-service-accounts";
 import { useServiceGroups } from "../../../_hooks/use-service-groups";
 import { ServiceAccountPicker } from "../../../components/ServiceAccountPicker";
@@ -75,8 +74,9 @@ export const ActionsEditor: FC<Props> = ({ actions, onChange, nsId }) => {
 };
 
 const typesLabel: { [key in TMappingActionType]: string } = {
-  add: "追加する",
-  remove: "削除する",
+  add: "のロールを追加する",
+  remove: "のロールを削除する",
+  "invite-group": "に招待",
 };
 
 type ActionsItemProps = {
@@ -97,9 +97,10 @@ const ActionsItem: FC<ActionsItemProps> = ({ action, onChange, nsId }) => {
     action.targetServiceAccountId,
     action.targetServiceGroupId,
   );
-  const selectedRole = roles?.find(
-    (role) => role.id === action.targetServiceRoleId,
-  );
+  const selectedRole =
+    action.type === "add" || action.type === "remove"
+      ? roles?.find((role) => role.id === action.targetServiceRoleId)
+      : undefined;
   return (
     <Card className="flex flex-row gap-2 items-center p-2">
       <FormItem>
@@ -127,43 +128,38 @@ const ActionsItem: FC<ActionsItemProps> = ({ action, onChange, nsId }) => {
           value={action.targetServiceGroupId}
         />
       </FormItem>
-      <span>の</span>
-      <FormItem>
-        <Select
-          value={action.targetServiceRoleId}
-          disabled={!roles}
-          onValueChange={(value) =>
-            onChange({
-              ...action,
-              targetServiceRoleId: value as TServiceRoleId,
-            })
-          }
-        >
-          <SelectTrigger>
-            <SelectValue>
-              {selectedRole ? (
-                <ServiceGroupRoleDisplay role={selectedRole} />
-              ) : (
-                "ロール"
-              )}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {roles?.map((role) => (
-              <SelectItem key={role.id} value={role.id}>
-                <ServiceGroupRoleDisplay role={role} />
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </FormItem>
-      <span>を</span>
       <FormItem>
         <Select
           value={action.type}
-          onValueChange={(value) =>
-            onChange({ ...action, type: value as TMappingActionType })
-          }
+          onValueChange={(value) => {
+            const nextType = value as TMappingActionType;
+            if (nextType === action.type) {
+              return;
+            }
+
+            const baseProps = {
+              id: action.id,
+              targetServiceAccountId: action.targetServiceAccountId,
+              targetServiceGroupId: action.targetServiceGroupId,
+            };
+
+            if (nextType === "invite-group") {
+              onChange({
+                ...baseProps,
+                type: nextType,
+              });
+              return;
+            }
+            if (action.type === "invite-group") {
+              onChange({
+                ...baseProps,
+                type: nextType,
+                targetServiceRoleId: "" as TServiceRoleId,
+              });
+              return;
+            }
+            onChange({ ...action, type: nextType });
+          }}
         >
           <SelectTrigger>
             <SelectValue>{typesLabel[action.type]}</SelectValue>
@@ -177,6 +173,37 @@ const ActionsItem: FC<ActionsItemProps> = ({ action, onChange, nsId }) => {
           </SelectContent>
         </Select>
       </FormItem>
+      {action.type !== "invite-group" && (
+        <FormItem>
+          <Select
+            value={action.targetServiceRoleId}
+            disabled={!roles}
+            onValueChange={(value) =>
+              onChange({
+                ...action,
+                targetServiceRoleId: value as TServiceRoleId,
+              })
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="ロール">
+                {selectedRole ? (
+                  <ServiceGroupRoleDisplay role={selectedRole} />
+                ) : (
+                  "ロール"
+                )}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {roles?.map((role) => (
+                <SelectItem key={role.id} value={role.id}>
+                  <ServiceGroupRoleDisplay role={role} />
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FormItem>
+      )}
     </Card>
   );
 };

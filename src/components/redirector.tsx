@@ -1,7 +1,7 @@
 "use client";
-import { useNamespaces } from "@/hooks/use-namespaces";
 import { redirect } from "next/navigation";
 import { useEffect } from "react";
+import { useNamespaces } from "@/hooks/use-namespaces";
 
 export const Redirector = () => {
   const { namespaces } = useNamespaces();

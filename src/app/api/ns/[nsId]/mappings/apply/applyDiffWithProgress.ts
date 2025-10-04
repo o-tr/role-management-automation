@@ -13,10 +13,11 @@ import type {
   GitHubAccountUsername,
   GitHubOrganizationId,
 } from "@/lib/github/types/Account";
-import type { GitHubTeamSlug } from "@/lib/github/types/Team";
 import { ZGitHubGroupId, ZGitHubRoleId } from "@/lib/github/types/encoded";
+import type { GitHubTeamSlug } from "@/lib/github/types/Team";
 import { getExternalServiceAccountByServiceName } from "@/lib/prisma/getExternalServiceAccountByServiceName";
 import { addRoleToGroupMember } from "@/lib/vrchat/requests/addRoleToGroupMember";
+import { inviteUserToGroup } from "@/lib/vrchat/requests/inviteUserToGroup";
 import { removeRoleFromGroupMember } from "@/lib/vrchat/requests/removeRoleFromGroupMember";
 import {
   ZVRCGroupId,
@@ -269,17 +270,42 @@ const applyVRChatDiff = async (
   }
   try {
     const groupId = ZVRCGroupId.parse(diff.serviceGroup.groupId);
-    const userId = ZVRCUserId.parse(diff.groupMember.serviceId);
-    const roleId = ZVRCGroupRoleId.parse(diff.roleId);
-    if (diff.type === "add") {
-      await addRoleToGroupMember(serviceAccount, groupId, userId, roleId);
-    } else if (diff.type === "remove") {
-      await removeRoleFromGroupMember(serviceAccount, groupId, userId, roleId);
+    if (diff.type === "invite-group") {
+      const userId = ZVRCUserId.parse(diff.targetAccount.serviceId);
+      const inviteResult = await inviteUserToGroup(
+        serviceAccount,
+        groupId,
+        userId,
+      );
+      return {
+        ...diff,
+        status: inviteResult.status === "already" ? "skipped" : "success",
+        reason: inviteResult.message,
+      };
     }
-    return {
-      ...diff,
-      status: "success",
-    };
+
+    if (diff.type === "add" || diff.type === "remove") {
+      const userId = ZVRCUserId.parse(diff.groupMember.serviceId);
+      const roleId = ZVRCGroupRoleId.parse(diff.roleId);
+      if (diff.type === "add") {
+        await addRoleToGroupMember(serviceAccount, groupId, userId, roleId);
+      } else {
+        await removeRoleFromGroupMember(
+          serviceAccount,
+          groupId,
+          userId,
+          roleId,
+        );
+      }
+      return {
+        ...diff,
+        status: "success",
+      };
+    }
+    const _exhaustiveCheck: never = diff;
+    throw new Error(
+      `Unsupported diff type: ${(_exhaustiveCheck as { type: string }).type}`,
+    );
   } catch (e) {
     if (e instanceof Error) {
       return {
@@ -300,6 +326,13 @@ const applyDiscordDiff = async (
   nsId: TNamespaceId,
   diff: TDiffItem,
 ): Promise<ApplyDiffResultItem> => {
+  if (diff.type !== "add" && diff.type !== "remove") {
+    return {
+      ...diff,
+      status: "error",
+      reason: "Unsupported diff type for Discord",
+    };
+  }
   const serviceAccount = await getExternalServiceAccountByServiceName(
     nsId,
     diff.serviceGroup.service,
@@ -355,6 +388,13 @@ const applyGitHubDiff = async (
   nsId: TNamespaceId,
   diff: TDiffItem,
 ): Promise<ApplyDiffResultItem> => {
+  if (diff.type !== "add" && diff.type !== "remove") {
+    return {
+      ...diff,
+      status: "error",
+      reason: "Unsupported diff type for GitHub",
+    };
+  }
   const serviceAccount = await getExternalServiceAccountByServiceName(
     nsId,
     diff.serviceGroup.service,

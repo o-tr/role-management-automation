@@ -12,20 +12,16 @@ import type {
   GitHubAccount,
   GitHubOrganizationId,
 } from "@/lib/github/types/Account";
-import type { GitHubTeamSlug } from "@/lib/github/types/Team";
 import { type GitHubRoleId, ZGitHubGroupId } from "@/lib/github/types/encoded";
+import type { GitHubTeamSlug } from "@/lib/github/types/Team";
 import { getAuthUser } from "@/lib/vrchat/requests/getAuthUser";
 import { getGroup } from "@/lib/vrchat/requests/getGroup";
 import { getGroupRoles } from "@/lib/vrchat/requests/getGroupRoles";
 import { listGroupMembers } from "@/lib/vrchat/requests/listGroupMembers";
+import { ZVRCGroupId } from "@/lib/vrchat/types/brand";
 import type { VRCGroupMember } from "@/lib/vrchat/types/GroupMember";
 import type { VRCGroupRole } from "@/lib/vrchat/types/GroupRole";
-import { ZVRCGroupId } from "@/lib/vrchat/types/brand";
-import {
-  ZDiscordCredentials,
-  ZGithubCredentials,
-  ZVRChatCredentials,
-} from "@/types/credentials";
+import { ZDiscordCredentials, ZVRChatCredentials } from "@/types/credentials";
 import type {
   TExternalServiceGroupMember,
   TExternalServiceGroupWithAccount,
@@ -95,9 +91,9 @@ const getVRChatMembers = async (
     serviceId: member.userId,
     name: member.user.displayName,
     icon: member.user.iconUrl,
-    roleIds: member.roleIds,
+    roleIds: member.roleIds || [],
     isEditable:
-      (getHighestRole(roles, member.roleIds)?.order ||
+      (getHighestRole(roles, member.roleIds || [])?.order ||
         Number.MAX_SAFE_INTEGER) > serviceAccountOrder ||
       member.user.id === user.id,
   }));
@@ -119,10 +115,14 @@ const getDiscordMembers = async (
     JSON.parse(group.account.credential),
   ).token;
   const members: DiscordGuildMember[] = [];
-  let maxUserId = 0;
+  let maxUserId = "0";
   let requestResult: DiscordGuildMember[];
   const processedUserIds = new Set<string>();
+  let noChangeCount = 0;
+  const maxNoChangeCount = 2;
+
   do {
+    const previousMaxUserId = maxUserId;
     requestResult = await listGuildMembers(
       token,
       group.groupId as DiscordGuildId,
@@ -138,7 +138,22 @@ const getDiscordMembers = async (
     for (const member of filteredMembers) {
       processedUserIds.add(member.user.id);
     }
-    maxUserId = Math.max(...members.map((member) => Number(member.user.id)));
+
+    if (requestResult.length > 0) {
+      maxUserId = requestResult[requestResult.length - 1].user.id;
+    }
+
+    // IDが変動しなかった場合のカウンターを更新
+    if (maxUserId === previousMaxUserId) {
+      noChangeCount++;
+    } else {
+      noChangeCount = 0;
+    }
+
+    // 2回連続でIDが変動しなかった場合は終了
+    if (noChangeCount >= maxNoChangeCount) {
+      break;
+    }
   } while (requestResult.length > 0);
   return members.map((member) => ({
     serviceId: member.user.id,

@@ -1,6 +1,5 @@
 import type {
   TExternalServiceAccountId,
-  TExternalServiceGroupId,
   TExternalServiceGroupWithAccount,
   TNamespaceId,
 } from "@/types/prisma";

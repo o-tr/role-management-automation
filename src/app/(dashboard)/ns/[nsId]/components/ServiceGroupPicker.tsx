@@ -1,3 +1,4 @@
+import type { FC } from "react";
 import {
   Select,
   SelectContent,
@@ -6,7 +7,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { TAvailableGroup } from "@/types/prisma";
-import type { FC } from "react";
 import { ServiceGroupDisplay } from "./ServiceGroupDisplay";
 
 type Props = {

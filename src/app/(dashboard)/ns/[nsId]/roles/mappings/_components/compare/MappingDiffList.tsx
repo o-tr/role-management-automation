@@ -1,3 +1,5 @@
+import type { Table } from "@tanstack/react-table";
+import type { FC } from "react";
 import {
   DataTable,
   type TColumnDef,
@@ -5,8 +7,6 @@ import {
 import { MemberExternalAccountDisplay } from "@/app/(dashboard)/ns/[nsId]/components/MemberExternalAccountDisplay";
 import { TagDisplay } from "@/app/(dashboard)/ns/[nsId]/components/TagDisplay";
 import type { TMemberWithDiff } from "@/types/diff";
-import type { RowModel, Table } from "@tanstack/react-table";
-import type { FC } from "react";
 import { DIffItemDisplay } from "./DiffItemDisplay";
 
 type InternalTMember = TMemberWithDiff & {
@@ -71,12 +71,11 @@ export const columns: TColumnDef<InternalTMember>[] = [
       return (
         <div className="flex flex-col gap-2">
           {row.original.diff.map((diff) => {
-            return (
-              <DIffItemDisplay
-                key={`diff-${diff.groupMember.serviceId}-${diff.type}-${diff.roleId}`}
-                item={diff}
-              />
-            );
+            const diffKey =
+              diff.type === "invite-group"
+                ? `diff-${diff.targetAccount.serviceId}-${diff.type}`
+                : `diff-${diff.groupMember.serviceId}-${diff.type}-${diff.roleId}`;
+            return <DIffItemDisplay key={diffKey} item={diff} />;
           })}
         </div>
       );

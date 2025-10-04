@@ -1,6 +1,7 @@
+import type { ColumnDef } from "@tanstack/react-table";
+import { type Dispatch, type FC, type SetStateAction, useMemo } from "react";
 import type { TResolveRequestType } from "@/app/api/ns/[nsId]/members/resolve/[type]/[serviceId]/route";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -9,8 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { ColumnDef } from "@tanstack/react-table";
-import { type Dispatch, type FC, type SetStateAction, useMemo } from "react";
 import {
   CommonCheckboxCell,
   CommonCheckboxHeader,

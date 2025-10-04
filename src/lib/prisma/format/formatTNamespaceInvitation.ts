@@ -1,9 +1,9 @@
+import type { NamespaceInvitation } from "@prisma/client";
 import type {
   TNamespaceId,
   TNamespaceInvitation,
   TNamespaceInvitationId,
 } from "@/types/prisma";
-import type { NamespaceInvitation } from "@prisma/client";
 
 export const formatTNamespaceInvitation = (
   invitation: NamespaceInvitation,

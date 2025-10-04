@@ -5,7 +5,7 @@ import { listTeams } from "@/lib/github/requests/listTeams";
 import type { GitHubOrganizationId } from "@/lib/github/types/Account";
 import { type GitHubRoleId, ZGitHubGroupId } from "@/lib/github/types/encoded";
 import { getGroupRoles as getVRCGroupRoles } from "@/lib/vrchat/requests/getGroupRoles";
-import { ZDiscordCredentials, ZGithubCredentials } from "@/types/credentials";
+import { ZDiscordCredentials } from "@/types/credentials";
 import type {
   TExternalServiceAccount,
   TExternalServiceGroup,

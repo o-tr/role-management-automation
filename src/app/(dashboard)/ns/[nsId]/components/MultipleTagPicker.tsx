@@ -1,12 +1,4 @@
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import type { TTag, TTagId } from "@/types/prisma";
-import {
   type Dispatch,
   type FC,
   type KeyboardEvent,
@@ -14,6 +6,14 @@ import {
   useId,
   useState,
 } from "react";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import type { TTag, TTagId } from "@/types/prisma";
 import { TagDisplay } from "./TagDisplay";
 
 type Props = {
@@ -35,7 +35,7 @@ export const MultipleTagPicker: FC<Props> = ({
     (tag) => !selectedTags.includes(tag.id) && tag.name.includes(inputValue),
   );
 
-  const [isFocused, setIsFocused] = useState(false);
+  const [_isFocused, setIsFocused] = useState(false);
 
   const inputId = useId();
 

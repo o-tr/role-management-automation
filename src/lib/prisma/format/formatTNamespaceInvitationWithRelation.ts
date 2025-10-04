@@ -1,5 +1,5 @@
-import type { TNamespaceInvitationWithRelation } from "@/types/prisma";
 import type { Namespace, NamespaceInvitation } from "@prisma/client";
+import type { TNamespaceInvitationWithRelation } from "@/types/prisma";
 import { formatTNamespace } from "./formatTNamespace";
 import { formatTNamespaceInvitation } from "./formatTNamespaceInvitation";
 

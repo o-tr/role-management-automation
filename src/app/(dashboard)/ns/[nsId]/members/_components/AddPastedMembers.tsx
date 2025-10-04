@@ -1,5 +1,5 @@
+import { type FC, useState } from "react";
 import type { ResolveResult } from "@/app/api/ns/[nsId]/members/resolve/[type]/[serviceId]/route";
-
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,7 +12,6 @@ import {
 import type { TCreateOrUpdateMembers } from "@/lib/prisma/createOrUpdateMember";
 import { ZVRCUserId } from "@/lib/vrchat/types/brand";
 import type { TNamespaceId, TTagId } from "@/types/prisma";
-import { type FC, useState } from "react";
 import { MultipleTagPicker } from "../../components/MultipleTagPicker";
 import { useTags } from "../../roles/_hooks/use-tags";
 import {
@@ -38,7 +37,7 @@ type TKeys =
   | "GitHubUsername" // string
   | "unknown";
 
-const Keys = [
+const _Keys = [
   "DiscordUserId",
   "DiscordUsername",
   "VRCUserId",
@@ -108,7 +107,7 @@ export const AddPastedMembers: FC<Props> = ({ nsId }) => {
         .map((val) => {
           return {
             memberId: val.memberId,
-            name: val.name,
+            name: val.name ?? "",
             service: val.service,
             serviceId: val.serviceId,
             serviceUsername: val.serviceUsername,

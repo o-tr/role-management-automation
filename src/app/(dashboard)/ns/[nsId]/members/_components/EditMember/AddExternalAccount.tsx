@@ -1,3 +1,11 @@
+import type { ExternalServiceName } from "@prisma/client";
+import {
+  type Dispatch,
+  type FC,
+  type SetStateAction,
+  useEffect,
+  useState,
+} from "react";
 import type {
   ResolveResult,
   TResolveRequestType,
@@ -15,14 +23,6 @@ import type {
   TMemberExternalServiceAccountId,
   TMemberWithRelation,
 } from "@/types/prisma";
-import type { ExternalServiceName } from "@prisma/client";
-import {
-  type Dispatch,
-  type FC,
-  type SetStateAction,
-  useEffect,
-  useState,
-} from "react";
 import { MemberAccountResolveDisplay } from "../../../components/MemberAccountResolveDisplay";
 
 export const AddExternalAccount: FC<{
@@ -51,7 +51,7 @@ export const AddExternalAccount: FC<{
         id: crypto.randomUUID() as TMemberExternalServiceAccountId,
         service: data.service,
         serviceId: data.serviceId,
-        name: data.name,
+        name: data.name ?? "",
         icon: data.icon || undefined,
         status: "ACTIVE",
         namespaceId: member.namespaceId,

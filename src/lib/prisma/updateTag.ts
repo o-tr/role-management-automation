@@ -1,6 +1,6 @@
+import { z } from "zod";
 import { ZColorCode } from "@/types/brand";
 import type { TNamespaceId, TTag, TTagId } from "@/types/prisma";
-import { z } from "zod";
 import { prisma } from "../prisma";
 import { formatTTag } from "./format/formatTTag";
 

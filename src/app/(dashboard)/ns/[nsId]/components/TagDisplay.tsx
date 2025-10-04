@@ -1,8 +1,6 @@
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import type { TTag } from "@/types/prisma";
 import type { FC } from "react";
-import { TbTag, TbTagFilled, TbX } from "react-icons/tb";
+import { TbTagFilled, TbX } from "react-icons/tb";
+import type { TTag } from "@/types/prisma";
 
 type Props = {
   tag: TTag;

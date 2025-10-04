@@ -1,3 +1,5 @@
+import type { NextRequest } from "next/server";
+import { z } from "zod";
 import { api } from "@/lib/api";
 import { BadRequestException } from "@/lib/exceptions/BadRequestException";
 import { createNamespaceInvitation } from "@/lib/prisma/createNamespaceInvitation";
@@ -5,8 +7,6 @@ import { getNamespaceInvitations } from "@/lib/prisma/getNamespaceInvitations";
 import { validatePermission } from "@/lib/validatePermission";
 import type { ErrorResponseType } from "@/types/api";
 import type { TNamespaceId, TNamespaceInvitation } from "@/types/prisma";
-import type { NextRequest } from "next/server";
-import { z } from "zod";
 
 export type CreateNamespaceInvitationResponse =
   | {
@@ -63,7 +63,7 @@ export type GetNamespaceInvitationsResponse =
 
 export const GET = api(
   async (
-    req: NextRequest,
+    _req: NextRequest,
     { params }: { params: { nsId: TNamespaceId } },
   ): Promise<GetNamespaceInvitationsResponse> => {
     await validatePermission(params.nsId, "owner");

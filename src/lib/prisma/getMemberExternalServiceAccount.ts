@@ -1,10 +1,7 @@
-import {
-  type TMemberExternalServiceAccount,
-  TMemberExternalServiceAccountId,
-  TMemberId,
-  type TNamespaceId,
+import type {
+  TMemberExternalServiceAccount,
+  TNamespaceId,
 } from "@/types/prisma";
-import { ExternalServiceName } from "@prisma/client";
 import type { DiscordUserId } from "../discord/types/user";
 import { prisma } from "../prisma";
 import type { VRCUserId } from "../vrchat/types/brand";

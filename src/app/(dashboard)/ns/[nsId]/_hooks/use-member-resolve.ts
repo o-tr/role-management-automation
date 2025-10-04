@@ -1,10 +1,14 @@
+import pLimit from "p-limit";
+import useSWR from "swr";
 import type {
   ResolveResponse,
   TResolveRequestType,
 } from "@/app/api/ns/[nsId]/members/resolve/[type]/[serviceId]/route";
-import useSWR from "swr";
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const limit = pLimit(5);
+
+const fetcher = (url: string) =>
+  limit(() => fetch(url).then((res) => res.json()));
 
 export const useMemberResolve = (
   nsId: string,

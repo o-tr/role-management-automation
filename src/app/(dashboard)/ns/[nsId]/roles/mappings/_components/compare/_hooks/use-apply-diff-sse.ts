@@ -1,8 +1,7 @@
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ApplyProgressUpdate } from "@/app/api/ns/[nsId]/mappings/apply/applyDiffWithProgress";
 import { processSSEChunk, processSSEFinalBuffer } from "@/lib/sse";
-import type { TMemberWithDiff } from "@/types/diff";
 import type { TNamespaceId } from "@/types/prisma";
-import { useCallback, useEffect, useRef, useState } from "react";
 
 export type ApplyDiffSSEState<TResult> = {
   isPending: boolean;
@@ -25,7 +24,7 @@ export const useApplyDiffSSE = <TResult>(nsId: TNamespaceId) => {
 
   const applyDiff = useCallback(
     async (
-      diff: TMemberWithDiff[],
+      token: string,
     ): Promise<
       | { status: "success"; result: TResult }
       | { status: "error"; error: string }
@@ -52,7 +51,7 @@ export const useApplyDiffSSE = <TResult>(nsId: TNamespaceId) => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(diff),
+          body: JSON.stringify({ token }),
           signal: controller.signal,
         });
 

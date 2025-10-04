@@ -1,3 +1,4 @@
+import { type FC, useCallback, useEffect, useMemo } from "react";
 import type {
   ApplyDiffResult,
   ApplyProgressUpdate,
@@ -10,17 +11,10 @@ import type {
   TMemberWithDiff,
 } from "@/types/diff";
 import type { TNamespaceId } from "@/types/prisma";
-import {
-  type FC,
-  type MutableRefObject,
-  useCallback,
-  useEffect,
-  useMemo,
-} from "react";
-import { MappingDiffList } from "./MappingDiffList";
-import { ProgressDisplay } from "./ProgressDisplay";
 import { useApplyDiffSSE } from "./_hooks/use-apply-diff-sse";
 import { useCompareSSE } from "./_hooks/use-compare-sse";
+import { MappingDiffList } from "./MappingDiffList";
+import { ProgressDisplay } from "./ProgressDisplay";
 
 // Pure helper: map compareState.diff with apply progress to inject per-diff status/reason
 export const mapDiffWithProgress = (
@@ -98,7 +92,7 @@ export const DiffList: FC<Props> = ({
   useEffect(() => {
     if (
       isOpen &&
-      !compareState.isPending &&
+      compareState.state !== "loading" &&
       !applyState.isPending &&
       compareState.diff.length === 0
     ) {
@@ -106,25 +100,21 @@ export const DiffList: FC<Props> = ({
     }
   }, [
     isOpen,
-    compareState.isPending,
+    compareState.state,
     applyState.isPending,
     compareState.diff.length,
     compareState.startCompare,
   ]);
 
   const onButtonClick = useCallback(async () => {
-    const result = await applyState.applyDiff(compareState.diff);
+    if (compareState.state !== "success") return;
+    const result = await applyState.applyDiff(compareState.token);
     if (result.status === "success" && result.result) {
       onApplyResult?.(result.result);
       // 適用完了後に差分を再取得
       compareState.refetch();
     }
-  }, [
-    compareState.diff,
-    compareState.refetch,
-    onApplyResult,
-    applyState.applyDiff,
-  ]);
+  }, [compareState, onApplyResult, applyState.applyDiff]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -145,7 +135,7 @@ export const DiffList: FC<Props> = ({
             <div>差分を適用しています...</div>
           </div>
         )
-      ) : compareState.isPending && compareState.progress ? (
+      ) : compareState.state === "loading" && compareState.progress ? (
         <ProgressDisplay progress={compareState.progress} title="差分取得" />
       ) : (
         <MappingDiffList data={compareState.diff} />

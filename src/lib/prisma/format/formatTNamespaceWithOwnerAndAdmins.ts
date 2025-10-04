@@ -1,9 +1,9 @@
+import type { Namespace, User } from "@prisma/client";
 import type {
   TNamespaceId,
   TNamespaceWithOwnerAndAdmins,
   TUserId,
 } from "@/types/prisma";
-import type { Namespace, User } from "@prisma/client";
 import { formatTUser } from "./formatTUser";
 
 export const formatTNamespaceWithOwnerAndAdmins = (
