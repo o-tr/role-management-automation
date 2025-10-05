@@ -51,9 +51,7 @@ RUN chmod +x ./env-replacer.sh && \
     chmod +x ./start.sh && \
     mv .env .env.replacer
 
-# Create a non-root user to run the application
-RUN adduser -D nodejs
-USER nodejs
+USER node
 
 ENTRYPOINT [ "/app/env-replacer.sh" ]
 
