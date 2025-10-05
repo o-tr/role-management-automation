@@ -16,12 +16,28 @@ COPY . .
 RUN pnpm exec prisma generate
 RUN BUILD_STANDALONE=1 pnpm run build
 
+
+FROM base AS prisma
+
+WORKDIR /prisma
+RUN corepack enable pnpm
+RUN --mount=type=bind,readonly,source=./package.json,target=./origin-package.json \
+    node -e "const fs = require('fs'); \
+           const originPackage = JSON.parse(fs.readFileSync('./origin-package.json').toString()); \
+           const prismaVersion = originPackage.dependencies.prisma; \
+           fs.writeFileSync('./package.json', JSON.stringify({ \
+             dependencies: { prisma: prismaVersion } \
+           }, null, 2));"
+RUN npm install --production
+
 # Run phase
 FROM base AS runner
 
 WORKDIR /app
 
 RUN apk add --no-cache openssl
+
+COPY --from=prisma --chown=nodejs:nodejs /prisma/node_modules /prisma/node_modules
 
 COPY --from=builder --chown=nodejs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nodejs:nodejs /app/.next/static ./.next/static
