@@ -37,11 +37,11 @@ WORKDIR /app
 
 RUN apk add --no-cache openssl
 
-COPY --from=prisma --chown=nodejs:nodejs /prisma/node_modules /prisma/node_modules
+COPY --from=prisma --chown=node:node /prisma/node_modules /prisma/node_modules
 
-COPY --from=builder --chown=nodejs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nodejs:nodejs /app/.next/static ./.next/static
-COPY --from=builder --chown=nodejs:nodejs /app/prisma ./prisma
+COPY --from=builder --chown=node:node /app/.next/standalone ./
+COPY --from=builder --chown=node:node /app/.next/static ./.next/static
+COPY --from=builder --chown=node:node /app/prisma ./prisma
 
 COPY ./docker/.env.placeholder ./.env
 COPY ./docker/env-replacer.sh ./
