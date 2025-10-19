@@ -175,16 +175,19 @@ const extractGroupMembers = (
   member: TMemberWithRelation,
   groupMembers: TExternalServiceGroupMembers[],
 ) => {
-  return member.externalAccounts
-    .map((account) => {
-      const group = groupMembers.find(
-        (groupMember) => groupMember.service === account.service,
+  return groupMembers
+    .flatMap((group) => {
+      const account = member.externalAccounts.find(
+        (account) => account.service === group.service,
       );
-      const groupMember = group?.members.find(
+      if (!account) {
+        return [];
+      }
+      const groupMember = group.members.find(
         (member) => member.serviceId === account.serviceId,
       );
-      if (!groupMember || !group) {
-        return undefined;
+      if (!groupMember) {
+        return [];
       }
       return {
         account,
