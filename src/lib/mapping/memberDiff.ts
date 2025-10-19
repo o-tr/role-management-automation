@@ -184,7 +184,7 @@ const extractGroupMembers = (
         return [];
       }
       const groupMember = group.members.find(
-        (member) => member.serviceId === account.serviceId,
+        (m) => m.serviceId === account.serviceId,
       );
       if (!groupMember) {
         return [];
