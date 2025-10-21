@@ -30,10 +30,10 @@ export const ConditionsDisplay: FC<Props> = ({ conditions, nsId }) => {
     const isArrayValue = Array.isArray(conditions.value);
 
     if (isArrayValue) {
-      const selectedTags =
-        tags?.filter((t) => conditions.value.includes(t.id)) || [];
-      const missingTags = conditions.value.filter(
-        (id) => !tags?.some((t) => t.id === id),
+      const valueArray = conditions.value as string[];
+      const selectedTags = tags?.filter((t) => valueArray.includes(t.id)) || [];
+      const missingTags = valueArray.filter(
+        (id: string) => !tags?.some((t) => t.id === id),
       );
 
       return (

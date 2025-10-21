@@ -300,10 +300,9 @@ export const ConditionsEditorComparator: FC<
               tags?.map((tag) => ({
                 value: tag.id,
                 label: tag.name,
-                icon: <TagDisplay tag={tag} display="inline" />,
               })) || []
             }
-            value={isArrayValue ? conditions.value : []}
+            selected={isArrayValue ? (conditions.value as string[]) : []}
             onChange={(values) =>
               onChange({ ...conditions, value: values as TMappingValue[] })
             }
@@ -313,7 +312,7 @@ export const ConditionsEditorComparator: FC<
       ) : (
         <FormItem>
           <Select
-            value={isArrayValue ? "" : conditions.value}
+            value={isArrayValue ? "" : (conditions.value as string)}
             onValueChange={(value) =>
               onChange({ ...conditions, value: value as TMappingValue })
             }
@@ -351,12 +350,14 @@ export const ConditionsEditorComparator: FC<
               // 単一選択から複数選択に変更
               newValue = Array.isArray(conditions.value)
                 ? conditions.value
-                : [conditions.value];
+                : ([conditions.value] as TMappingValue[]);
             } else if (!isNewMultiSelect && isCurrentMultiSelect) {
               // 複数選択から単一選択に変更
-              newValue = Array.isArray(conditions.value)
-                ? conditions.value[0] || ""
-                : conditions.value;
+              newValue = (
+                Array.isArray(conditions.value)
+                  ? conditions.value[0]
+                  : conditions.value
+              ) as TMappingValue;
             } else {
               newValue = conditions.value;
             }
