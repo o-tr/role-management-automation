@@ -5,7 +5,10 @@ import {
   useState,
 } from "react";
 import type { TMappingAction } from "@/types/actions";
-import type { TMappingConditionInput } from "@/types/conditions";
+import type {
+  TMappingCondition,
+  TMappingConditionInput,
+} from "@/types/conditions";
 import {
   validateActions,
   validateConditions,
@@ -15,7 +18,7 @@ type UseMappingFormProps = {
   initialConditions: TMappingConditionInput;
   initialActions: TMappingAction[];
   onSubmit: (data: {
-    conditions: TMappingConditionInput;
+    conditions: TMappingCondition;
     actions: TMappingAction[];
   }) => Promise<void>;
 };
@@ -78,17 +81,20 @@ export const useMappingForm = ({
     e.preventDefault();
 
     // バリデーション実行
-    const newConditionErrors = validateConditions(conditions);
+    const conditionResult = validateConditions(conditions);
     const newActionErrors = validateActions(actions);
 
-    setConditionErrors(newConditionErrors);
+    setConditionErrors(conditionResult.errors);
     setActionErrors(newActionErrors);
 
-    if (newConditionErrors.length > 0 || newActionErrors.length > 0) {
+    if (conditionResult.errors.length > 0 || newActionErrors.length > 0) {
       return; // 送信をキャンセル
     }
 
-    await onSubmit({ conditions, actions });
+    // conditionResult.dataはTMappingCondition型（バリデーション済み）
+    if (conditionResult.data) {
+      await onSubmit({ conditions: conditionResult.data, actions });
+    }
     setIsDirty(false);
   };
 

@@ -1,10 +1,7 @@
 import type { FC } from "react";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  convertConditionToInput,
-  convertInputToCondition,
-} from "@/types/conditions";
+import { convertConditionToInput } from "@/types/conditions";
 import type { TMapping } from "@/types/prisma";
 import { onServiceGroupMappingChange } from "../../_hooks/on-mappings-change";
 import { useUpdateServiceMapping } from "../../_hooks/use-update-service-mapping";
@@ -36,7 +33,7 @@ export const EditMapping: FC<Props> = ({ nsId, mapping, onDirtyChange }) => {
     initialActions: mapping.actions,
     onSubmit: async ({ conditions, actions }) => {
       await updateServiceMapping({
-        conditions: convertInputToCondition(conditions),
+        conditions,
         actions,
       });
       onServiceGroupMappingChange();

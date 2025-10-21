@@ -4,10 +4,7 @@ import type { FC } from "react";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { createNewMappingAction } from "@/types/actions";
-import {
-  convertInputToCondition,
-  createNewMappingCondition,
-} from "@/types/conditions";
+import { createNewMappingCondition } from "@/types/conditions";
 import { onServiceGroupMappingChange } from "../../_hooks/on-mappings-change";
 import { useCreateServiceMapping } from "../../_hooks/use-create-service-mapping";
 import { useMappingForm } from "../_hooks/useMappingForm";
@@ -37,7 +34,7 @@ export const AddMapping: FC<Props> = ({ nsId, onDirtyChange }) => {
     initialActions: [createNewMappingAction("add")],
     onSubmit: async ({ conditions, actions }) => {
       await createServiceMapping({
-        conditions: convertInputToCondition(conditions),
+        conditions,
         actions,
       });
       onServiceGroupMappingChange();

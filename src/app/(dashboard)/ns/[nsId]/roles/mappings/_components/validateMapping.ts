@@ -1,6 +1,9 @@
 import type { TMappingAction } from "@/types/actions";
 import { ZMappingAction } from "@/types/actions";
-import type { TMappingConditionInput } from "@/types/conditions";
+import type {
+  TMappingCondition,
+  TMappingConditionInput,
+} from "@/types/conditions";
 import { ZMappingCondition } from "@/types/conditions";
 
 export type ValidationErrors = {
@@ -13,18 +16,19 @@ export type ValidationErrors = {
  */
 export const validateConditions = (
   conditions: TMappingConditionInput,
-): string[] => {
+): { errors: string[]; data?: TMappingCondition } => {
   const result = ZMappingCondition.safeParse(conditions);
 
   if (result.success) {
-    return [];
+    return { errors: [], data: result.data };
   }
 
-  // Zodエラーをユーザーフレンドリーなメッセージに変換
-  return result.error.errors.map((err) => {
-    const path = err.path.join(" > ");
-    return path ? `${path}: ${err.message}` : err.message;
-  });
+  return {
+    errors: result.error.errors.map((err) => {
+      const path = err.path.join(" > ");
+      return path ? `${path}: ${err.message}` : err.message;
+    }),
+  };
 };
 
 /**
