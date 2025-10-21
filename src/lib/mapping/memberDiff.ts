@@ -217,27 +217,31 @@ const evaluateConditions = (
   condition: TMappingCondition,
 ): boolean => {
   if (condition.type === "comparator") {
-    if (condition.key === "some-tag") {
-      if (condition.comparator === "equals") {
-        return tags.some((tag) => tag.id === condition.value);
-      }
-      if (condition.comparator === "notEquals") {
-        return !tags.some((tag) => tag.id === condition.value);
-      }
-      if (condition.comparator === "contains-any") {
-        if (Array.isArray(condition.value)) {
-          return condition.value.some((v) => tags.some((tag) => tag.id === v));
+    const tagIds = new Set(tags.map((tag) => tag.id));
+
+    switch (condition.key) {
+      case "some-tag":
+        switch (condition.comparator) {
+          case "equals":
+            return tagIds.has(condition.value);
+          case "notEquals":
+            return !tagIds.has(condition.value);
+          case "contains-any":
+            if (Array.isArray(condition.value)) {
+              return condition.value.some((v) => tagIds.has(v));
+            }
+            return tagIds.has(condition.value);
+          case "contains-all":
+            if (Array.isArray(condition.value)) {
+              return condition.value.every((v) => tagIds.has(v));
+            }
+            return tagIds.has(condition.value);
+          default:
+            throw new Error(`Unknown comparator: ${condition.comparator}`);
         }
-        return tags.some((tag) => tag.id === condition.value);
-      }
-      if (condition.comparator === "contains-all") {
-        if (Array.isArray(condition.value)) {
-          return condition.value.every((v) => tags.some((tag) => tag.id === v));
-        }
-        return tags.some((tag) => tag.id === condition.value);
-      }
+      default:
+        throw new Error(`Unknown key: ${condition.key}`);
     }
-    throw new Error("Unknown key");
   }
   if (condition.type === "not") {
     return !evaluateConditions(tags, condition.condition);
