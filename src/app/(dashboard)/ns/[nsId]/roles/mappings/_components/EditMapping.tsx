@@ -30,10 +30,14 @@ export const EditMapping: FC<Props> = ({ nsId, mapping }) => {
     const conditionErrors = validateConditions(conditions);
     const actionErrors = validateActions(actions);
 
+    console.log("Validation errors:", { conditionErrors, actionErrors });
+
     if (conditionErrors.length > 0 || actionErrors.length > 0) {
+      const errorMessage = [...conditionErrors, ...actionErrors].join("\n");
+      console.log("Showing toast with message:", errorMessage);
       toast({
         title: "入力エラー",
-        description: [...conditionErrors, ...actionErrors].join("\n"),
+        description: errorMessage,
         variant: "destructive",
       });
       return; // 送信をキャンセル

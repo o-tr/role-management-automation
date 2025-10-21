@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/select";
 import {
   createNewMappingCondition,
-  PLACEHOLDER_TAG_ID,
   type TMappingComparator,
   type TMappingCondition,
   type TMappingConditionAnd,
@@ -159,7 +158,7 @@ export const ConditionsEditorOr: FC<Props<TMappingConditionOr>> = ({
                   type: "comparator",
                   key: "some-tag",
                   comparator: "equals",
-                  value: tags[0].id as TMappingValue,
+                  value: undefined as TMappingValue,
                   id: crypto.randomUUID() as TMappingConditionId,
                 },
               ],
@@ -229,7 +228,7 @@ export const ConditionsEditorAnd: FC<Props<TMappingConditionAnd>> = ({
                   type: "comparator",
                   key: "some-tag",
                   comparator: "equals",
-                  value: tags[0].id as TMappingValue,
+                  value: undefined as TMappingValue,
                   id: crypto.randomUUID() as TMappingConditionId,
                 },
               ],
@@ -372,7 +371,7 @@ export const ConditionsEditorComparator: FC<
                 : [conditions.value];
               newValue = (arrayValue[0] ??
                 tags?.[0]?.id ??
-                PLACEHOLDER_TAG_ID) as TMappingValue;
+                undefined) as TMappingValue;
             } else {
               newValue = conditions.value;
             }

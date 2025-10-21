@@ -7,29 +7,34 @@ import type { TMappingCondition } from "@/types/conditions";
 export const validateConditions = (conditions: TMappingCondition): string[] => {
   const errors: string[] = [];
 
-  const validateCondition = (condition: TMappingCondition): void => {
+  const validateCondition = (
+    condition: TMappingCondition,
+    path: string = "",
+  ): void => {
     switch (condition.type) {
       case "comparator":
         if (condition.value === undefined) {
-          errors.push("タグを選択してください");
+          errors.push(`${path}タグを選択してください`);
         } else if (condition.value === "00000000-0000-0000-0000-000000000000") {
-          errors.push("プレースホルダーIDは使用できません");
+          errors.push(`${path}プレースホルダーIDは使用できません`);
         } else if (
           Array.isArray(condition.value) &&
           condition.value.length === 0
         ) {
-          errors.push("タグを選択してください");
+          errors.push(`${path}タグを選択してください`);
         }
         break;
       case "not":
-        validateCondition(condition.condition);
+        validateCondition(condition.condition, `${path}否定条件: `);
         break;
       case "and":
       case "or":
         if (condition.conditions.length === 0) {
-          errors.push("条件を追加してください");
+          errors.push(`${path}条件を追加してください`);
         } else {
-          condition.conditions.forEach(validateCondition);
+          condition.conditions.forEach((cond, index) => {
+            validateCondition(cond, `${path}条件${index + 1}: `);
+          });
         }
         break;
     }
