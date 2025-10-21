@@ -12,9 +12,16 @@ export type TMappingValue = z.infer<typeof ZMappingValue>;
 export const ZMappingComparator = z.union([
   z.literal("notEquals"),
   z.literal("equals"),
+  z.literal("contains-any"),
+  z.literal("contains-all"),
 ]);
 export type TMappingComparator = z.infer<typeof ZMappingComparator>;
-export const ZMappingComparators = ["notEquals", "equals"] as const;
+export const ZMappingComparators = [
+  "notEquals",
+  "equals",
+  "contains-any",
+  "contains-all",
+] as const;
 
 export const ZMappingType = z.union([
   z.literal("comparator"),
@@ -37,7 +44,7 @@ export const ZMappingConditionComparator = z.lazy(() =>
     type: z.literal("comparator"),
     key: ZMappingKey,
     comparator: ZMappingComparator,
-    value: ZMappingValue,
+    value: z.union([ZMappingValue, z.array(ZMappingValue)]),
   }),
 );
 export type TMappingConditionComparator = z.infer<
@@ -92,6 +99,10 @@ export type TMappingConditionNot = z.infer<typeof ZMappingConditionNot>;
 
 export type TMappingCondition = z.infer<typeof ZMappingCondition>;
 
+// プレースホルダー用の有効なUUID（実際のタグIDに置き換えられる）
+export const PLACEHOLDER_TAG_ID =
+  "00000000-0000-0000-0000-000000000000" as TMappingValue;
+
 export const createNewMappingCondition = (
   type: TMappingType,
 ): TMappingCondition => {
@@ -101,7 +112,7 @@ export const createNewMappingCondition = (
         type: "comparator",
         key: "some-tag",
         comparator: "equals",
-        value: "some-value" as TMappingValue,
+        value: PLACEHOLDER_TAG_ID,
         id: crypto.randomUUID() as TMappingConditionId,
       };
     case "not":

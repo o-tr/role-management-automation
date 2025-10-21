@@ -13,6 +13,7 @@ import type {
   TMapping,
   TMemberWithRelation,
   TTag,
+  TTagId,
 } from "@/types/prisma";
 
 export type TargetGroup = {
@@ -217,10 +218,35 @@ const evaluateConditions = (
   condition: TMappingCondition,
 ): boolean => {
   if (condition.type === "comparator") {
-    if (condition.key === "some-tag") {
-      return tags.some((tag) => tag.id === condition.value);
+    const tagIds = new Set(tags.map((tag) => tag.id));
+
+    switch (condition.key) {
+      case "some-tag":
+        switch (condition.comparator) {
+          case "equals":
+            return tagIds.has(condition.value as TTagId);
+          case "notEquals":
+            return !tagIds.has(condition.value as TTagId);
+          case "contains-any":
+            if (!Array.isArray(condition.value)) {
+              return false;
+            }
+            return condition.value.some((v) => tagIds.has(v as TTagId));
+          case "contains-all":
+            if (!Array.isArray(condition.value)) {
+              return false;
+            }
+            // 空配列の場合は false を返す
+            if (condition.value.length === 0) {
+              return false;
+            }
+            return condition.value.every((v) => tagIds.has(v as TTagId));
+          default:
+            throw new Error(`Unknown comparator: ${condition.comparator}`);
+        }
+      default:
+        throw new Error(`Unknown key: ${condition.key}`);
     }
-    throw new Error("Unknown key");
   }
   if (condition.type === "not") {
     return !evaluateConditions(tags, condition.condition);

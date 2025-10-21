@@ -5,6 +5,7 @@ import type {
   TMappingCondition,
   TMappingKey,
 } from "@/types/conditions";
+import type { TTagId } from "@/types/prisma";
 import { TagDisplay } from "../../../components/TagDisplay";
 import { useTags } from "../../_hooks/use-tags";
 
@@ -20,27 +21,68 @@ const keysLabel: { [key in TMappingKey]: string } = {
 const comparatorsLabel: { [key in TMappingComparator]: string } = {
   equals: "含む",
   notEquals: "含まない",
+  "contains-any": "いずれかを含む",
+  "contains-all": "すべてを含む",
 };
 
 export const ConditionsDisplay: FC<Props> = ({ conditions, nsId }) => {
   const { tags, isPending } = useTags(nsId);
   if (conditions.type === "comparator") {
-    const tag = tags?.find((t) => t.id === conditions.value);
+    const isArrayValue = Array.isArray(conditions.value);
 
-    return (
-      <Card className="p-2 gap-1 flex flex-row items-center flex-wrap">
-        <span>{keysLabel[conditions.key]}</span>
-        {tag ? (
-          <TagDisplay tag={tag} display="inline" />
-        ) : isPending ? (
+    // ローディング状態を先頭で処理
+    if (isPending) {
+      return (
+        <Card className="p-2 gap-1 flex flex-row items-center flex-wrap">
+          <span>{keysLabel[conditions.key]}</span>
           <span>loading...</span>
-        ) : (
-          <span className="text-red-600">[削除されたタグ]</span>
-        )}
-        <span>を</span>
-        <span>{comparatorsLabel[conditions.comparator]}</span>
-      </Card>
-    );
+          <span>を</span>
+          <span>{comparatorsLabel[conditions.comparator]}</span>
+        </Card>
+      );
+    }
+
+    if (isArrayValue) {
+      const valueArray = conditions.value as string[];
+      const selectedTags = tags?.filter((t) => valueArray.includes(t.id)) || [];
+      const tagIdSet = new Set(tags?.map((t) => t.id) || []);
+      const missingTags = valueArray.filter(
+        (id: string) => !tagIdSet.has(id as TTagId),
+      );
+
+      return (
+        <Card className="p-2 gap-1 flex flex-row items-center flex-wrap">
+          <span>{keysLabel[conditions.key]}</span>
+          <div className="flex flex-wrap gap-1">
+            {selectedTags.map((tag) => (
+              <TagDisplay key={tag.id} tag={tag} display="inline" />
+            ))}
+            {missingTags.length > 0 && (
+              <span className="text-red-600">
+                [削除されたタグ: {missingTags.length}個]
+              </span>
+            )}
+          </div>
+          <span>を</span>
+          <span>{comparatorsLabel[conditions.comparator]}</span>
+        </Card>
+      );
+    } else {
+      const tag = tags?.find((t) => t.id === conditions.value);
+
+      return (
+        <Card className="p-2 gap-1 flex flex-row items-center flex-wrap">
+          <span>{keysLabel[conditions.key]}</span>
+          {tag ? (
+            <TagDisplay tag={tag} display="inline" />
+          ) : (
+            <span className="text-red-600">[削除されたタグ]</span>
+          )}
+          <span>を</span>
+          <span>{comparatorsLabel[conditions.comparator]}</span>
+        </Card>
+      );
+    }
   }
   if (conditions.type === "and") {
     return (

@@ -1,4 +1,5 @@
 import type { FC } from "react";
+import { MultiSelect } from "@/components/MultiSelect";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FormItem } from "@/components/ui/form";
@@ -11,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import {
   createNewMappingCondition,
+  PLACEHOLDER_TAG_ID,
   type TMappingComparator,
   type TMappingCondition,
   type TMappingConditionAnd,
@@ -106,6 +108,9 @@ export const ConditionsEditorOr: FC<Props<TMappingConditionOr>> = ({
   onChange,
   nsId,
 }) => {
+  const { tags } = useTags(nsId);
+  const hasTags = tags && tags.length > 0;
+
   return (
     <div className="flex flex-col space-y-1">
       {conditions.conditions.map((condition, index) => (
@@ -142,7 +147,9 @@ export const ConditionsEditorOr: FC<Props<TMappingConditionOr>> = ({
       <div>
         <Button
           type="button"
-          onClick={() =>
+          disabled={!hasTags}
+          onClick={() => {
+            if (!hasTags) return;
             onChange({
               ...conditions,
               conditions: [
@@ -151,12 +158,13 @@ export const ConditionsEditorOr: FC<Props<TMappingConditionOr>> = ({
                   type: "comparator",
                   key: "some-tag",
                   comparator: "equals",
-                  value: "some-value" as TMappingValue,
+                  value: tags[0].id as TMappingValue,
                   id: crypto.randomUUID() as TMappingConditionId,
                 },
               ],
-            })
-          }
+            });
+          }}
+          title={!hasTags ? "タグを作成してください" : undefined}
         >
           条件を追加
         </Button>
@@ -170,6 +178,9 @@ export const ConditionsEditorAnd: FC<Props<TMappingConditionAnd>> = ({
   onChange,
   nsId,
 }) => {
+  const { tags } = useTags(nsId);
+  const hasTags = tags && tags.length > 0;
+
   return (
     <div className="flex flex-col space-y-1">
       {conditions.conditions.map((condition, index) => (
@@ -206,7 +217,9 @@ export const ConditionsEditorAnd: FC<Props<TMappingConditionAnd>> = ({
       <div>
         <Button
           type="button"
-          onClick={() =>
+          disabled={!hasTags}
+          onClick={() => {
+            if (!hasTags) return;
             onChange({
               ...conditions,
               conditions: [
@@ -215,12 +228,13 @@ export const ConditionsEditorAnd: FC<Props<TMappingConditionAnd>> = ({
                   type: "comparator",
                   key: "some-tag",
                   comparator: "equals",
-                  value: "some-value" as TMappingValue,
+                  value: tags[0].id as TMappingValue,
                   id: crypto.randomUUID() as TMappingConditionId,
                 },
               ],
-            })
-          }
+            });
+          }}
+          title={!hasTags ? "タグを作成してください" : undefined}
         >
           条件を追加
         </Button>
@@ -252,6 +266,8 @@ const keysLabel = {
 const comparatorLabel = {
   notEquals: "一致しない",
   equals: "一致する",
+  "contains-any": "いずれかを含む",
+  "contains-all": "すべてを含む",
 };
 
 export const ConditionsEditorComparator: FC<
@@ -259,7 +275,14 @@ export const ConditionsEditorComparator: FC<
 > = ({ conditions, onChange, nsId }) => {
   const { tags } = useTags(nsId);
 
-  const selectedTag = tags?.find((tag) => tag.id === conditions.value);
+  const isArrayValue = Array.isArray(conditions.value);
+  const selectedTag = isArrayValue
+    ? null
+    : tags?.find((tag) => tag.id === conditions.value);
+
+  const isMultiSelect =
+    conditions.comparator === "contains-any" ||
+    conditions.comparator === "contains-all";
 
   return (
     <div className="flex flex-row space-x-1 items-center p-1">
@@ -283,34 +306,79 @@ export const ConditionsEditorComparator: FC<
         </Select>
       </FormItem>
       <span>が</span>
-      <FormItem>
-        <Select
-          value={conditions.value}
-          onValueChange={(value) =>
-            onChange({ ...conditions, value: value as TMappingValue })
-          }
-        >
-          <SelectTrigger>
-            <SelectValue>
-              {selectedTag && <TagDisplay tag={selectedTag} />}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {tags?.map((tag) => (
-              <SelectItem key={tag.id} value={tag.id}>
-                <TagDisplay tag={tag} />
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </FormItem>
+      {isMultiSelect ? (
+        <FormItem>
+          <MultiSelect
+            options={
+              tags?.map((tag) => ({
+                value: tag.id,
+                label: tag.name,
+              })) || []
+            }
+            selected={isArrayValue ? (conditions.value as string[]) : []}
+            onChange={(values) =>
+              onChange({ ...conditions, value: values as TMappingValue[] })
+            }
+            placeholder="タグを選択..."
+          />
+        </FormItem>
+      ) : (
+        <FormItem>
+          <Select
+            value={isArrayValue ? "" : (conditions.value as string)}
+            onValueChange={(value) =>
+              onChange({ ...conditions, value: value as TMappingValue })
+            }
+          >
+            <SelectTrigger>
+              <SelectValue>
+                {selectedTag && <TagDisplay tag={selectedTag} />}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {tags?.map((tag) => (
+                <SelectItem key={tag.id} value={tag.id}>
+                  <TagDisplay tag={tag} />
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FormItem>
+      )}
       <span>と</span>
       <FormItem>
         <Select
           value={conditions.comparator}
-          onValueChange={(value) =>
-            onChange({ ...conditions, comparator: value as TMappingComparator })
-          }
+          onValueChange={(value) => {
+            const newComparator = value as TMappingComparator;
+            const isNewMultiSelect =
+              newComparator === "contains-any" ||
+              newComparator === "contains-all";
+
+            let newValue: TMappingValue | TMappingValue[];
+            if (isNewMultiSelect && !isMultiSelect) {
+              // 単一選択から複数選択に変更
+              newValue = Array.isArray(conditions.value)
+                ? conditions.value
+                : ([conditions.value] as TMappingValue[]);
+            } else if (!isNewMultiSelect && isMultiSelect) {
+              // 複数選択から単一選択に変更
+              const arrayValue = Array.isArray(conditions.value)
+                ? conditions.value
+                : [conditions.value];
+              newValue = (arrayValue[0] ??
+                tags?.[0]?.id ??
+                PLACEHOLDER_TAG_ID) as TMappingValue;
+            } else {
+              newValue = conditions.value;
+            }
+
+            onChange({
+              ...conditions,
+              comparator: newComparator,
+              value: newValue,
+            });
+          }}
         >
           <SelectTrigger>
             <SelectValue>{comparatorLabel[conditions.comparator]}</SelectValue>
