@@ -260,14 +260,14 @@ export const ConditionsEditorNot: FC<Props<TMappingConditionNot>> = ({
 };
 
 const keysLabel = {
-  "some-tag": "いずれかのタグ",
+  "some-tag": "タグ",
 };
 
 const comparatorLabel = {
-  notEquals: "一致しない",
-  equals: "一致する",
-  "contains-any": "いずれかを含む",
-  "contains-all": "すべてを含む",
+  notEquals: "と一致しない",
+  equals: "と一致する",
+  "contains-any": "のいずれかと一致する",
+  "contains-all": "のすべてと一致する",
 };
 
 export const ConditionsEditorComparator: FC<
@@ -305,7 +305,6 @@ export const ConditionsEditorComparator: FC<
           </SelectContent>
         </Select>
       </FormItem>
-      <span>が</span>
       {isMultiSelect ? (
         <FormItem>
           <MultiSelect
@@ -345,7 +344,6 @@ export const ConditionsEditorComparator: FC<
           </Select>
         </FormItem>
       )}
-      <span>と</span>
       <FormItem>
         <Select
           value={conditions.comparator}

@@ -19,10 +19,10 @@ const keysLabel: { [key in TMappingKey]: string } = {
 };
 
 const comparatorsLabel: { [key in TMappingComparator]: string } = {
-  equals: "含む",
-  notEquals: "含まない",
-  "contains-any": "いずれかを含む",
-  "contains-all": "すべてを含む",
+  equals: "と一致する",
+  notEquals: "と一致しない",
+  "contains-any": "のいずれかと一致する",
+  "contains-all": "のすべてと一致する",
 };
 
 export const ConditionsDisplay: FC<Props> = ({ conditions, nsId }) => {
@@ -36,7 +36,6 @@ export const ConditionsDisplay: FC<Props> = ({ conditions, nsId }) => {
         <Card className="p-2 gap-1 flex flex-row items-center flex-wrap">
           <span>{keysLabel[conditions.key]}</span>
           <span>loading...</span>
-          <span>を</span>
           <span>{comparatorsLabel[conditions.comparator]}</span>
         </Card>
       );
@@ -63,7 +62,6 @@ export const ConditionsDisplay: FC<Props> = ({ conditions, nsId }) => {
               </span>
             )}
           </div>
-          <span>を</span>
           <span>{comparatorsLabel[conditions.comparator]}</span>
         </Card>
       );
@@ -78,7 +76,6 @@ export const ConditionsDisplay: FC<Props> = ({ conditions, nsId }) => {
           ) : (
             <span className="text-red-600">[削除されたタグ]</span>
           )}
-          <span>を</span>
           <span>{comparatorsLabel[conditions.comparator]}</span>
         </Card>
       );
