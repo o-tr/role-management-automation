@@ -107,6 +107,9 @@ export const ConditionsEditorOr: FC<Props<TMappingConditionOr>> = ({
   onChange,
   nsId,
 }) => {
+  const { tags } = useTags(nsId);
+  const hasTags = tags && tags.length > 0;
+
   return (
     <div className="flex flex-col space-y-1">
       {conditions.conditions.map((condition, index) => (
@@ -143,7 +146,9 @@ export const ConditionsEditorOr: FC<Props<TMappingConditionOr>> = ({
       <div>
         <Button
           type="button"
-          onClick={() =>
+          disabled={!hasTags}
+          onClick={() => {
+            if (!hasTags) return;
             onChange({
               ...conditions,
               conditions: [
@@ -152,12 +157,13 @@ export const ConditionsEditorOr: FC<Props<TMappingConditionOr>> = ({
                   type: "comparator",
                   key: "some-tag",
                   comparator: "equals",
-                  value: "some-value" as TMappingValue,
+                  value: tags[0].id as TMappingValue,
                   id: crypto.randomUUID() as TMappingConditionId,
                 },
               ],
-            })
-          }
+            });
+          }}
+          title={!hasTags ? "タグを作成してください" : undefined}
         >
           条件を追加
         </Button>
@@ -171,6 +177,9 @@ export const ConditionsEditorAnd: FC<Props<TMappingConditionAnd>> = ({
   onChange,
   nsId,
 }) => {
+  const { tags } = useTags(nsId);
+  const hasTags = tags && tags.length > 0;
+
   return (
     <div className="flex flex-col space-y-1">
       {conditions.conditions.map((condition, index) => (
@@ -207,7 +216,9 @@ export const ConditionsEditorAnd: FC<Props<TMappingConditionAnd>> = ({
       <div>
         <Button
           type="button"
-          onClick={() =>
+          disabled={!hasTags}
+          onClick={() => {
+            if (!hasTags) return;
             onChange({
               ...conditions,
               conditions: [
@@ -216,12 +227,13 @@ export const ConditionsEditorAnd: FC<Props<TMappingConditionAnd>> = ({
                   type: "comparator",
                   key: "some-tag",
                   comparator: "equals",
-                  value: "some-value" as TMappingValue,
+                  value: tags[0].id as TMappingValue,
                   id: crypto.randomUUID() as TMappingConditionId,
                 },
               ],
-            })
-          }
+            });
+          }}
+          title={!hasTags ? "タグを作成してください" : undefined}
         >
           条件を追加
         </Button>
@@ -353,9 +365,7 @@ export const ConditionsEditorComparator: FC<
               const arrayValue = Array.isArray(conditions.value)
                 ? conditions.value
                 : [conditions.value];
-              newValue = (arrayValue[0] ??
-                tags?.[0]?.id ??
-                "") as TMappingValue;
+              newValue = (arrayValue[0] ?? tags?.[0]?.id) as TMappingValue;
             } else {
               newValue = conditions.value;
             }

@@ -99,6 +99,10 @@ export type TMappingConditionNot = z.infer<typeof ZMappingConditionNot>;
 
 export type TMappingCondition = z.infer<typeof ZMappingCondition>;
 
+// プレースホルダー用の有効なUUID（実際のタグIDに置き換えられる）
+const PLACEHOLDER_TAG_ID =
+  "00000000-0000-0000-0000-000000000000" as TMappingValue;
+
 export const createNewMappingCondition = (
   type: TMappingType,
 ): TMappingCondition => {
@@ -108,7 +112,7 @@ export const createNewMappingCondition = (
         type: "comparator",
         key: "some-tag",
         comparator: "equals",
-        value: "some-value" as TMappingValue,
+        value: PLACEHOLDER_TAG_ID,
         id: crypto.randomUUID() as TMappingConditionId,
       };
     case "not":
