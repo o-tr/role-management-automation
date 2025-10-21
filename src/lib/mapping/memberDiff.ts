@@ -228,19 +228,19 @@ const evaluateConditions = (
           case "notEquals":
             return !tagIds.has(condition.value as TTagId);
           case "contains-any":
-            if (Array.isArray(condition.value)) {
-              return condition.value.some((v) => tagIds.has(v as TTagId));
+            if (!Array.isArray(condition.value)) {
+              return false;
             }
-            return tagIds.has(condition.value as TTagId);
+            return condition.value.some((v) => tagIds.has(v as TTagId));
           case "contains-all":
-            if (Array.isArray(condition.value)) {
-              // 空配列の場合は false を返す
-              if (condition.value.length === 0) {
-                return false;
-              }
-              return condition.value.every((v) => tagIds.has(v as TTagId));
+            if (!Array.isArray(condition.value)) {
+              return false;
             }
-            return tagIds.has(condition.value as TTagId);
+            // 空配列の場合は false を返す
+            if (condition.value.length === 0) {
+              return false;
+            }
+            return condition.value.every((v) => tagIds.has(v as TTagId));
           default:
             throw new Error(`Unknown comparator: ${condition.comparator}`);
         }
