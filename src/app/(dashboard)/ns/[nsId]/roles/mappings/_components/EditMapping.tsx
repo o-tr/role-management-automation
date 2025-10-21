@@ -1,4 +1,5 @@
 import type { FC } from "react";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import type {
   TMappingCondition,
@@ -16,6 +17,7 @@ import { ValidationError } from "./ValidationError";
 type Props = {
   nsId: string;
   mapping: TMapping;
+  onDirtyChange?: (isDirty: boolean) => void;
 };
 
 const convertToInput = (
@@ -36,7 +38,7 @@ const convertToInput = (
   };
 };
 
-export const EditMapping: FC<Props> = ({ nsId, mapping }) => {
+export const EditMapping: FC<Props> = ({ nsId, mapping, onDirtyChange }) => {
   const { updateServiceMapping } = useUpdateServiceMapping(nsId, mapping.id);
 
   const {
@@ -44,6 +46,7 @@ export const EditMapping: FC<Props> = ({ nsId, mapping }) => {
     actions,
     conditionErrors,
     actionErrors,
+    isDirty,
     setConditions,
     setActions,
     handleSubmit,
@@ -58,6 +61,10 @@ export const EditMapping: FC<Props> = ({ nsId, mapping }) => {
       onServiceGroupMappingChange();
     },
   });
+
+  useEffect(() => {
+    onDirtyChange?.(isDirty);
+  }, [isDirty, onDirtyChange]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">

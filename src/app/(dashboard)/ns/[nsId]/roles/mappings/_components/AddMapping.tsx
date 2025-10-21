@@ -1,6 +1,7 @@
 "use client";
 
 import type { FC } from "react";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { createNewMappingAction } from "@/types/actions";
 import {
@@ -16,9 +17,10 @@ import { ValidationError } from "./ValidationError";
 
 type Props = {
   nsId: string;
+  onDirtyChange?: (isDirty: boolean) => void;
 };
 
-export const AddMapping: FC<Props> = ({ nsId }) => {
+export const AddMapping: FC<Props> = ({ nsId, onDirtyChange }) => {
   const { createServiceMapping, loading } = useCreateServiceMapping(nsId);
 
   const {
@@ -26,6 +28,7 @@ export const AddMapping: FC<Props> = ({ nsId }) => {
     actions,
     conditionErrors,
     actionErrors,
+    isDirty,
     setConditions,
     setActions,
     handleSubmit,
@@ -40,6 +43,10 @@ export const AddMapping: FC<Props> = ({ nsId }) => {
       onServiceGroupMappingChange();
     },
   });
+
+  useEffect(() => {
+    onDirtyChange?.(isDirty);
+  }, [isDirty, onDirtyChange]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">

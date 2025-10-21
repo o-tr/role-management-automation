@@ -123,6 +123,7 @@ export const columns: TColumnDef<InternalMapping>[] = [
     cell: ({ row }) => {
       const [isModalOpen, setIsModalOpen] = useState(false);
       const [isClosing, setIsClosing] = useState(false);
+      const [isDirty, setIsDirty] = useState(false);
       useOnServiceGroupMappingChange(() => setIsModalOpen(false));
 
       return (
@@ -130,10 +131,11 @@ export const columns: TColumnDef<InternalMapping>[] = [
           <Dialog
             open={isModalOpen}
             onOpenChange={(open) => {
-              if (!open) {
+              if (!open && isDirty) {
                 setIsClosing(true);
               } else {
                 setIsModalOpen(open);
+                setIsDirty(false);
               }
             }}
           >
@@ -147,6 +149,7 @@ export const columns: TColumnDef<InternalMapping>[] = [
                   <EditMapping
                     nsId={row.original.namespaceId}
                     mapping={row.original}
+                    onDirtyChange={setIsDirty}
                   />
                 </DialogDescription>
               </DialogHeader>
@@ -165,6 +168,7 @@ export const columns: TColumnDef<InternalMapping>[] = [
                   onClick={() => {
                     setIsClosing(false);
                     setIsModalOpen(false);
+                    setIsDirty(false);
                   }}
                 >
                   破棄して閉じる

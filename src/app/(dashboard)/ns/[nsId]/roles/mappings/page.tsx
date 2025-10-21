@@ -36,6 +36,7 @@ export default function GroupTagsPage({
   const { namespace, isPending } = useNamespace({ namespaceId: params.nsId });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+  const [isDirty, setIsDirty] = useState(false);
   useOnServiceGroupMappingChange(() => setIsModalOpen(false));
 
   if (isPending || !namespace) {
@@ -48,10 +49,11 @@ export default function GroupTagsPage({
         <Dialog
           open={isModalOpen}
           onOpenChange={(open) => {
-            if (!open) {
+            if (!open && isDirty) {
               setIsClosing(true);
             } else {
               setIsModalOpen(open);
+              setIsDirty(false);
             }
           }}
         >
@@ -63,7 +65,7 @@ export default function GroupTagsPage({
               <DialogTitle>割り当てを追加</DialogTitle>
             </DialogHeader>
             <div className="flex-grow-0 overflow-y-scroll">
-              <AddMapping nsId={namespace.id} />
+              <AddMapping nsId={namespace.id} onDirtyChange={setIsDirty} />
             </div>
           </DialogContent>
         </Dialog>
@@ -80,6 +82,7 @@ export default function GroupTagsPage({
                 onClick={() => {
                   setIsClosing(false);
                   setIsModalOpen(false);
+                  setIsDirty(false);
                 }}
               >
                 破棄して閉じる
