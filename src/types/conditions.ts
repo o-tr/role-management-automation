@@ -6,12 +6,7 @@ export const ZMappingKey = z.literal("some-tag");
 export type TMappingKey = z.infer<typeof ZMappingKey>;
 export const ZMappingKeys = ["some-tag"] as const;
 
-export const ZMappingValue = ZTagId.refine(
-  (value) => value !== "00000000-0000-0000-0000-000000000000",
-  {
-    message: "プレースホルダーIDは使用できません",
-  },
-);
+export const ZMappingValue = ZTagId;
 export type TMappingValue = z.infer<typeof ZMappingValue>;
 
 export const ZMappingComparator = z.union([
@@ -116,20 +111,94 @@ export type TMappingConditionNot = z.infer<typeof ZMappingConditionNot>;
 
 export type TMappingCondition = z.infer<typeof ZMappingCondition>;
 
-// プレースホルダー用の有効なUUID（実際のタグIDに置き換えられる）
-export const PLACEHOLDER_TAG_ID =
-  "00000000-0000-0000-0000-000000000000" as TMappingValue;
+// 入力受付用の型定義（値がundefined可能）
+export const ZMappingConditionComparatorInput = z.lazy(() =>
+  z
+    .object({
+      id: ZMappingConditionId,
+      type: z.literal("comparator"),
+      key: ZMappingKey.optional(),
+      comparator: ZMappingComparator.optional(),
+      value: z.union([ZMappingValue, z.array(ZMappingValue)]).optional(),
+    })
+    .refine(
+      (data) => {
+        if (data.value && Array.isArray(data.value)) {
+          return data.value.length > 0;
+        }
+        return true;
+      },
+      {
+        message: "タグを選択してください",
+      },
+    ),
+);
+export type TMappingConditionComparatorInput = z.infer<
+  typeof ZMappingConditionComparatorInput
+>;
+
+export const ZMappingConditionAndInput = z.lazy(() =>
+  z.object({
+    id: ZMappingConditionId,
+    type: z.literal("and"),
+    conditions: z.array(ZMappingConditionInput).default([]),
+  }),
+);
+export type TMappingConditionAndInput = z.infer<
+  typeof ZMappingConditionAndInput
+>;
+
+export const ZMappingConditionOrInput = z.lazy(() =>
+  z.object({
+    id: ZMappingConditionId,
+    type: z.literal("or"),
+    conditions: z.array(ZMappingConditionInput).default([]),
+  }),
+);
+export type TMappingConditionOrInput = z.infer<typeof ZMappingConditionOrInput>;
+
+export const ZMappingConditionInput = zodRecursive((self) =>
+  z.union([
+    ZMappingConditionComparatorInput,
+    z.object({
+      id: ZMappingConditionId,
+      type: z.literal("not"),
+      condition: self,
+    }),
+    z.object({
+      id: ZMappingConditionId,
+      type: z.literal("and"),
+      conditions: z.array(self).default([]),
+    }),
+    z.object({
+      id: ZMappingConditionId,
+      type: z.literal("or"),
+      conditions: z.array(self).default([]),
+    }),
+  ]),
+);
+
+export const ZMappingConditionNotInput = z.object({
+  id: ZMappingConditionId,
+  type: z.literal("not"),
+  condition: ZMappingConditionInput,
+});
+export type TMappingConditionNotInput = z.infer<
+  typeof ZMappingConditionNotInput
+>;
+
+export type TMappingConditionInput = z.infer<typeof ZMappingConditionInput>;
 
 export const createNewMappingCondition = (
   type: TMappingType,
-): TMappingCondition => {
+): TMappingConditionInput => {
   switch (type) {
     case "comparator":
       return {
         type: "comparator",
-        key: "some-tag",
-        comparator: "equals",
-        value: undefined as TMappingValue, // バリデーションで必須チェック
+        key: undefined,
+        comparator: undefined,
+        value: undefined,
         id: crypto.randomUUID() as TMappingConditionId,
       };
     case "not":

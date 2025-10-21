@@ -20,8 +20,6 @@ export const validateConditions = (conditions: TMappingCondition): string[] => {
       case "comparator":
         if (condition.value === undefined) {
           errors.push(`${path}タグを選択してください`);
-        } else if (condition.value === "00000000-0000-0000-0000-000000000000") {
-          errors.push(`${path}プレースホルダーIDは使用できません`);
         } else if (
           Array.isArray(condition.value) &&
           condition.value.length === 0

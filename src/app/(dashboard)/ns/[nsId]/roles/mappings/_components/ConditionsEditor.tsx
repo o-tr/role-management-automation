@@ -12,12 +12,12 @@ import {
 import {
   createNewMappingCondition,
   type TMappingComparator,
-  type TMappingCondition,
-  type TMappingConditionAnd,
-  type TMappingConditionComparator,
+  type TMappingConditionAndInput,
+  type TMappingConditionComparatorInput,
   type TMappingConditionId,
-  type TMappingConditionNot,
-  type TMappingConditionOr,
+  type TMappingConditionInput,
+  type TMappingConditionNotInput,
+  type TMappingConditionOrInput,
   type TMappingKey,
   type TMappingType,
   type TMappingValue,
@@ -30,7 +30,7 @@ import { MultipleTagPicker } from "../../../components/MultipleTagPicker";
 import { TagDisplay } from "../../../components/TagDisplay";
 import { useTags } from "../../_hooks/use-tags";
 
-type Props<T extends TMappingCondition> = {
+type Props<T extends TMappingConditionInput> = {
   nsId: string;
   conditions: T;
   onChange: (conditions: T) => void;
@@ -43,7 +43,7 @@ const typesLabel: { [key in TMappingType]: string } = {
   or: "または",
 };
 
-export const ConditionsEditor: FC<Props<TMappingCondition>> = ({
+export const ConditionsEditor: FC<Props<TMappingConditionInput>> = ({
   conditions,
   onChange,
   nsId,
@@ -73,28 +73,28 @@ export const ConditionsEditor: FC<Props<TMappingCondition>> = ({
       </FormItem>
       {conditions.type === "comparator" && (
         <ConditionsEditorComparator
-          conditions={conditions as TMappingConditionComparator}
+          conditions={conditions as TMappingConditionComparatorInput}
           onChange={(value) => onChange(value)}
           nsId={nsId}
         />
       )}
       {conditions.type === "not" && (
         <ConditionsEditorNot
-          conditions={conditions as TMappingConditionNot}
+          conditions={conditions as TMappingConditionNotInput}
           onChange={(value) => onChange(value)}
           nsId={nsId}
         />
       )}
       {conditions.type === "and" && (
         <ConditionsEditorAnd
-          conditions={conditions as TMappingConditionAnd}
+          conditions={conditions as TMappingConditionAndInput}
           onChange={(value) => onChange(value)}
           nsId={nsId}
         />
       )}
       {conditions.type === "or" && (
         <ConditionsEditorOr
-          conditions={conditions as TMappingConditionOr}
+          conditions={conditions as TMappingConditionOrInput}
           onChange={(value) => onChange(value)}
           nsId={nsId}
         />
@@ -103,7 +103,7 @@ export const ConditionsEditor: FC<Props<TMappingCondition>> = ({
   );
 };
 
-export const ConditionsEditorOr: FC<Props<TMappingConditionOr>> = ({
+export const ConditionsEditorOr: FC<Props<TMappingConditionOrInput>> = ({
   conditions,
   onChange,
   nsId,
@@ -158,7 +158,7 @@ export const ConditionsEditorOr: FC<Props<TMappingConditionOr>> = ({
                   type: "comparator",
                   key: "some-tag",
                   comparator: "equals",
-                  value: undefined as TMappingValue,
+                  value: undefined,
                   id: crypto.randomUUID() as TMappingConditionId,
                 },
               ],
@@ -173,7 +173,7 @@ export const ConditionsEditorOr: FC<Props<TMappingConditionOr>> = ({
   );
 };
 
-export const ConditionsEditorAnd: FC<Props<TMappingConditionAnd>> = ({
+export const ConditionsEditorAnd: FC<Props<TMappingConditionAndInput>> = ({
   conditions,
   onChange,
   nsId,
@@ -228,7 +228,7 @@ export const ConditionsEditorAnd: FC<Props<TMappingConditionAnd>> = ({
                   type: "comparator",
                   key: "some-tag",
                   comparator: "equals",
-                  value: undefined as TMappingValue,
+                  value: undefined,
                   id: crypto.randomUUID() as TMappingConditionId,
                 },
               ],
@@ -243,7 +243,7 @@ export const ConditionsEditorAnd: FC<Props<TMappingConditionAnd>> = ({
   );
 };
 
-export const ConditionsEditorNot: FC<Props<TMappingConditionNot>> = ({
+export const ConditionsEditorNot: FC<Props<TMappingConditionNotInput>> = ({
   conditions,
   onChange,
   nsId,
@@ -271,7 +271,7 @@ const comparatorLabel = {
 };
 
 export const ConditionsEditorComparator: FC<
-  Props<TMappingConditionComparator>
+  Props<TMappingConditionComparatorInput>
 > = ({ conditions, onChange, nsId }) => {
   const { tags } = useTags(nsId);
 
@@ -288,13 +288,15 @@ export const ConditionsEditorComparator: FC<
     <div className="flex flex-row space-x-1 items-center p-1">
       <FormItem>
         <Select
-          value={conditions.key}
+          value={conditions.key || "some-tag"}
           onValueChange={(value) =>
             onChange({ ...conditions, key: value as TMappingKey })
           }
         >
           <SelectTrigger>
-            <SelectValue>{keysLabel[conditions.key]}</SelectValue>
+            <SelectValue>
+              {conditions.key ? keysLabel[conditions.key] : ""}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {ZMappingKeys.map((key) => (
@@ -351,19 +353,23 @@ export const ConditionsEditorComparator: FC<
       <span>と</span>
       <FormItem>
         <Select
-          value={conditions.comparator}
+          value={conditions.comparator || "equals"}
           onValueChange={(value) => {
             const newComparator = value as TMappingComparator;
             const isNewMultiSelect =
               newComparator === "contains-any" ||
               newComparator === "contains-all";
 
-            let newValue: TMappingValue | TMappingValue[];
+            let newValue: TMappingValue | TMappingValue[] | undefined;
             if (isNewMultiSelect && !isMultiSelect) {
               // 単一選択から複数選択に変更
-              newValue = Array.isArray(conditions.value)
-                ? conditions.value
-                : ([conditions.value] as TMappingValue[]);
+              if (Array.isArray(conditions.value)) {
+                newValue = conditions.value;
+              } else if (conditions.value !== undefined) {
+                newValue = [conditions.value] as TMappingValue[];
+              } else {
+                newValue = [] as TMappingValue[];
+              }
             } else if (!isNewMultiSelect && isMultiSelect) {
               // 複数選択から単一選択に変更
               const arrayValue = Array.isArray(conditions.value)
@@ -373,18 +379,25 @@ export const ConditionsEditorComparator: FC<
                 tags?.[0]?.id ??
                 undefined) as TMappingValue;
             } else {
-              newValue = conditions.value;
+              newValue = conditions.value as
+                | TMappingValue
+                | TMappingValue[]
+                | undefined;
             }
 
             onChange({
               ...conditions,
               comparator: newComparator,
-              value: newValue,
+              value: newValue as TMappingValue | TMappingValue[] | undefined,
             });
           }}
         >
           <SelectTrigger>
-            <SelectValue>{comparatorLabel[conditions.comparator]}</SelectValue>
+            <SelectValue>
+              {conditions.comparator
+                ? comparatorLabel[conditions.comparator]
+                : ""}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {ZMappingComparators.map((key) => (
