@@ -373,9 +373,7 @@ export const ConditionsEditorComparator: FC<
               const arrayValue = Array.isArray(conditions.value)
                 ? conditions.value
                 : [conditions.value];
-              newValue = (arrayValue[0] ??
-                tags?.[0]?.id ??
-                undefined) as TMappingValue;
+              newValue = (arrayValue[0] ?? undefined) as TMappingValue;
             } else {
               newValue = conditions.value as
                 | TMappingValue
