@@ -1,6 +1,13 @@
 "use client";
 import { useState } from "react";
 import { BreadcrumbUpdater } from "@/app/(dashboard)/ns/[nsId]/components/Breadcrumb/BreadcrumbUpdater";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -28,6 +35,7 @@ export default function GroupTagsPage({
 }) {
   const { namespace, isPending } = useNamespace({ namespaceId: params.nsId });
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   useOnServiceGroupMappingChange(() => setIsModalOpen(false));
 
   if (isPending || !namespace) {
@@ -41,11 +49,10 @@ export default function GroupTagsPage({
           open={isModalOpen}
           onOpenChange={(open) => {
             if (!open) {
-              // 閉じる前にバリデーション（AddMappingコンポーネント内の状態を直接チェックできないため、
-              // ここでは基本的なチェックのみ）
-              // 実際のバリデーションはAddMappingコンポーネント内で行われる
+              setIsClosing(true);
+            } else {
+              setIsModalOpen(open);
             }
-            setIsModalOpen(open);
           }}
         >
           <DialogTrigger asChild>
@@ -60,6 +67,29 @@ export default function GroupTagsPage({
             </div>
           </DialogContent>
         </Dialog>
+        <AlertDialog open={isClosing} onOpenChange={setIsClosing}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                変更が保存されていませんが、閉じてもよろしいですか？
+              </AlertDialogTitle>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setIsClosing(false);
+                  setIsModalOpen(false);
+                }}
+              >
+                破棄して閉じる
+              </Button>
+              <Button variant="outline" onClick={() => setIsClosing(false)}>
+                キャンセル
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
         <Compare nsId={namespace.id} />
       </div>
       <MappingList namespaceId={namespace.id} />

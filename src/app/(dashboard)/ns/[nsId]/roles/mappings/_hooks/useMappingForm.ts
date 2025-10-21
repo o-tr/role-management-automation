@@ -25,9 +25,11 @@ type UseMappingFormReturn = {
   actions: TMappingAction[];
   conditionErrors: string[];
   actionErrors: string[];
+  isDirty: boolean;
   setConditions: (conditions: TMappingConditionInput) => void;
   setActions: Dispatch<SetStateAction<TMappingAction[]>>;
   handleSubmit: (e: FormEvent) => Promise<void>;
+  resetForm: () => void;
 };
 
 export const useMappingForm = ({
@@ -40,9 +42,11 @@ export const useMappingForm = ({
   const [actions, setActionsState] = useState<TMappingAction[]>(initialActions);
   const [conditionErrors, setConditionErrors] = useState<string[]>([]);
   const [actionErrors, setActionErrors] = useState<string[]>([]);
+  const [isDirty, setIsDirty] = useState(false);
 
   const setConditions = (newConditions: TMappingConditionInput) => {
     setConditionsState(newConditions);
+    setIsDirty(true);
     // 条件変更時にエラーをクリア
     if (conditionErrors.length > 0) {
       setConditionErrors([]);
@@ -53,10 +57,19 @@ export const useMappingForm = ({
     newActions,
   ) => {
     setActionsState(newActions);
+    setIsDirty(true);
     // アクション変更時にエラーをクリア
     if (actionErrors.length > 0) {
       setActionErrors([]);
     }
+  };
+
+  const resetForm = () => {
+    setConditionsState(initialConditions);
+    setActionsState(initialActions);
+    setConditionErrors([]);
+    setActionErrors([]);
+    setIsDirty(false);
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -74,6 +87,7 @@ export const useMappingForm = ({
     }
 
     await onSubmit({ conditions, actions });
+    setIsDirty(false);
   };
 
   return {
@@ -81,8 +95,10 @@ export const useMappingForm = ({
     actions,
     conditionErrors,
     actionErrors,
+    isDirty,
     setConditions,
     setActions,
     handleSubmit,
+    resetForm,
   };
 };

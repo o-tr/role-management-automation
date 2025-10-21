@@ -10,6 +10,13 @@ import {
   type TColumnDef,
 } from "@/app/(dashboard)/ns/[nsId]/components/DataTable";
 import { useMappings } from "@/app/(dashboard)/ns/[nsId]/roles/_hooks/use-mappings";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -115,6 +122,7 @@ export const columns: TColumnDef<InternalMapping>[] = [
     id: "buttons",
     cell: ({ row }) => {
       const [isModalOpen, setIsModalOpen] = useState(false);
+      const [isClosing, setIsClosing] = useState(false);
       useOnServiceGroupMappingChange(() => setIsModalOpen(false));
 
       return (
@@ -123,11 +131,10 @@ export const columns: TColumnDef<InternalMapping>[] = [
             open={isModalOpen}
             onOpenChange={(open) => {
               if (!open) {
-                // 閉じる前にバリデーション（EditMappingコンポーネント内の状態を直接チェックできないため、
-                // ここでは基本的なチェックのみ）
-                // 実際のバリデーションはEditMappingコンポーネント内で行われる
+                setIsClosing(true);
+              } else {
+                setIsModalOpen(open);
               }
-              setIsModalOpen(open);
             }}
           >
             <DialogTrigger asChild>
@@ -145,6 +152,29 @@ export const columns: TColumnDef<InternalMapping>[] = [
               </DialogHeader>
             </DialogContent>
           </Dialog>
+          <AlertDialog open={isClosing} onOpenChange={setIsClosing}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  変更が保存されていませんが、閉じてもよろしいですか？
+                </AlertDialogTitle>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsClosing(false);
+                    setIsModalOpen(false);
+                  }}
+                >
+                  破棄して閉じる
+                </Button>
+                <Button variant="outline" onClick={() => setIsClosing(false)}>
+                  キャンセル
+                </Button>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           <Button
             variant="outline"
             onClick={async () => {

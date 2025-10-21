@@ -43,20 +43,20 @@ export const AddMapping: FC<Props> = ({ nsId }) => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <span>以下の条件に一致するとき、</span>
+      <fieldset>
+        <legend>以下の条件に一致するとき、</legend>
         <ConditionsEditor
           conditions={conditions}
           onChange={setConditions}
           nsId={nsId}
         />
         <ValidationError errors={conditionErrors} title="条件のエラー" />
-      </div>
-      <div>
-        <span>以下のアクションを実行する</span>
+      </fieldset>
+      <fieldset>
+        <legend>以下のアクションを実行する</legend>
         <ActionsEditor actions={actions} onChange={setActions} nsId={nsId} />
         <ValidationError errors={actionErrors} title="アクションのエラー" />
-      </div>
+      </fieldset>
       <Button disabled={loading} type="submit">
         作成
       </Button>
