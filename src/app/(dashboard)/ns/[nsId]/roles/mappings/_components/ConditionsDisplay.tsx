@@ -5,6 +5,7 @@ import type {
   TMappingCondition,
   TMappingKey,
 } from "@/types/conditions";
+import type { TTagId } from "@/types/prisma";
 import { TagDisplay } from "../../../components/TagDisplay";
 import { useTags } from "../../_hooks/use-tags";
 
@@ -45,7 +46,9 @@ export const ConditionsDisplay: FC<Props> = ({ conditions, nsId }) => {
       const valueArray = conditions.value as string[];
       const selectedTags = tags?.filter((t) => valueArray.includes(t.id)) || [];
       const tagIdSet = new Set(tags?.map((t) => t.id) || []);
-      const missingTags = valueArray.filter((id: string) => !tagIdSet.has(id));
+      const missingTags = valueArray.filter(
+        (id: string) => !tagIdSet.has(id as TTagId),
+      );
 
       return (
         <Card className="p-2 gap-1 flex flex-row items-center flex-wrap">

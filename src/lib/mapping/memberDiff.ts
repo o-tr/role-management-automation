@@ -13,6 +13,7 @@ import type {
   TMapping,
   TMemberWithRelation,
   TTag,
+  TTagId,
 } from "@/types/prisma";
 
 export type TargetGroup = {
@@ -223,19 +224,19 @@ const evaluateConditions = (
       case "some-tag":
         switch (condition.comparator) {
           case "equals":
-            return tagIds.has(condition.value);
+            return tagIds.has(condition.value as TTagId);
           case "notEquals":
-            return !tagIds.has(condition.value);
+            return !tagIds.has(condition.value as TTagId);
           case "contains-any":
             if (Array.isArray(condition.value)) {
-              return condition.value.some((v) => tagIds.has(v));
+              return condition.value.some((v) => tagIds.has(v as TTagId));
             }
-            return tagIds.has(condition.value);
+            return tagIds.has(condition.value as TTagId);
           case "contains-all":
             if (Array.isArray(condition.value)) {
-              return condition.value.every((v) => tagIds.has(v));
+              return condition.value.every((v) => tagIds.has(v as TTagId));
             }
-            return tagIds.has(condition.value);
+            return tagIds.has(condition.value as TTagId);
           default:
             throw new Error(`Unknown comparator: ${condition.comparator}`);
         }
