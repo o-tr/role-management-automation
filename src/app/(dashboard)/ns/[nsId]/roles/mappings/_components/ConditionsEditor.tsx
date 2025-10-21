@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/select";
 import {
   createNewMappingCondition,
+  PLACEHOLDER_TAG_ID,
   type TMappingComparator,
   type TMappingCondition,
   type TMappingConditionAnd,
@@ -365,7 +366,9 @@ export const ConditionsEditorComparator: FC<
               const arrayValue = Array.isArray(conditions.value)
                 ? conditions.value
                 : [conditions.value];
-              newValue = (arrayValue[0] ?? tags?.[0]?.id) as TMappingValue;
+              newValue = (arrayValue[0] ??
+                tags?.[0]?.id ??
+                PLACEHOLDER_TAG_ID) as TMappingValue;
             } else {
               newValue = conditions.value;
             }
