@@ -20,27 +20,57 @@ const keysLabel: { [key in TMappingKey]: string } = {
 const comparatorsLabel: { [key in TMappingComparator]: string } = {
   equals: "含む",
   notEquals: "含まない",
+  "contains-any": "いずれかを含む",
+  "contains-all": "すべてを含む",
 };
 
 export const ConditionsDisplay: FC<Props> = ({ conditions, nsId }) => {
   const { tags, isPending } = useTags(nsId);
   if (conditions.type === "comparator") {
-    const tag = tags?.find((t) => t.id === conditions.value);
+    const isArrayValue = Array.isArray(conditions.value);
 
-    return (
-      <Card className="p-2 gap-1 flex flex-row items-center flex-wrap">
-        <span>{keysLabel[conditions.key]}</span>
-        {tag ? (
-          <TagDisplay tag={tag} display="inline" />
-        ) : isPending ? (
-          <span>loading...</span>
-        ) : (
-          <span className="text-red-600">[削除されたタグ]</span>
-        )}
-        <span>を</span>
-        <span>{comparatorsLabel[conditions.comparator]}</span>
-      </Card>
-    );
+    if (isArrayValue) {
+      const selectedTags =
+        tags?.filter((t) => conditions.value.includes(t.id)) || [];
+      const missingTags = conditions.value.filter(
+        (id) => !tags?.some((t) => t.id === id),
+      );
+
+      return (
+        <Card className="p-2 gap-1 flex flex-row items-center flex-wrap">
+          <span>{keysLabel[conditions.key]}</span>
+          <div className="flex flex-wrap gap-1">
+            {selectedTags.map((tag) => (
+              <TagDisplay key={tag.id} tag={tag} display="inline" />
+            ))}
+            {missingTags.length > 0 && (
+              <span className="text-red-600">
+                [削除されたタグ: {missingTags.length}個]
+              </span>
+            )}
+          </div>
+          <span>を</span>
+          <span>{comparatorsLabel[conditions.comparator]}</span>
+        </Card>
+      );
+    } else {
+      const tag = tags?.find((t) => t.id === conditions.value);
+
+      return (
+        <Card className="p-2 gap-1 flex flex-row items-center flex-wrap">
+          <span>{keysLabel[conditions.key]}</span>
+          {tag ? (
+            <TagDisplay tag={tag} display="inline" />
+          ) : isPending ? (
+            <span>loading...</span>
+          ) : (
+            <span className="text-red-600">[削除されたタグ]</span>
+          )}
+          <span>を</span>
+          <span>{comparatorsLabel[conditions.comparator]}</span>
+        </Card>
+      );
+    }
   }
   if (conditions.type === "and") {
     return (

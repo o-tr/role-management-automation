@@ -12,9 +12,16 @@ export type TMappingValue = z.infer<typeof ZMappingValue>;
 export const ZMappingComparator = z.union([
   z.literal("notEquals"),
   z.literal("equals"),
+  z.literal("contains-any"),
+  z.literal("contains-all"),
 ]);
 export type TMappingComparator = z.infer<typeof ZMappingComparator>;
-export const ZMappingComparators = ["notEquals", "equals"] as const;
+export const ZMappingComparators = [
+  "notEquals",
+  "equals",
+  "contains-any",
+  "contains-all",
+] as const;
 
 export const ZMappingType = z.union([
   z.literal("comparator"),
@@ -37,7 +44,7 @@ export const ZMappingConditionComparator = z.lazy(() =>
     type: z.literal("comparator"),
     key: ZMappingKey,
     comparator: ZMappingComparator,
-    value: ZMappingValue,
+    value: z.union([ZMappingValue, z.array(ZMappingValue)]),
   }),
 );
 export type TMappingConditionComparator = z.infer<

@@ -218,7 +218,24 @@ const evaluateConditions = (
 ): boolean => {
   if (condition.type === "comparator") {
     if (condition.key === "some-tag") {
-      return tags.some((tag) => tag.id === condition.value);
+      if (condition.comparator === "equals") {
+        return tags.some((tag) => tag.id === condition.value);
+      }
+      if (condition.comparator === "notEquals") {
+        return !tags.some((tag) => tag.id === condition.value);
+      }
+      if (condition.comparator === "contains-any") {
+        if (Array.isArray(condition.value)) {
+          return condition.value.some((v) => tags.some((tag) => tag.id === v));
+        }
+        return tags.some((tag) => tag.id === condition.value);
+      }
+      if (condition.comparator === "contains-all") {
+        if (Array.isArray(condition.value)) {
+          return condition.value.every((v) => tags.some((tag) => tag.id === v));
+        }
+        return tags.some((tag) => tag.id === condition.value);
+      }
     }
     throw new Error("Unknown key");
   }

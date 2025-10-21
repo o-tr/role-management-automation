@@ -1,4 +1,5 @@
 import type { FC } from "react";
+import { MultiSelect } from "@/components/MultiSelect";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FormItem } from "@/components/ui/form";
@@ -252,6 +253,8 @@ const keysLabel = {
 const comparatorLabel = {
   notEquals: "一致しない",
   equals: "一致する",
+  "contains-any": "いずれかを含む",
+  "contains-all": "すべてを含む",
 };
 
 export const ConditionsEditorComparator: FC<
@@ -259,7 +262,14 @@ export const ConditionsEditorComparator: FC<
 > = ({ conditions, onChange, nsId }) => {
   const { tags } = useTags(nsId);
 
-  const selectedTag = tags?.find((tag) => tag.id === conditions.value);
+  const isArrayValue = Array.isArray(conditions.value);
+  const selectedTag = isArrayValue
+    ? null
+    : tags?.find((tag) => tag.id === conditions.value);
+
+  const isMultiSelect =
+    conditions.comparator === "contains-any" ||
+    conditions.comparator === "contains-all";
 
   return (
     <div className="flex flex-row space-x-1 items-center p-1">
@@ -283,34 +293,80 @@ export const ConditionsEditorComparator: FC<
         </Select>
       </FormItem>
       <span>が</span>
-      <FormItem>
-        <Select
-          value={conditions.value}
-          onValueChange={(value) =>
-            onChange({ ...conditions, value: value as TMappingValue })
-          }
-        >
-          <SelectTrigger>
-            <SelectValue>
-              {selectedTag && <TagDisplay tag={selectedTag} />}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {tags?.map((tag) => (
-              <SelectItem key={tag.id} value={tag.id}>
-                <TagDisplay tag={tag} />
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </FormItem>
+      {isMultiSelect ? (
+        <FormItem>
+          <MultiSelect
+            options={
+              tags?.map((tag) => ({
+                value: tag.id,
+                label: tag.name,
+                icon: <TagDisplay tag={tag} display="inline" />,
+              })) || []
+            }
+            value={isArrayValue ? conditions.value : []}
+            onChange={(values) =>
+              onChange({ ...conditions, value: values as TMappingValue[] })
+            }
+            placeholder="タグを選択..."
+          />
+        </FormItem>
+      ) : (
+        <FormItem>
+          <Select
+            value={isArrayValue ? "" : conditions.value}
+            onValueChange={(value) =>
+              onChange({ ...conditions, value: value as TMappingValue })
+            }
+          >
+            <SelectTrigger>
+              <SelectValue>
+                {selectedTag && <TagDisplay tag={selectedTag} />}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {tags?.map((tag) => (
+                <SelectItem key={tag.id} value={tag.id}>
+                  <TagDisplay tag={tag} />
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FormItem>
+      )}
       <span>と</span>
       <FormItem>
         <Select
           value={conditions.comparator}
-          onValueChange={(value) =>
-            onChange({ ...conditions, comparator: value as TMappingComparator })
-          }
+          onValueChange={(value) => {
+            const newComparator = value as TMappingComparator;
+            const isNewMultiSelect =
+              newComparator === "contains-any" ||
+              newComparator === "contains-all";
+            const isCurrentMultiSelect =
+              conditions.comparator === "contains-any" ||
+              conditions.comparator === "contains-all";
+
+            let newValue: TMappingValue | TMappingValue[];
+            if (isNewMultiSelect && !isCurrentMultiSelect) {
+              // 単一選択から複数選択に変更
+              newValue = Array.isArray(conditions.value)
+                ? conditions.value
+                : [conditions.value];
+            } else if (!isNewMultiSelect && isCurrentMultiSelect) {
+              // 複数選択から単一選択に変更
+              newValue = Array.isArray(conditions.value)
+                ? conditions.value[0] || ""
+                : conditions.value;
+            } else {
+              newValue = conditions.value;
+            }
+
+            onChange({
+              ...conditions,
+              comparator: newComparator,
+              value: newValue,
+            });
+          }}
         >
           <SelectTrigger>
             <SelectValue>{comparatorLabel[conditions.comparator]}</SelectValue>
