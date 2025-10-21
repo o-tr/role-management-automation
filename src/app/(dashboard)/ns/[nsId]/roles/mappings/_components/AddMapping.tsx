@@ -3,7 +3,10 @@
 import type { FC } from "react";
 import { Button } from "@/components/ui/button";
 import { createNewMappingAction } from "@/types/actions";
-import { createNewMappingCondition } from "@/types/conditions";
+import {
+  convertInputToCondition,
+  createNewMappingCondition,
+} from "@/types/conditions";
 import { onServiceGroupMappingChange } from "../../_hooks/on-mappings-change";
 import { useCreateServiceMapping } from "../../_hooks/use-create-service-mapping";
 import { useMappingForm } from "../_hooks/useMappingForm";
@@ -30,7 +33,10 @@ export const AddMapping: FC<Props> = ({ nsId }) => {
     initialConditions: createNewMappingCondition("comparator"),
     initialActions: [createNewMappingAction("add")],
     onSubmit: async ({ conditions, actions }) => {
-      await createServiceMapping({ conditions, actions });
+      await createServiceMapping({
+        conditions: convertInputToCondition(conditions),
+        actions,
+      });
       onServiceGroupMappingChange();
     },
   });

@@ -227,3 +227,57 @@ export const createNewMappingCondition = (
       };
   }
 };
+
+// ZMappingConditionInputからZMappingConditionへの変換関数
+export const convertInputToCondition = (
+  input: TMappingConditionInput,
+): TMappingCondition => {
+  if (input.type === "comparator") {
+    if (!input.comparator || !input.value) {
+      throw new Error("Invalid condition: comparator and value are required");
+    }
+    return {
+      id: input.id,
+      type: "comparator",
+      key: input.key,
+      comparator: input.comparator,
+      value: input.value,
+    };
+  }
+
+  if (input.type === "not") {
+    return {
+      id: input.id,
+      type: "not",
+      condition: convertInputToCondition(input.condition),
+    };
+  }
+
+  if (input.type === "and") {
+    if (!input.conditions) {
+      throw new Error(
+        "Invalid condition: conditions array is required for 'and' type",
+      );
+    }
+    return {
+      id: input.id,
+      type: "and",
+      conditions: input.conditions.map(convertInputToCondition),
+    };
+  }
+
+  if (input.type === "or") {
+    if (!input.conditions) {
+      throw new Error(
+        "Invalid condition: conditions array is required for 'or' type",
+      );
+    }
+    return {
+      id: input.id,
+      type: "or",
+      conditions: input.conditions.map(convertInputToCondition),
+    };
+  }
+
+  throw new Error("Invalid condition type");
+};

@@ -4,6 +4,7 @@ import type {
   TMappingCondition,
   TMappingConditionInput,
 } from "@/types/conditions";
+import { convertInputToCondition } from "@/types/conditions";
 import type { TMapping } from "@/types/prisma";
 import { onServiceGroupMappingChange } from "../../_hooks/on-mappings-change";
 import { useUpdateServiceMapping } from "../../_hooks/use-update-service-mapping";
@@ -53,7 +54,10 @@ export const EditMapping: FC<Props> = ({ nsId, mapping }) => {
     initialConditions: convertToInput(mapping.conditions),
     initialActions: mapping.actions,
     onSubmit: async ({ conditions, actions }) => {
-      await updateServiceMapping({ conditions, actions });
+      await updateServiceMapping({
+        conditions: convertInputToCondition(conditions),
+        actions,
+      });
       onServiceGroupMappingChange();
     },
   });
