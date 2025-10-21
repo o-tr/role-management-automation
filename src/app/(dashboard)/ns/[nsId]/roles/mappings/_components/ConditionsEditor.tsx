@@ -29,6 +29,7 @@ import type { TTagId } from "@/types/prisma";
 import { MultipleTagPicker } from "../../../components/MultipleTagPicker";
 import { TagDisplay } from "../../../components/TagDisplay";
 import { useTags } from "../../_hooks/use-tags";
+import { comparatorsLabel, keysLabel } from "./labels";
 
 type Props<T extends TMappingConditionInput> = {
   nsId: string;
@@ -259,17 +260,6 @@ export const ConditionsEditorNot: FC<Props<TMappingConditionNotInput>> = ({
   );
 };
 
-const keysLabel = {
-  "some-tag": "いずれかのタグ",
-};
-
-const comparatorLabel = {
-  notEquals: "一致しない",
-  equals: "一致する",
-  "contains-any": "いずれかを含む",
-  "contains-all": "すべてを含む",
-};
-
 export const ConditionsEditorComparator: FC<
   Props<TMappingConditionComparatorInput>
 > = ({ conditions, onChange, nsId }) => {
@@ -305,7 +295,6 @@ export const ConditionsEditorComparator: FC<
           </SelectContent>
         </Select>
       </FormItem>
-      <span>が</span>
       {isMultiSelect ? (
         <FormItem className="min-w-[200px] max-w-[500px] flex-shrink">
           <MultipleTagPicker
@@ -348,7 +337,6 @@ export const ConditionsEditorComparator: FC<
           </Select>
         </FormItem>
       )}
-      <span>と</span>
       <FormItem>
         <Select
           value={conditions.comparator ?? ""}
@@ -391,14 +379,14 @@ export const ConditionsEditorComparator: FC<
           <SelectTrigger>
             <SelectValue>
               {conditions.comparator
-                ? comparatorLabel[conditions.comparator]
+                ? comparatorsLabel[conditions.comparator]
                 : "選択してください"}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {ZMappingComparators.map((key) => (
               <SelectItem key={key} value={key}>
-                {comparatorLabel[key]}
+                {comparatorsLabel[key]}
               </SelectItem>
             ))}
           </SelectContent>
