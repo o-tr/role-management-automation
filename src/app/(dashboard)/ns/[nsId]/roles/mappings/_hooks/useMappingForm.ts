@@ -26,7 +26,7 @@ type UseMappingFormReturn = {
   conditionErrors: string[];
   actionErrors: string[];
   isDirty: boolean;
-  setConditions: (conditions: TMappingConditionInput) => void;
+  setConditions: Dispatch<SetStateAction<TMappingConditionInput>>;
   setActions: Dispatch<SetStateAction<TMappingAction[]>>;
   handleSubmit: (e: FormEvent) => Promise<void>;
   resetForm: () => void;
@@ -44,7 +44,9 @@ export const useMappingForm = ({
   const [actionErrors, setActionErrors] = useState<string[]>([]);
   const [isDirty, setIsDirty] = useState(false);
 
-  const setConditions = (newConditions: TMappingConditionInput) => {
+  const setConditions: Dispatch<SetStateAction<TMappingConditionInput>> = (
+    newConditions,
+  ) => {
     setConditionsState(newConditions);
     setIsDirty(true);
     // 条件変更時にエラーをクリア

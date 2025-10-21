@@ -254,28 +254,18 @@ export const convertInputToCondition = (
   }
 
   if (input.type === "and") {
-    if (!input.conditions) {
-      throw new Error(
-        "Invalid condition: conditions array is required for 'and' type",
-      );
-    }
     return {
       id: input.id,
       type: "and",
-      conditions: input.conditions.map(convertInputToCondition),
+      conditions: (input.conditions ?? []).map(convertInputToCondition),
     };
   }
 
   if (input.type === "or") {
-    if (!input.conditions) {
-      throw new Error(
-        "Invalid condition: conditions array is required for 'or' type",
-      );
-    }
     return {
       id: input.id,
       type: "or",
-      conditions: input.conditions.map(convertInputToCondition),
+      conditions: (input.conditions ?? []).map(convertInputToCondition),
     };
   }
 
