@@ -18,6 +18,9 @@ export const validateConditions = (conditions: TMappingCondition): string[] => {
   ): void => {
     switch (condition.type) {
       case "comparator":
+        if (!condition.comparator) {
+          errors.push(`${path}比較方法を選択してください`);
+        }
         if (condition.value === undefined) {
           errors.push(`${path}タグを選択してください`);
         } else if (

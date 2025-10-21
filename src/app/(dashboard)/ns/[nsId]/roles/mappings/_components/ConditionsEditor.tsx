@@ -157,7 +157,7 @@ export const ConditionsEditorOr: FC<Props<TMappingConditionOrInput>> = ({
                 {
                   type: "comparator",
                   key: "some-tag",
-                  comparator: "equals",
+                  comparator: undefined,
                   value: undefined,
                   id: crypto.randomUUID() as TMappingConditionId,
                 },
@@ -227,7 +227,7 @@ export const ConditionsEditorAnd: FC<Props<TMappingConditionAndInput>> = ({
                 {
                   type: "comparator",
                   key: "some-tag",
-                  comparator: "equals",
+                  comparator: undefined,
                   value: undefined,
                   id: crypto.randomUUID() as TMappingConditionId,
                 },
@@ -288,15 +288,13 @@ export const ConditionsEditorComparator: FC<
     <div className="flex flex-row space-x-1 items-center p-1">
       <FormItem>
         <Select
-          value={conditions.key || "some-tag"}
+          value={conditions.key}
           onValueChange={(value) =>
             onChange({ ...conditions, key: value as TMappingKey })
           }
         >
           <SelectTrigger>
-            <SelectValue>
-              {conditions.key ? keysLabel[conditions.key] : ""}
-            </SelectValue>
+            <SelectValue>{keysLabel[conditions.key]}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             {ZMappingKeys.map((key) => (
@@ -353,7 +351,7 @@ export const ConditionsEditorComparator: FC<
       <span>と</span>
       <FormItem>
         <Select
-          value={conditions.comparator || "equals"}
+          value={conditions.comparator ?? ""}
           onValueChange={(value) => {
             const newComparator = value as TMappingComparator;
             const isNewMultiSelect =
@@ -396,7 +394,7 @@ export const ConditionsEditorComparator: FC<
             <SelectValue>
               {conditions.comparator
                 ? comparatorLabel[conditions.comparator]
-                : ""}
+                : "選択してください"}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>

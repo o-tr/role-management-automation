@@ -117,7 +117,7 @@ export const ZMappingConditionComparatorInput = z.lazy(() =>
     .object({
       id: ZMappingConditionId,
       type: z.literal("comparator"),
-      key: ZMappingKey.optional(),
+      key: ZMappingKey,
       comparator: ZMappingComparator.optional(),
       value: z.union([ZMappingValue, z.array(ZMappingValue)]).optional(),
     })
@@ -196,7 +196,7 @@ export const createNewMappingCondition = (
     case "comparator":
       return {
         type: "comparator",
-        key: undefined,
+        key: "some-tag",
         comparator: undefined,
         value: undefined,
         id: crypto.randomUUID() as TMappingConditionId,
