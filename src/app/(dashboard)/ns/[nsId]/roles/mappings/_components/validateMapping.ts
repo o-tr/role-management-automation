@@ -1,5 +1,5 @@
 import type { TMappingAction } from "@/types/actions";
-import type { TMappingCondition } from "@/types/conditions";
+import type { TMappingConditionInput } from "@/types/conditions";
 
 export type ValidationErrors = {
   conditions: string[];
@@ -9,11 +9,13 @@ export type ValidationErrors = {
 /**
  * 条件のバリデーション
  */
-export const validateConditions = (conditions: TMappingCondition): string[] => {
+export const validateConditions = (
+  conditions: TMappingConditionInput,
+): string[] => {
   const errors: string[] = [];
 
   const validateCondition = (
-    condition: TMappingCondition,
+    condition: TMappingConditionInput,
     path: string = "",
   ): void => {
     switch (condition.type) {
@@ -35,7 +37,7 @@ export const validateConditions = (conditions: TMappingCondition): string[] => {
         break;
       case "and":
       case "or":
-        if (condition.conditions.length === 0) {
+        if (!condition.conditions || condition.conditions.length === 0) {
           errors.push(`${path}条件を追加してください`);
         } else {
           condition.conditions.forEach((cond, index) => {

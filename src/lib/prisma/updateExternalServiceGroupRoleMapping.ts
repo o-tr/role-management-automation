@@ -1,5 +1,5 @@
 import type { TMappingAction } from "@/types/actions";
-import type { TMappingCondition } from "@/types/conditions";
+import type { TMappingConditionInput } from "@/types/conditions";
 import type {
   TMappingId,
   TNamespaceId,
@@ -9,7 +9,7 @@ import { prisma } from "../prisma";
 import { formatTSerializedMapping } from "./format/formatTSerializedMapping";
 
 type TUpdateMapping = {
-  conditions?: TMappingCondition;
+  conditions?: TMappingConditionInput;
   actions?: TMappingAction[];
   enabled?: boolean;
 };

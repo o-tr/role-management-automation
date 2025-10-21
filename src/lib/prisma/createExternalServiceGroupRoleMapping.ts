@@ -1,11 +1,11 @@
 import type { TMappingAction } from "@/types/actions";
-import type { TMappingCondition } from "@/types/conditions";
+import type { TMappingConditionInput } from "@/types/conditions";
 import type { TNamespaceId, TSerializedMapping } from "@/types/prisma";
 import { prisma } from "../prisma";
 import { formatTSerializedMapping } from "./format/formatTSerializedMapping";
 
 type TCreateMapping = {
-  conditions: TMappingCondition;
+  conditions: TMappingConditionInput;
   actions: TMappingAction[];
 };
 

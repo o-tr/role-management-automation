@@ -71,8 +71,8 @@ export const createNewMappingAction = (
 ): TMappingAction => {
   const base = {
     id: crypto.randomUUID() as TMappingActionId,
-    targetServiceAccountId: undefined as TExternalServiceAccountId, // バリデーションで必須チェック
-    targetServiceGroupId: undefined as TExternalServiceGroupId, // バリデーションで必須チェック
+    targetServiceAccountId: "" as TExternalServiceAccountId, // バリデーションで必須チェック
+    targetServiceGroupId: "" as TExternalServiceGroupId, // バリデーションで必須チェック
   };
 
   if (type === "invite-group") {
@@ -86,13 +86,13 @@ export const createNewMappingAction = (
     return {
       ...base,
       type,
-      targetServiceRoleId: undefined as TServiceRoleId, // バリデーションで必須チェック
+      targetServiceRoleId: "" as TServiceRoleId, // バリデーションで必須チェック
     } satisfies TAddMappingAction;
   }
 
   return {
     ...base,
     type,
-    targetServiceRoleId: undefined as TServiceRoleId, // バリデーションで必須チェック
+    targetServiceRoleId: "" as TServiceRoleId, // バリデーションで必須チェック
   } satisfies TRemoveMappingAction;
 };

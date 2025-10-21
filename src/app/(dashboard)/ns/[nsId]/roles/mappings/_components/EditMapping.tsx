@@ -1,7 +1,10 @@
 import { type FC, type FormEvent, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { TMappingAction } from "@/types/actions";
-import type { TMappingCondition } from "@/types/conditions";
+import type {
+  TMappingCondition,
+  TMappingConditionInput,
+} from "@/types/conditions";
 import type { TMapping } from "@/types/prisma";
 import { onServiceGroupMappingChange } from "../../_hooks/on-mappings-change";
 import { useUpdateServiceMapping } from "../../_hooks/use-update-service-mapping";
@@ -15,9 +18,30 @@ type Props = {
   mapping: TMapping;
 };
 
+const convertToInput = (
+  condition: TMappingCondition,
+): TMappingConditionInput => {
+  if (condition.type === "comparator") {
+    return {
+      ...condition,
+      value: condition.value,
+    };
+  }
+  if (condition.type === "not") {
+    return {
+      ...condition,
+      condition: convertToInput(condition.condition),
+    };
+  }
+  return {
+    ...condition,
+    conditions: condition.conditions.map(convertToInput),
+  };
+};
+
 export const EditMapping: FC<Props> = ({ nsId, mapping }) => {
-  const [conditions, setConditions] = useState<TMappingCondition>(
-    mapping.conditions,
+  const [conditions, setConditions] = useState<TMappingConditionInput>(
+    convertToInput(mapping.conditions),
   );
   const [actions, setActions] = useState<TMappingAction[]>(mapping.actions);
   const [conditionErrors, setConditionErrors] = useState<string[]>([]);

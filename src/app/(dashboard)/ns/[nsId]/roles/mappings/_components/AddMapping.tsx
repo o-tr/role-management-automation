@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { createNewMappingAction, type TMappingAction } from "@/types/actions";
 import {
   createNewMappingCondition,
-  type TMappingCondition,
+  type TMappingConditionInput,
 } from "@/types/conditions";
 import { onServiceGroupMappingChange } from "../../_hooks/on-mappings-change";
 import { useCreateServiceMapping } from "../../_hooks/use-create-service-mapping";
@@ -19,7 +19,7 @@ type Props = {
 };
 
 export const AddMapping: FC<Props> = ({ nsId }) => {
-  const [conditions, setConditions] = useState<TMappingCondition>(
+  const [conditions, setConditions] = useState<TMappingConditionInput>(
     createNewMappingCondition("comparator"),
   );
   const [actions, setActions] = useState<TMappingAction[]>([

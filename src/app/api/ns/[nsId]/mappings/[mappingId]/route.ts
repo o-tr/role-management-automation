@@ -8,7 +8,7 @@ import { updateExternalServiceGroupRoleMapping } from "@/lib/prisma/updateExtern
 import { validatePermission } from "@/lib/validatePermission";
 import { ZMappingAction } from "@/types/actions";
 import type { ErrorResponseType } from "@/types/api";
-import { ZMappingCondition } from "@/types/conditions";
+import { ZMappingConditionInput } from "@/types/conditions";
 import type {
   TMappingId,
   TNamespaceId,
@@ -28,7 +28,7 @@ export type UpdateExternalServiceGroupMappingResponse =
     }
   | ErrorResponseType;
 const updateMappingSchema = z.object({
-  conditions: ZMappingCondition.optional(),
+  conditions: ZMappingConditionInput.optional(),
   actions: z.array(ZMappingAction).optional(),
   enabled: z.boolean().optional(),
 });
