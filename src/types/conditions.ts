@@ -6,7 +6,12 @@ export const ZMappingKey = z.literal("some-tag");
 export type TMappingKey = z.infer<typeof ZMappingKey>;
 export const ZMappingKeys = ["some-tag"] as const;
 
-export const ZMappingValue = ZTagId;
+export const ZMappingValue = ZTagId.refine(
+  (value) => value !== "00000000-0000-0000-0000-000000000000",
+  {
+    message: "プレースホルダーIDは使用できません",
+  },
+);
 export type TMappingValue = z.infer<typeof ZMappingValue>;
 
 export const ZMappingComparator = z.union([
@@ -39,13 +44,25 @@ export const ZMappingConditionId = z
 export type TMappingConditionId = z.infer<typeof ZMappingConditionId>;
 
 export const ZMappingConditionComparator = z.lazy(() =>
-  z.object({
-    id: ZMappingConditionId,
-    type: z.literal("comparator"),
-    key: ZMappingKey,
-    comparator: ZMappingComparator,
-    value: z.union([ZMappingValue, z.array(ZMappingValue)]),
-  }),
+  z
+    .object({
+      id: ZMappingConditionId,
+      type: z.literal("comparator"),
+      key: ZMappingKey,
+      comparator: ZMappingComparator,
+      value: z.union([ZMappingValue, z.array(ZMappingValue)]),
+    })
+    .refine(
+      (data) => {
+        if (Array.isArray(data.value)) {
+          return data.value.length > 0;
+        }
+        return true;
+      },
+      {
+        message: "タグを選択してください",
+      },
+    ),
 );
 export type TMappingConditionComparator = z.infer<
   typeof ZMappingConditionComparator
@@ -112,7 +129,7 @@ export const createNewMappingCondition = (
         type: "comparator",
         key: "some-tag",
         comparator: "equals",
-        value: PLACEHOLDER_TAG_ID,
+        value: undefined as TMappingValue, // バリデーションで必須チェック
         id: crypto.randomUUID() as TMappingConditionId,
       };
     case "not":

@@ -24,18 +24,28 @@ export const ZMappingActions = ["add", "remove", "invite-group"] as const;
 
 const ZMappingActionBase = z.object({
   id: ZMappingActionId,
-  targetServiceAccountId: ZExternalServiceAccountId,
-  targetServiceGroupId: ZExternalServiceGroupId,
+  targetServiceAccountId: ZExternalServiceAccountId.refine(
+    (value) => value !== "",
+    { message: "サービスアカウントを選択してください" },
+  ),
+  targetServiceGroupId: ZExternalServiceGroupId.refine(
+    (value) => value !== "",
+    { message: "サービスグループを選択してください" },
+  ),
 });
 
 const ZAddMappingAction = ZMappingActionBase.extend({
   type: z.literal("add"),
-  targetServiceRoleId: ZServiceRoleId,
+  targetServiceRoleId: ZServiceRoleId.refine((value) => value !== "", {
+    message: "ロールを選択してください",
+  }),
 });
 
 const ZRemoveMappingAction = ZMappingActionBase.extend({
   type: z.literal("remove"),
-  targetServiceRoleId: ZServiceRoleId,
+  targetServiceRoleId: ZServiceRoleId.refine((value) => value !== "", {
+    message: "ロールを選択してください",
+  }),
 });
 
 const ZInviteGroupMappingAction = ZMappingActionBase.extend({
@@ -61,8 +71,8 @@ export const createNewMappingAction = (
 ): TMappingAction => {
   const base = {
     id: crypto.randomUUID() as TMappingActionId,
-    targetServiceAccountId: "" as TExternalServiceAccountId,
-    targetServiceGroupId: "" as TExternalServiceGroupId,
+    targetServiceAccountId: undefined as TExternalServiceAccountId, // バリデーションで必須チェック
+    targetServiceGroupId: undefined as TExternalServiceGroupId, // バリデーションで必須チェック
   };
 
   if (type === "invite-group") {
@@ -76,13 +86,13 @@ export const createNewMappingAction = (
     return {
       ...base,
       type,
-      targetServiceRoleId: "" as TServiceRoleId,
+      targetServiceRoleId: undefined as TServiceRoleId, // バリデーションで必須チェック
     } satisfies TAddMappingAction;
   }
 
   return {
     ...base,
     type,
-    targetServiceRoleId: "" as TServiceRoleId,
+    targetServiceRoleId: undefined as TServiceRoleId, // バリデーションで必須チェック
   } satisfies TRemoveMappingAction;
 };

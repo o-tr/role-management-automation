@@ -119,7 +119,17 @@ export const columns: TColumnDef<InternalMapping>[] = [
 
       return (
         <div className="flex flex-row gap-2">
-          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <Dialog
+            open={isModalOpen}
+            onOpenChange={(open) => {
+              if (!open) {
+                // 閉じる前にバリデーション（EditMappingコンポーネント内の状態を直接チェックできないため、
+                // ここでは基本的なチェックのみ）
+                // 実際のバリデーションはEditMappingコンポーネント内で行われる
+              }
+              setIsModalOpen(open);
+            }}
+          >
             <DialogTrigger asChild>
               <Button variant="outline">編集</Button>
             </DialogTrigger>

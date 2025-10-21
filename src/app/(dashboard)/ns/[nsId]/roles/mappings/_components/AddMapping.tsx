@@ -2,6 +2,7 @@
 
 import { type FC, type FormEvent, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/hooks/use-toast";
 import { createNewMappingAction, type TMappingAction } from "@/types/actions";
 import {
   createNewMappingCondition,
@@ -11,6 +12,7 @@ import { onServiceGroupMappingChange } from "../../_hooks/on-mappings-change";
 import { useCreateServiceMapping } from "../../_hooks/use-create-service-mapping";
 import { ActionsEditor } from "./ActionsEditor";
 import { ConditionsEditor } from "./ConditionsEditor";
+import { validateActions, validateConditions } from "./validateMapping";
 
 type Props = {
   nsId: string;
@@ -24,9 +26,24 @@ export const AddMapping: FC<Props> = ({ nsId }) => {
     createNewMappingAction("add"),
   ]);
   const { createServiceMapping, loading } = useCreateServiceMapping(nsId);
+  const { toast } = useToast();
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
+
+    // バリデーション実行
+    const conditionErrors = validateConditions(conditions);
+    const actionErrors = validateActions(actions);
+
+    if (conditionErrors.length > 0 || actionErrors.length > 0) {
+      toast({
+        title: "入力エラー",
+        description: [...conditionErrors, ...actionErrors].join("\n"),
+        variant: "destructive",
+      });
+      return; // 送信をキャンセル
+    }
+
     await createServiceMapping({ conditions, actions });
     onServiceGroupMappingChange();
   };

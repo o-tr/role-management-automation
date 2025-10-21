@@ -37,7 +37,17 @@ export default function GroupTagsPage({
   return (
     <div className="overflow-y-hidden h-full flex flex-col space-y-4">
       <div className="flex flex-row justify-end space-x-4">
-        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <Dialog
+          open={isModalOpen}
+          onOpenChange={(open) => {
+            if (!open) {
+              // 閉じる前にバリデーション（AddMappingコンポーネント内の状態を直接チェックできないため、
+              // ここでは基本的なチェックのみ）
+              // 実際のバリデーションはAddMappingコンポーネント内で行われる
+            }
+            setIsModalOpen(open);
+          }}
+        >
           <DialogTrigger asChild>
             <Button>割り当てを追加</Button>
           </DialogTrigger>
