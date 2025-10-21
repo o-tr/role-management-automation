@@ -1,5 +1,4 @@
 import type { FC } from "react";
-import { MultiSelect } from "@/components/MultiSelect";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FormItem } from "@/components/ui/form";
@@ -27,6 +26,8 @@ import {
   ZMappingKeys,
   ZMappingTypes,
 } from "@/types/conditions";
+import type { TTagId } from "@/types/prisma";
+import { MultipleTagPicker } from "../../../components/MultipleTagPicker";
 import { TagDisplay } from "../../../components/TagDisplay";
 import { useTags } from "../../_hooks/use-tags";
 
@@ -307,19 +308,22 @@ export const ConditionsEditorComparator: FC<
       </FormItem>
       <span>が</span>
       {isMultiSelect ? (
-        <FormItem>
-          <MultiSelect
-            options={
-              tags?.map((tag) => ({
-                value: tag.id,
-                label: tag.name,
-              })) || []
-            }
-            selected={isArrayValue ? (conditions.value as string[]) : []}
-            onChange={(values) =>
-              onChange({ ...conditions, value: values as TMappingValue[] })
-            }
-            placeholder="タグを選択..."
+        <FormItem className="min-w-[200px] max-w-[500px] flex-shrink">
+          <MultipleTagPicker
+            tags={tags || []}
+            selectedTags={isArrayValue ? (conditions.value as TTagId[]) : []}
+            onChange={(selectedTags) => {
+              const newSelectedTags =
+                typeof selectedTags === "function"
+                  ? selectedTags(
+                      isArrayValue ? (conditions.value as TTagId[]) : [],
+                    )
+                  : selectedTags;
+              onChange({
+                ...conditions,
+                value: newSelectedTags as TMappingValue[],
+              });
+            }}
           />
         </FormItem>
       ) : (
