@@ -1,6 +1,11 @@
 import type { TMappingAction } from "@/types/actions";
 import type { TMappingCondition } from "@/types/conditions";
 
+export type ValidationErrors = {
+  conditions: string[];
+  actions: string[];
+};
+
 /**
  * 条件のバリデーション
  */
