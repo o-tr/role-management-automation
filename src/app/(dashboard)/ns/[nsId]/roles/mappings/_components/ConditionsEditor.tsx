@@ -341,17 +341,14 @@ export const ConditionsEditorComparator: FC<
             const isNewMultiSelect =
               newComparator === "contains-any" ||
               newComparator === "contains-all";
-            const isCurrentMultiSelect =
-              conditions.comparator === "contains-any" ||
-              conditions.comparator === "contains-all";
 
             let newValue: TMappingValue | TMappingValue[];
-            if (isNewMultiSelect && !isCurrentMultiSelect) {
+            if (isNewMultiSelect && !isMultiSelect) {
               // 単一選択から複数選択に変更
               newValue = Array.isArray(conditions.value)
                 ? conditions.value
                 : ([conditions.value] as TMappingValue[]);
-            } else if (!isNewMultiSelect && isCurrentMultiSelect) {
+            } else if (!isNewMultiSelect && isMultiSelect) {
               // 複数選択から単一選択に変更
               newValue = (
                 Array.isArray(conditions.value)
