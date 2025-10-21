@@ -9,10 +9,7 @@ import { getTag } from "@/lib/prisma/getTag";
 import { validatePermission } from "@/lib/validatePermission";
 import { type TMappingAction, ZMappingAction } from "@/types/actions";
 import type { ErrorResponseType } from "@/types/api";
-import {
-  type TMappingConditionInput,
-  ZMappingConditionInput,
-} from "@/types/conditions";
+import { type TMappingCondition, ZMappingCondition } from "@/types/conditions";
 import type {
   TExternalServiceAccountId,
   TExternalServiceGroupId,
@@ -37,7 +34,7 @@ export type GetSerializedMappingsResponse =
   | ErrorResponseType;
 
 const createMappingSchema = z.object({
-  conditions: ZMappingConditionInput,
+  conditions: ZMappingCondition,
   actions: z.array(ZMappingAction),
 });
 export type CreateMappingBody = z.infer<typeof createMappingSchema>;
@@ -107,7 +104,7 @@ export const POST = api(
 );
 
 const extractTags = (
-  actions: TMappingConditionInput,
+  actions: TMappingCondition,
   tags: TTagId[] = [],
 ): TTagId[] => {
   if (actions.type === "comparator") {
