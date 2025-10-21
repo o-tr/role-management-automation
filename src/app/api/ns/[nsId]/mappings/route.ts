@@ -115,10 +115,7 @@ const extractTags = (
   if (actions.type === "not") {
     return extractTags(actions.condition, tags);
   }
-  return (
-    actions.conditions?.reduce((acc, cond) => extractTags(cond, acc), tags) ||
-    tags
-  );
+  return actions.conditions.reduce((acc, cond) => extractTags(cond, acc), tags);
 };
 
 const extractServiceGroups = (actions: TMappingAction[]) => {
