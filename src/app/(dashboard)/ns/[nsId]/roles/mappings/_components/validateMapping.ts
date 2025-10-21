@@ -1,7 +1,7 @@
 import type { TMappingAction } from "@/types/actions";
 import { ZMappingAction } from "@/types/actions";
 import type { TMappingConditionInput } from "@/types/conditions";
-import { ZMappingConditionInput } from "@/types/conditions";
+import { ZMappingCondition } from "@/types/conditions";
 
 export type ValidationErrors = {
   conditions: string[];
@@ -14,7 +14,7 @@ export type ValidationErrors = {
 export const validateConditions = (
   conditions: TMappingConditionInput,
 ): string[] => {
-  const result = ZMappingConditionInput.safeParse(conditions);
+  const result = ZMappingCondition.safeParse(conditions);
 
   if (result.success) {
     return [];

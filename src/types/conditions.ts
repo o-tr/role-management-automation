@@ -233,7 +233,7 @@ export const convertInputToCondition = (
   input: TMappingConditionInput,
 ): TMappingCondition => {
   if (input.type === "comparator") {
-    if (!input.comparator || !input.value) {
+    if (input.comparator == null || input.value == null) {
       throw new Error("Invalid condition: comparator and value are required");
     }
     return {
