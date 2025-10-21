@@ -29,20 +29,20 @@ export const ConditionsDisplay: FC<Props> = ({ conditions, nsId }) => {
   if (conditions.type === "comparator") {
     const isArrayValue = Array.isArray(conditions.value);
 
+    // ローディング状態を先頭で処理
+    if (isPending) {
+      return (
+        <Card className="p-2 gap-1 flex flex-row items-center flex-wrap">
+          <span>{keysLabel[conditions.key]}</span>
+          <span>loading...</span>
+          <span>を</span>
+          <span>{comparatorsLabel[conditions.comparator]}</span>
+        </Card>
+      );
+    }
+
     if (isArrayValue) {
       const valueArray = conditions.value as string[];
-
-      if (isPending) {
-        return (
-          <Card className="p-2 gap-1 flex flex-row items-center flex-wrap">
-            <span>{keysLabel[conditions.key]}</span>
-            <span>loading...</span>
-            <span>を</span>
-            <span>{comparatorsLabel[conditions.comparator]}</span>
-          </Card>
-        );
-      }
-
       const selectedTags = tags?.filter((t) => valueArray.includes(t.id)) || [];
       const missingTags = valueArray.filter(
         (id: string) => !tags?.some((t) => t.id === id),
@@ -73,8 +73,6 @@ export const ConditionsDisplay: FC<Props> = ({ conditions, nsId }) => {
           <span>{keysLabel[conditions.key]}</span>
           {tag ? (
             <TagDisplay tag={tag} display="inline" />
-          ) : isPending ? (
-            <span>loading...</span>
           ) : (
             <span className="text-red-600">[削除されたタグ]</span>
           )}
