@@ -44,9 +44,8 @@ export const ConditionsDisplay: FC<Props> = ({ conditions, nsId }) => {
     if (isArrayValue) {
       const valueArray = conditions.value as string[];
       const selectedTags = tags?.filter((t) => valueArray.includes(t.id)) || [];
-      const missingTags = valueArray.filter(
-        (id: string) => !tags?.some((t) => t.id === id),
-      );
+      const tagIdSet = new Set(tags?.map((t) => t.id) || []);
+      const missingTags = valueArray.filter((id: string) => !tagIdSet.has(id));
 
       return (
         <Card className="p-2 gap-1 flex flex-row items-center flex-wrap">
