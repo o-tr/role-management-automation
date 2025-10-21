@@ -29,6 +29,7 @@ import {
 } from "@/types/conditions";
 import { TagDisplay } from "../../../components/TagDisplay";
 import { useTags } from "../../_hooks/use-tags";
+import { comparatorsLabel, keysLabel } from "./labels";
 
 type Props<T extends TMappingCondition> = {
   nsId: string;
@@ -259,17 +260,6 @@ export const ConditionsEditorNot: FC<Props<TMappingConditionNot>> = ({
   );
 };
 
-const keysLabel = {
-  "some-tag": "タグ",
-};
-
-const comparatorLabel = {
-  notEquals: "と一致しない",
-  equals: "と一致する",
-  "contains-any": "のいずれかと一致する",
-  "contains-all": "のすべてと一致する",
-};
-
 export const ConditionsEditorComparator: FC<
   Props<TMappingConditionComparator>
 > = ({ conditions, onChange, nsId }) => {
@@ -379,12 +369,12 @@ export const ConditionsEditorComparator: FC<
           }}
         >
           <SelectTrigger>
-            <SelectValue>{comparatorLabel[conditions.comparator]}</SelectValue>
+            <SelectValue>{comparatorsLabel[conditions.comparator]}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             {ZMappingComparators.map((key) => (
               <SelectItem key={key} value={key}>
-                {comparatorLabel[key]}
+                {comparatorsLabel[key]}
               </SelectItem>
             ))}
           </SelectContent>

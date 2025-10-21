@@ -1,28 +1,14 @@
 import type { FC } from "react";
 import { Card } from "@/components/ui/card";
-import type {
-  TMappingComparator,
-  TMappingCondition,
-  TMappingKey,
-} from "@/types/conditions";
+import type { TMappingCondition } from "@/types/conditions";
 import type { TTagId } from "@/types/prisma";
 import { TagDisplay } from "../../../components/TagDisplay";
 import { useTags } from "../../_hooks/use-tags";
+import { comparatorsLabel, keysLabel } from "./labels";
 
 type Props = {
   conditions: TMappingCondition;
   nsId: string;
-};
-
-const keysLabel: { [key in TMappingKey]: string } = {
-  "some-tag": "タグ",
-};
-
-const comparatorsLabel: { [key in TMappingComparator]: string } = {
-  equals: "と一致する",
-  notEquals: "と一致しない",
-  "contains-any": "のいずれかと一致する",
-  "contains-all": "のすべてと一致する",
 };
 
 export const ConditionsDisplay: FC<Props> = ({ conditions, nsId }) => {
