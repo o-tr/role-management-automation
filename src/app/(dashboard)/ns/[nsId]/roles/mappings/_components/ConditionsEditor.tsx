@@ -350,11 +350,20 @@ export const ConditionsEditorComparator: FC<
                 : ([conditions.value] as TMappingValue[]);
             } else if (!isNewMultiSelect && isMultiSelect) {
               // 複数選択から単一選択に変更
-              newValue = (
-                Array.isArray(conditions.value)
-                  ? conditions.value[0]
-                  : conditions.value
-              ) as TMappingValue;
+              if (
+                Array.isArray(conditions.value) &&
+                conditions.value.length > 0
+              ) {
+                newValue = conditions.value[0] as TMappingValue;
+              } else if (
+                Array.isArray(conditions.value) &&
+                conditions.value.length === 0
+              ) {
+                // 空の配列の場合、最初の利用可能なタグまたはプレースホルダー値を設定
+                newValue = (tags?.[0]?.id ?? "") as TMappingValue;
+              } else {
+                newValue = conditions.value as TMappingValue;
+              }
             } else {
               newValue = conditions.value;
             }
