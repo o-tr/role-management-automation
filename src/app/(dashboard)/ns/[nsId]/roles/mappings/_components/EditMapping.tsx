@@ -1,11 +1,10 @@
 import type { FC } from "react";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import type {
-  TMappingCondition,
-  TMappingConditionInput,
+import {
+  convertConditionToInput,
+  convertInputToCondition,
 } from "@/types/conditions";
-import { convertInputToCondition } from "@/types/conditions";
 import type { TMapping } from "@/types/prisma";
 import { onServiceGroupMappingChange } from "../../_hooks/on-mappings-change";
 import { useUpdateServiceMapping } from "../../_hooks/use-update-service-mapping";
@@ -18,24 +17,6 @@ type Props = {
   nsId: string;
   mapping: TMapping;
   onDirtyChange?: (isDirty: boolean) => void;
-};
-
-const convertToInput = (
-  condition: TMappingCondition,
-): TMappingConditionInput => {
-  if (condition.type === "comparator") {
-    return condition;
-  }
-  if (condition.type === "not") {
-    return {
-      ...condition,
-      condition: convertToInput(condition.condition),
-    };
-  }
-  return {
-    ...condition,
-    conditions: condition.conditions.map(convertToInput),
-  };
 };
 
 export const EditMapping: FC<Props> = ({ nsId, mapping, onDirtyChange }) => {
@@ -51,7 +32,7 @@ export const EditMapping: FC<Props> = ({ nsId, mapping, onDirtyChange }) => {
     setActions,
     handleSubmit,
   } = useMappingForm({
-    initialConditions: convertToInput(mapping.conditions),
+    initialConditions: convertConditionToInput(mapping.conditions),
     initialActions: mapping.actions,
     onSubmit: async ({ conditions, actions }) => {
       await updateServiceMapping({

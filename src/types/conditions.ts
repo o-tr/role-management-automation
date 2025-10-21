@@ -281,3 +281,22 @@ export const convertInputToCondition = (
 
   throw new Error("Invalid condition type");
 };
+
+// ZMappingConditionからZMappingConditionInputへの変換関数
+export const convertConditionToInput = (
+  condition: TMappingCondition,
+): TMappingConditionInput => {
+  if (condition.type === "comparator") {
+    return condition;
+  }
+  if (condition.type === "not") {
+    return {
+      ...condition,
+      condition: convertConditionToInput(condition.condition),
+    };
+  }
+  return {
+    ...condition,
+    conditions: condition.conditions.map(convertConditionToInput),
+  };
+};
