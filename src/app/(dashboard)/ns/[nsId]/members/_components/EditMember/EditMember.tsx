@@ -36,7 +36,7 @@ export const EditMember: FC<Props> = ({
       </Card>
       <Card className="p-4">
         <span>タグ</span>
-        <EditTags member={member} setMember={setMember} disabled={disabled} />
+        <EditTags member={member} setMember={setMember} />
       </Card>
       <Button onClick={onConfirmClick} disabled={disabled}>
         {type === "add" ? "追加" : "更新"}

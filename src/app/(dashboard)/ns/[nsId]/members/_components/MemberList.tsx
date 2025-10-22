@@ -40,26 +40,25 @@ import { useTags } from "../../roles/_hooks/use-tags";
 import { onMembersChange } from "../_hooks/on-members-change";
 import { useMembers } from "../_hooks/use-members";
 import { usePatchMember } from "../_hooks/use-patch-member";
-import { AddTag } from "./EditMember/AddTag";
 import { EditMember } from "./EditMember/EditMember";
 
 const TagsHeader: StringOrTemplateHeader<TMemberWithRelation, unknown> = ({
   table,
 }) => {
   const rows = table.getCoreRowModel().rows;
-  const tags = useMemo(
-    () =>
-      rows
-        .flatMap((row) => row.original.tags)
-        .reduce<TTag[]>((acc, tag) => {
-          if (!acc.find((t) => t.id === tag.id)) {
-            acc.push(tag);
-          }
-          return acc;
-        }, [])
-        .sort((a, b) => a.name.localeCompare(b.name)),
-    [rows],
-  );
+  const tags = useMemo(() => {
+    const seen = new Set<TTagId>();
+    const acc: TTag[] = [];
+    for (const row of rows) {
+      for (const tag of row.original.tags) {
+        if (!seen.has(tag.id)) {
+          seen.add(tag.id);
+          acc.push(tag);
+        }
+      }
+    }
+    return acc.sort((a, b) => a.name.localeCompare(b.name));
+  }, [rows]);
   const [selectedTags, setSelectedTags] = useState<TTagId[]>([]);
 
   useEffect(() => {
@@ -134,6 +133,7 @@ export const columns: ColumnDef<TMemberWithRelation>[] = [
       const { patchMembers, loading } = usePatchMember(
         row.original.namespaceId,
       );
+      const { tags } = useTags(row.original.namespaceId);
 
       const onDelete = async (deleteTag: TTag) => {
         row.original.tags = row.original.tags.filter(
@@ -144,6 +144,7 @@ export const columns: ColumnDef<TMemberWithRelation>[] = [
       };
 
       const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+      const [newTagIds, setNewTagIds] = useState<TTagId[]>([]);
 
       return (
         <div className="flex flex-wrap gap-1">
@@ -155,27 +156,57 @@ export const columns: ColumnDef<TMemberWithRelation>[] = [
               onDelete={onDelete}
             />
           ))}
-          <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+          <Popover
+            open={isPopoverOpen}
+            onOpenChange={(open) => {
+              setIsPopoverOpen(open);
+              if (!open) setNewTagIds([]);
+            }}
+          >
             <PopoverTrigger asChild>
               <button className="border rounded-md px-2 h-[22px]" type="button">
                 <TbPlus />
               </button>
             </PopoverTrigger>
-            <PopoverContent>
-              <AddTag
-                member={row.original}
-                onConfirm={async (tag) => {
+            <PopoverContent className="space-y-2">
+              {tags && (
+                <MultipleTagPicker
+                  tags={tags}
+                  selectedTags={newTagIds}
+                  onChange={setNewTagIds}
+                />
+              )}
+              <Button
+                variant="outline"
+                disabled={loading || !newTagIds.length}
+                onClick={async () => {
                   const member = { ...row.original };
-                  member.tags.push({
-                    ...tag,
-                    namespaceId: row.original.namespaceId,
-                  });
+                  const tagIdToTag = new Map(
+                    (tags || []).map((t) => [t.id, t]),
+                  );
+                  const existingTagIds = new Set(member.tags.map((t) => t.id));
+                  const addTagIds = newTagIds.filter(
+                    (id) => !existingTagIds.has(id),
+                  );
+
+                  if (addTagIds.length === 0) {
+                    setIsPopoverOpen(false);
+                    setNewTagIds([]);
+                    return;
+                  }
+
+                  const addTags = addTagIds
+                    .map((id) => tagIdToTag.get(id))
+                    .filter(Boolean) as TTag[];
+                  member.tags = [...member.tags, ...addTags];
                   await patchMembers(member.id, member);
                   onMembersChange();
                   setIsPopoverOpen(false);
+                  setNewTagIds([]);
                 }}
-                disabled={loading}
-              />
+              >
+                追加
+              </Button>
             </PopoverContent>
           </Popover>
         </div>
@@ -285,11 +316,22 @@ const Footer: FC<{
           <Button
             variant="outline"
             onClick={async () => {
+              if (selectedTags.length === 0) return;
+
               await Promise.all(
                 selected.rows.map(({ original: member }) => {
+                  const existingTagIds = new Set(member.tags.map((t) => t.id));
+                  const addTagIds = selectedTags.filter(
+                    (id) => !existingTagIds.has(id),
+                  );
+
+                  if (addTagIds.length === 0) {
+                    return Promise.resolve();
+                  }
+
                   member.tags = [
                     ...member.tags,
-                    ...selectedTags.map((tagId) => ({
+                    ...addTagIds.map((tagId) => ({
                       id: tagId as TTagId,
                       name: "",
                       namespaceId: namespaceId,
