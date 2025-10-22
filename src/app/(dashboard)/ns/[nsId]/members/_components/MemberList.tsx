@@ -40,7 +40,6 @@ import { useTags } from "../../roles/_hooks/use-tags";
 import { onMembersChange } from "../_hooks/on-members-change";
 import { useMembers } from "../_hooks/use-members";
 import { usePatchMember } from "../_hooks/use-patch-member";
-import { AddTag } from "./EditMember/AddTag";
 import { EditMember } from "./EditMember/EditMember";
 
 const TagsHeader: StringOrTemplateHeader<TMemberWithRelation, unknown> = ({
@@ -134,6 +133,7 @@ export const columns: ColumnDef<TMemberWithRelation>[] = [
       const { patchMembers, loading } = usePatchMember(
         row.original.namespaceId,
       );
+      const { tags } = useTags(row.original.namespaceId);
 
       const onDelete = async (deleteTag: TTag) => {
         row.original.tags = row.original.tags.filter(
@@ -144,6 +144,7 @@ export const columns: ColumnDef<TMemberWithRelation>[] = [
       };
 
       const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+      const [newTagIds, setNewTagIds] = useState<TTagId[]>([]);
 
       return (
         <div className="flex flex-wrap gap-1">
@@ -155,27 +156,48 @@ export const columns: ColumnDef<TMemberWithRelation>[] = [
               onDelete={onDelete}
             />
           ))}
-          <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+          <Popover
+            open={isPopoverOpen}
+            onOpenChange={(open) => {
+              setIsPopoverOpen(open);
+              if (!open) setNewTagIds([]);
+            }}
+          >
             <PopoverTrigger asChild>
               <button className="border rounded-md px-2 h-[22px]" type="button">
                 <TbPlus />
               </button>
             </PopoverTrigger>
-            <PopoverContent>
-              <AddTag
-                member={row.original}
-                onConfirm={async (tag) => {
+            <PopoverContent className="space-y-2">
+              {tags && (
+                <MultipleTagPicker
+                  tags={tags}
+                  selectedTags={newTagIds}
+                  onChange={setNewTagIds}
+                />
+              )}
+              <Button
+                variant="outline"
+                disabled={loading || !newTagIds.length}
+                onClick={async () => {
                   const member = { ...row.original };
-                  member.tags.push({
-                    ...tag,
-                    namespaceId: row.original.namespaceId,
-                  });
+                  const addTags = (tags || [])
+                    .filter((t) => newTagIds.includes(t.id))
+                    .filter((t) => !member.tags.some((et) => et.id === t.id))
+                    .map((t) => ({
+                      id: t.id as TTagId,
+                      name: t.name,
+                      namespaceId: row.original.namespaceId,
+                    }));
+                  member.tags = [...member.tags, ...addTags];
                   await patchMembers(member.id, member);
                   onMembersChange();
                   setIsPopoverOpen(false);
+                  setNewTagIds([]);
                 }}
-                disabled={loading}
-              />
+              >
+                追加
+              </Button>
             </PopoverContent>
           </Popover>
         </div>
