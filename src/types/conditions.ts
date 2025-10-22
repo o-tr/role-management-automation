@@ -113,25 +113,13 @@ export type TMappingCondition = z.infer<typeof ZMappingCondition>;
 
 // 入力受付用の型定義（値がundefined可能）
 export const ZMappingConditionComparatorInput = z.lazy(() =>
-  z
-    .object({
-      id: ZMappingConditionId,
-      type: z.literal("comparator"),
-      key: ZMappingKey,
-      comparator: ZMappingComparator.optional(),
-      value: z.union([ZMappingValue, z.array(ZMappingValue)]).optional(),
-    })
-    .refine(
-      (data) => {
-        if (data.value && Array.isArray(data.value)) {
-          return data.value.length > 0;
-        }
-        return true;
-      },
-      {
-        message: "タグを選択してください",
-      },
-    ),
+  z.object({
+    id: ZMappingConditionId,
+    type: z.literal("comparator"),
+    key: ZMappingKey,
+    comparator: ZMappingComparator.optional(),
+    value: z.union([ZMappingValue, z.array(ZMappingValue)]).optional(),
+  }),
 );
 export type TMappingConditionComparatorInput = z.infer<
   typeof ZMappingConditionComparatorInput
