@@ -34,7 +34,11 @@ export const EditTags: FC<Props> = ({ member, setMember }) => {
       <MultipleTagPicker
         tags={tags || []}
         selectedTags={selectedTagIds}
-        onChange={handleTagChange}
+        onChange={(value) => {
+          const next =
+            typeof value === "function" ? value(selectedTagIds) : value;
+          handleTagChange(next);
+        }}
         showSelectAll
       />
     </div>
