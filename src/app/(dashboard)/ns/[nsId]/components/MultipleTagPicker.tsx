@@ -41,6 +41,8 @@ export const MultipleTagPicker: FC<Props> = ({
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.nativeEvent.isComposing) {
+      e.preventDefault();
+      e.stopPropagation();
       const tag = filteredTags?.find((tag) => tag.name === inputValue);
       if (tag) {
         onChange((prev) => [...prev, tag.id]);
@@ -51,34 +53,37 @@ export const MultipleTagPicker: FC<Props> = ({
       inputValue === "" &&
       selectedTags.length > 0
     ) {
+      e.preventDefault();
+      e.stopPropagation();
       onChange((prev) => prev.slice(0, -1));
     }
   };
 
   return (
     <label
-      className="p-2 rounded-xl border-2 flex-wrap flex flex-row gap-2 relative"
+      className="p-2 rounded-xl border-2 flex-wrap flex flex-row gap-2 relative max-w-full min-h-[40px]"
       htmlFor={inputId}
     >
       {selectedTags.map((tagId) => {
         const tag = tags?.find((tag) => tag.id === tagId);
         if (!tag) return null;
         return (
-          <TagDisplay
-            key={tagId}
-            tag={tag}
-            onDelete={() => {
-              onChange((prev) => prev.filter((v) => v !== tagId));
-            }}
-            deleteArea="all"
-            variant="outline"
-          />
+          <div key={tagId} className="flex-shrink-0">
+            <TagDisplay
+              tag={tag}
+              onDelete={() => {
+                onChange((prev) => prev.filter((v) => v !== tagId));
+              }}
+              deleteArea="all"
+              variant="outline"
+            />
+          </div>
         );
       })}
       <input
         id={inputId}
         type="text"
-        className="outline-none bg-none border-none bg-transparent h-[36px] px-2 peer"
+        className="outline-none bg-none border-none bg-transparent h-[36px] px-2 peer flex-1 min-w-[80px]"
         onKeyDown={onKeyDown}
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
@@ -87,7 +92,7 @@ export const MultipleTagPicker: FC<Props> = ({
       />
       <Command
         className={
-          "absolute top-full max-h-[300px] h-max hidden peer-focus:block focus:block hover:block"
+          "absolute top-full max-h-[300px] h-max hidden peer-focus:block focus:block hover:block w-full z-50"
         }
         autoFocus={false}
       >

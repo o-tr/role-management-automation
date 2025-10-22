@@ -10,6 +10,13 @@ import {
   type TColumnDef,
 } from "@/app/(dashboard)/ns/[nsId]/components/DataTable";
 import { useMappings } from "@/app/(dashboard)/ns/[nsId]/roles/_hooks/use-mappings";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -115,11 +122,23 @@ export const columns: TColumnDef<InternalMapping>[] = [
     id: "buttons",
     cell: ({ row }) => {
       const [isModalOpen, setIsModalOpen] = useState(false);
+      const [isClosing, setIsClosing] = useState(false);
+      const [isDirty, setIsDirty] = useState(false);
       useOnServiceGroupMappingChange(() => setIsModalOpen(false));
 
       return (
         <div className="flex flex-row gap-2">
-          <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <Dialog
+            open={isModalOpen}
+            onOpenChange={(open) => {
+              if (!open && isDirty) {
+                setIsClosing(true);
+              } else {
+                setIsModalOpen(open);
+                setIsDirty(false);
+              }
+            }}
+          >
             <DialogTrigger asChild>
               <Button variant="outline">編集</Button>
             </DialogTrigger>
@@ -130,11 +149,36 @@ export const columns: TColumnDef<InternalMapping>[] = [
                   <EditMapping
                     nsId={row.original.namespaceId}
                     mapping={row.original}
+                    onDirtyChange={setIsDirty}
                   />
                 </DialogDescription>
               </DialogHeader>
             </DialogContent>
           </Dialog>
+          <AlertDialog open={isClosing} onOpenChange={setIsClosing}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  変更が保存されていませんが、閉じてもよろしいですか？
+                </AlertDialogTitle>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsClosing(false);
+                    setIsModalOpen(false);
+                    setIsDirty(false);
+                  }}
+                >
+                  破棄して閉じる
+                </Button>
+                <Button variant="outline" onClick={() => setIsClosing(false)}>
+                  キャンセル
+                </Button>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           <Button
             variant="outline"
             onClick={async () => {

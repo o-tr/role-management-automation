@@ -39,13 +39,25 @@ export const ZMappingConditionId = z
 export type TMappingConditionId = z.infer<typeof ZMappingConditionId>;
 
 export const ZMappingConditionComparator = z.lazy(() =>
-  z.object({
-    id: ZMappingConditionId,
-    type: z.literal("comparator"),
-    key: ZMappingKey,
-    comparator: ZMappingComparator,
-    value: z.union([ZMappingValue, z.array(ZMappingValue)]),
-  }),
+  z
+    .object({
+      id: ZMappingConditionId,
+      type: z.literal("comparator"),
+      key: ZMappingKey,
+      comparator: ZMappingComparator,
+      value: z.union([ZMappingValue, z.array(ZMappingValue)]),
+    })
+    .refine(
+      (data) => {
+        if (Array.isArray(data.value)) {
+          return data.value.length > 0;
+        }
+        return true;
+      },
+      {
+        message: "タグを選択してください",
+      },
+    ),
 );
 export type TMappingConditionComparator = z.infer<
   typeof ZMappingConditionComparator
@@ -99,20 +111,82 @@ export type TMappingConditionNot = z.infer<typeof ZMappingConditionNot>;
 
 export type TMappingCondition = z.infer<typeof ZMappingCondition>;
 
-// プレースホルダー用の有効なUUID（実際のタグIDに置き換えられる）
-export const PLACEHOLDER_TAG_ID =
-  "00000000-0000-0000-0000-000000000000" as TMappingValue;
+// 入力受付用の型定義（値がundefined可能）
+export const ZMappingConditionComparatorInput = z.lazy(() =>
+  z.object({
+    id: ZMappingConditionId,
+    type: z.literal("comparator"),
+    key: ZMappingKey,
+    comparator: ZMappingComparator.optional(),
+    value: z.union([ZMappingValue, z.array(ZMappingValue)]).optional(),
+  }),
+);
+export type TMappingConditionComparatorInput = z.infer<
+  typeof ZMappingConditionComparatorInput
+>;
+
+export const ZMappingConditionAndInput = z.lazy(() =>
+  z.object({
+    id: ZMappingConditionId,
+    type: z.literal("and"),
+    conditions: z.array(ZMappingConditionInput).default([]),
+  }),
+);
+export type TMappingConditionAndInput = z.infer<
+  typeof ZMappingConditionAndInput
+>;
+
+export const ZMappingConditionOrInput = z.lazy(() =>
+  z.object({
+    id: ZMappingConditionId,
+    type: z.literal("or"),
+    conditions: z.array(ZMappingConditionInput).default([]),
+  }),
+);
+export type TMappingConditionOrInput = z.infer<typeof ZMappingConditionOrInput>;
+
+export const ZMappingConditionInput = zodRecursive((self) =>
+  z.union([
+    ZMappingConditionComparatorInput,
+    z.object({
+      id: ZMappingConditionId,
+      type: z.literal("not"),
+      condition: self,
+    }),
+    z.object({
+      id: ZMappingConditionId,
+      type: z.literal("and"),
+      conditions: z.array(self).default([]),
+    }),
+    z.object({
+      id: ZMappingConditionId,
+      type: z.literal("or"),
+      conditions: z.array(self).default([]),
+    }),
+  ]),
+);
+
+export const ZMappingConditionNotInput = z.object({
+  id: ZMappingConditionId,
+  type: z.literal("not"),
+  condition: ZMappingConditionInput,
+});
+export type TMappingConditionNotInput = z.infer<
+  typeof ZMappingConditionNotInput
+>;
+
+export type TMappingConditionInput = z.infer<typeof ZMappingConditionInput>;
 
 export const createNewMappingCondition = (
   type: TMappingType,
-): TMappingCondition => {
+): TMappingConditionInput => {
   switch (type) {
     case "comparator":
       return {
         type: "comparator",
         key: "some-tag",
-        comparator: "equals",
-        value: PLACEHOLDER_TAG_ID,
+        comparator: undefined,
+        value: undefined,
         id: crypto.randomUUID() as TMappingConditionId,
       };
     case "not":
@@ -140,4 +214,23 @@ export const createNewMappingCondition = (
         id: crypto.randomUUID() as TMappingConditionId,
       };
   }
+};
+
+// ZMappingConditionからZMappingConditionInputへの変換関数
+export const convertConditionToInput = (
+  condition: TMappingCondition,
+): TMappingConditionInput => {
+  if (condition.type === "comparator") {
+    return condition;
+  }
+  if (condition.type === "not") {
+    return {
+      ...condition,
+      condition: convertConditionToInput(condition.condition),
+    };
+  }
+  return {
+    ...condition,
+    conditions: condition.conditions.map(convertConditionToInput),
+  };
 };
