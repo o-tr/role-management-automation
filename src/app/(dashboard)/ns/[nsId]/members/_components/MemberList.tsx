@@ -46,19 +46,19 @@ const TagsHeader: StringOrTemplateHeader<TMemberWithRelation, unknown> = ({
   table,
 }) => {
   const rows = table.getCoreRowModel().rows;
-  const tags = useMemo(
-    () =>
-      rows
-        .flatMap((row) => row.original.tags)
-        .reduce<TTag[]>((acc, tag) => {
-          if (!acc.find((t) => t.id === tag.id)) {
-            acc.push(tag);
-          }
-          return acc;
-        }, [])
-        .sort((a, b) => a.name.localeCompare(b.name)),
-    [rows],
-  );
+  const tags = useMemo(() => {
+    const seen = new Set<TTagId>();
+    const acc: TTag[] = [];
+    for (const row of rows) {
+      for (const tag of row.original.tags) {
+        if (!seen.has(tag.id)) {
+          seen.add(tag.id);
+          acc.push(tag);
+        }
+      }
+    }
+    return acc.sort((a, b) => a.name.localeCompare(b.name));
+  }, [rows]);
   const [selectedTags, setSelectedTags] = useState<TTagId[]>([]);
 
   useEffect(() => {
@@ -181,9 +181,23 @@ export const columns: ColumnDef<TMemberWithRelation>[] = [
                 disabled={loading || !newTagIds.length}
                 onClick={async () => {
                   const member = { ...row.original };
-                  const addTags = (tags || [])
-                    .filter((t) => newTagIds.includes(t.id))
-                    .filter((t) => !member.tags.some((et) => et.id === t.id));
+                  const tagIdToTag = new Map(
+                    (tags || []).map((t) => [t.id, t]),
+                  );
+                  const existingTagIds = new Set(member.tags.map((t) => t.id));
+                  const addTagIds = newTagIds.filter(
+                    (id) => !existingTagIds.has(id),
+                  );
+
+                  if (addTagIds.length === 0) {
+                    setIsPopoverOpen(false);
+                    setNewTagIds([]);
+                    return;
+                  }
+
+                  const addTags = addTagIds
+                    .map((id) => tagIdToTag.get(id))
+                    .filter(Boolean) as TTag[];
                   member.tags = [...member.tags, ...addTags];
                   await patchMembers(member.id, member);
                   onMembersChange();
@@ -302,11 +316,22 @@ const Footer: FC<{
           <Button
             variant="outline"
             onClick={async () => {
+              if (selectedTags.length === 0) return;
+
               await Promise.all(
                 selected.rows.map(({ original: member }) => {
+                  const existingTagIds = new Set(member.tags.map((t) => t.id));
+                  const addTagIds = selectedTags.filter(
+                    (id) => !existingTagIds.has(id),
+                  );
+
+                  if (addTagIds.length === 0) {
+                    return Promise.resolve();
+                  }
+
                   member.tags = [
                     ...member.tags,
-                    ...selectedTags.map((tagId) => ({
+                    ...addTagIds.map((tagId) => ({
                       id: tagId as TTagId,
                       name: "",
                       namespaceId: namespaceId,
