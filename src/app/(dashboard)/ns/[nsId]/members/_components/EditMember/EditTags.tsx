@@ -6,7 +6,6 @@ import { useTags } from "../../../roles/_hooks/use-tags";
 type Props = {
   member: TMemberWithRelation;
   setMember: Dispatch<SetStateAction<TMemberWithRelation>>;
-  disabled?: boolean;
 };
 export const EditTags: FC<Props> = ({ member, setMember }) => {
   const { tags } = useTags(member.namespaceId);
@@ -20,11 +19,7 @@ export const EditTags: FC<Props> = ({ member, setMember }) => {
       // 新しいタグIDから完全なタグオブジェクトを復元
       nv.tags = newTagIds
         .map((tagId) => tags?.find((tag) => tag.id === tagId))
-        .filter((tag): tag is NonNullable<typeof tag> => tag !== undefined)
-        .map((tag) => ({
-          ...tag,
-          namespaceId: member.namespaceId,
-        }));
+        .filter((tag): tag is NonNullable<typeof tag> => tag !== undefined);
       return nv;
     });
   };

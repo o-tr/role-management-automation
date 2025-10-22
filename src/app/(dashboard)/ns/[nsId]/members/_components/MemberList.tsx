@@ -183,12 +183,7 @@ export const columns: ColumnDef<TMemberWithRelation>[] = [
                   const member = { ...row.original };
                   const addTags = (tags || [])
                     .filter((t) => newTagIds.includes(t.id))
-                    .filter((t) => !member.tags.some((et) => et.id === t.id))
-                    .map((t) => ({
-                      id: t.id as TTagId,
-                      name: t.name,
-                      namespaceId: row.original.namespaceId,
-                    }));
+                    .filter((t) => !member.tags.some((et) => et.id === t.id));
                   member.tags = [...member.tags, ...addTags];
                   await patchMembers(member.id, member);
                   onMembersChange();
