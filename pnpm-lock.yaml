@@ -141,7 +141,7 @@ importers:
         specifier: ^16.0.10
         version: 16.0.10(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       next-auth:
-        specifier: latest
+        specifier: ^4
         version: 4.24.13(next@16.0.10(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       next-themes:
         specifier: latest
