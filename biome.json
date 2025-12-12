@@ -21,5 +21,10 @@
       }
     },
     "domains": { "next": "all" }
+  },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
   }
 }
