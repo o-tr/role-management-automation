@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { use, useState } from "react";
 import { BreadcrumbUpdater } from "@/app/(dashboard)/ns/[nsId]/components/Breadcrumb/BreadcrumbUpdater";
 import {
   AlertDialog,
@@ -31,9 +31,10 @@ const paths = [
 export default function GroupTagsPage({
   params,
 }: {
-  params: { nsId: TNamespaceId };
+  params: Promise<{ nsId: TNamespaceId }>;
 }) {
-  const { namespace, isPending } = useNamespace({ namespaceId: params.nsId });
+  const { nsId } = use(params);
+  const { namespace, isPending } = useNamespace({ namespaceId: nsId });
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
   const [isDirty, setIsDirty] = useState(false);

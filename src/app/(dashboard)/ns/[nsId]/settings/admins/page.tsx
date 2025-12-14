@@ -1,4 +1,5 @@
 "use client";
+import { use } from "react";
 import type { TNamespaceId } from "@/types/prisma";
 import { BreadcrumbUpdater } from "../../components/Breadcrumb/BreadcrumbUpdater";
 import { AdminsList } from "./_components/AdminsList";
@@ -9,12 +10,13 @@ const paths = [
 ];
 
 type Props = {
-  params: {
+  params: Promise<{
     nsId: TNamespaceId;
-  };
+  }>;
 };
 
-export default function GroupSettingsPage({ params: { nsId } }: Props) {
+export default function GroupSettingsPage({ params }: Props) {
+  const { nsId } = use(params);
   return (
     <div>
       <AdminsList nsId={nsId} />

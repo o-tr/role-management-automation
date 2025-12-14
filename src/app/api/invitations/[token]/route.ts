@@ -8,7 +8,7 @@ import { getNamespaceWithOwnerAndAdmins } from "@/lib/prisma/getNamespaceWithOwn
 import { requireLoggedIn } from "@/lib/validatePermission";
 import type { ErrorResponseType } from "@/types/api";
 import type {
-  TNamespaceInvitationToken,
+  TNamespaceInvitationId,
   TNamespaceInvitationWithRelation,
 } from "@/types/prisma";
 
@@ -22,7 +22,7 @@ export type GetNamespaceInvitationResponse =
 export const GET = api(
   async (
     _req: NextRequest,
-    { params }: { params: Promise<{ token: TNamespaceInvitationToken }> },
+    { params }: { params: Promise<{ token: TNamespaceInvitationId }> },
   ): Promise<GetNamespaceInvitationResponse> => {
     const user = await requireLoggedIn();
     const { token } = await params;

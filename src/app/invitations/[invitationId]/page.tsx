@@ -4,6 +4,7 @@ import { ja } from "date-fns/locale";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
+import { use } from "react";
 import { Button } from "@/components/ui/button";
 import type { TNamespaceInvitationId } from "@/types/prisma";
 import { useAcceptInvitation } from "../_hooks/useAcceptInvitation";
@@ -12,14 +13,11 @@ import { useInvitation } from "../_hooks/useInvitation";
 export default function GroupTagsPage({
   params,
 }: {
-  params: { invitationId: TNamespaceInvitationId };
+  params: Promise<{ invitationId: TNamespaceInvitationId }>;
 }) {
-  const { invitation, isPending, responseError } = useInvitation(
-    params.invitationId,
-  );
-  const { acceptInvitation, loading } = useAcceptInvitation(
-    params.invitationId,
-  );
+  const { invitationId } = use(params);
+  const { invitation, isPending, responseError } = useInvitation(invitationId);
+  const { acceptInvitation, loading } = useAcceptInvitation(invitationId);
   const router = useRouter();
 
   if (isPending) {
@@ -45,7 +43,7 @@ export default function GroupTagsPage({
     }
     if (responseError.code === 401) {
       signIn("discord", {
-        callbackUrl: `/invitations/${params.invitationId}`,
+        callbackUrl: `/invitations/${invitationId}`,
       });
       return null;
     }

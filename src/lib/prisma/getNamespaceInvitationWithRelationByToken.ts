@@ -1,12 +1,12 @@
 import type {
-  TNamespaceInvitationToken,
+  TNamespaceInvitationId,
   TNamespaceInvitationWithRelation,
 } from "@/types/prisma";
 import { prisma } from "../prisma";
 import { formatTNamespaceInvitationWithRelation } from "./format/formatTNamespaceInvitationWithRelation";
 
 export const getNamespaceInvitationWithRelationByToken = async (
-  token: TNamespaceInvitationToken,
+  token: TNamespaceInvitationId,
 ): Promise<TNamespaceInvitationWithRelation | null> => {
   const invitation = await prisma.namespaceInvitation.findUnique({
     where: {

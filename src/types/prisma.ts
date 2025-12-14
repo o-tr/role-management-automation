@@ -54,14 +54,11 @@ export const ZNamespaceInvitationId = z
   .uuid()
   .brand<"NamespaceInvitationId">("NamespaceInvitationId");
 export type TNamespaceInvitationId = z.infer<typeof ZNamespaceInvitationId>;
-export const ZNamespaceInvitationToken = z.string().min(1);
-export type TNamespaceInvitationToken = z.infer<
-  typeof ZNamespaceInvitationToken
->;
+
 export type TNamespaceInvitation = {
   id: TNamespaceInvitationId;
   namespaceId: TNamespaceId;
-  token: TNamespaceInvitationToken;
+  token: TNamespaceInvitationId;
   expires: Date;
 };
 

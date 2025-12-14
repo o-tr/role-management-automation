@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
 
-export default function GroupTagsPage({
+export default async function GroupTagsPage({
   params,
 }: {
-  params: { nsId: string };
+  params: Promise<{ nsId: string }>;
 }) {
-  redirect(`/ns/${params.nsId}/roles/mappings`);
+  const { nsId } = await params;
+  redirect(`/ns/${nsId}/roles/mappings`);
 }

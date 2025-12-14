@@ -1,5 +1,6 @@
 "use client";
 import { redirect } from "next/navigation";
+import { use } from "react";
 import { EditNSName } from "@/app/(dashboard)/ns/[nsId]/settings/_components/EditNSName";
 import { useNamespace } from "@/hooks/use-namespace";
 import type { TNamespaceId } from "@/types/prisma";
@@ -11,12 +12,13 @@ const paths = [
 ];
 
 type Props = {
-  params: {
+  params: Promise<{
     nsId: TNamespaceId;
-  };
+  }>;
 };
 
-export default function GroupSettingsPage({ params: { nsId } }: Props) {
+export default function GroupSettingsPage({ params }: Props) {
+  const { nsId } = use(params);
   const { namespace, isPending } = useNamespace({ namespaceId: nsId });
   if (isPending) {
     return <p>Loading...</p>;
