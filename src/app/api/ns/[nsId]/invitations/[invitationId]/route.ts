@@ -16,11 +16,17 @@ export const DELETE = api(
     _req: NextRequest,
     {
       params,
-    }: { params: { nsId: TNamespaceId; invitationId: TNamespaceInvitationId } },
+    }: {
+      params: Promise<{
+        nsId: TNamespaceId;
+        invitationId: TNamespaceInvitationId;
+      }>;
+    },
   ): Promise<DeleteNamespaceInvitationResponse> => {
-    await validatePermission(params.nsId, "owner");
+    const { nsId, invitationId } = await params;
+    await validatePermission(nsId, "owner");
 
-    await deleteNamespaceInvitation(params.nsId, params.invitationId);
+    await deleteNamespaceInvitation(nsId, invitationId);
 
     return {
       status: "success",

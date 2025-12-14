@@ -52,12 +52,15 @@ export const GET = api(
     _req: NextRequest,
     {
       params,
-    }: { params: { nsId: TNamespaceId; type: string; serviceId: string } },
+    }: {
+      params: Promise<{ nsId: TNamespaceId; type: string; serviceId: string }>;
+    },
   ): Promise<ResolveResponse> => {
-    const type = ZResolveRequestType.parse(params.type);
-    validatePermission(params.nsId, "admin");
+    const { nsId, type, serviceId } = await params;
+    const parsedType = ZResolveRequestType.parse(type);
+    await validatePermission(nsId, "admin");
 
-    const item = await resolve(type, params.serviceId, params.nsId);
+    const item = await resolve(parsedType, serviceId, nsId);
 
     return {
       status: "success",

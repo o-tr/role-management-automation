@@ -35,20 +35,23 @@ export const DELETE = api(
     _req: NextRequest,
     {
       params,
-    }: { params: { nsId: TNamespaceId; accountId: TExternalServiceAccountId } },
+    }: {
+      params: Promise<{
+        nsId: TNamespaceId;
+        accountId: TExternalServiceAccountId;
+      }>;
+    },
   ): Promise<DeleteExternalServiceAccountResponse> => {
-    await validatePermission(params.nsId, "owner");
+    const { nsId, accountId } = await params;
+    await validatePermission(nsId, "owner");
 
-    const serviceAccount = await getExternalServiceAccount(
-      params.nsId,
-      params.accountId,
-    );
+    const serviceAccount = await getExternalServiceAccount(nsId, accountId);
 
     if (!serviceAccount) {
       throw new NotFoundException("Service account not found");
     }
 
-    await deleteExternalServiceAccount(params.nsId, params.accountId);
+    await deleteExternalServiceAccount(nsId, accountId);
 
     return {
       status: "success",
@@ -61,13 +64,16 @@ export const PATCH = api(
     req: NextRequest,
     {
       params,
-    }: { params: { nsId: TNamespaceId; accountId: TExternalServiceAccountId } },
+    }: {
+      params: Promise<{
+        nsId: TNamespaceId;
+        accountId: TExternalServiceAccountId;
+      }>;
+    },
   ): Promise<UpdateExternalServiceAccountResponse> => {
-    await validatePermission(params.nsId, "owner");
-    const serviceAccount = await getExternalServiceAccount(
-      params.nsId,
-      params.accountId,
-    );
+    const { nsId, accountId } = await params;
+    await validatePermission(nsId, "owner");
+    const serviceAccount = await getExternalServiceAccount(nsId, accountId);
 
     if (!serviceAccount) {
       throw new NotFoundException("Service account not found");
@@ -81,8 +87,8 @@ export const PATCH = api(
     }
 
     const updatedAccount = await updateExternalServiceAccount(
-      params.nsId,
-      params.accountId,
+      nsId,
+      accountId,
       result.data,
     );
 

@@ -3,7 +3,7 @@ import type { ErrorResponseType } from "@/types/api";
 import { BaseException } from "./exceptions/BaseException";
 
 export const api = <
-  T extends [NextRequest, { params: Record<string, string> }],
+  T extends [NextRequest, { params: Promise<Record<string, string>> }],
   U extends { [key: string]: unknown; status: "success" } | ErrorResponseType,
 >(
   func: (...args: T) => Promise<U>,

@@ -42,11 +42,12 @@ const createServiceAccountSchema = z.object({
 export const GET = api(
   async (
     _req: NextRequest,
-    { params }: { params: { nsId: TNamespaceId } },
+    { params }: { params: Promise<{ nsId: TNamespaceId }> },
   ): Promise<GetExternalServiceAccountsResponse> => {
-    await validatePermission(params.nsId, "admin");
+    const { nsId } = await params;
+    await validatePermission(nsId, "admin");
 
-    const serviceAccounts = (await getExternalServiceAccounts(params.nsId)).map(
+    const serviceAccounts = (await getExternalServiceAccounts(nsId)).map(
       filterFExternalServiceAccount,
     );
 
@@ -60,10 +61,10 @@ export const GET = api(
 export const POST = api(
   async (
     req: NextRequest,
-    { params }: { params: { nsId: TNamespaceId } },
+    { params }: { params: Promise<{ nsId: TNamespaceId }> },
   ): Promise<CreateExternalServiceAccountResponse> => {
-    await validatePermission(params.nsId, "owner");
-
+    const { nsId } = await params;
+    await validatePermission(nsId, "owner");
     const body = await req.json();
     const result = createServiceAccountSchema.safeParse(body);
 
@@ -79,7 +80,7 @@ export const POST = api(
     }
 
     const serviceAccount = await createExternalServiceAccount(
-      params.nsId,
+      nsId,
       { name, service, credential },
       validatedCredential,
     );

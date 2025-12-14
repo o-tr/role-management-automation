@@ -28,14 +28,14 @@ export type GetMembersResponse =
 export const POST = api(
   async (
     req: NextRequest,
-    { params }: { params: { nsId: TNamespaceId } },
+    { params }: { params: Promise<{ nsId: TNamespaceId }> },
   ): Promise<AddMembersResponse> => {
-    await validatePermission(params.nsId, "admin");
+    const { nsId } = await params;
+    await validatePermission(nsId, "admin");
 
     const body = ZCreateOrUpdateMembers.parse(await req.json());
 
-    const members = await createOrUpdateMember(params.nsId, body, true, true);
-
+    const members = await createOrUpdateMember(nsId, body, true, true);
     return {
       status: "success",
       members,
@@ -46,12 +46,12 @@ export const POST = api(
 export const GET = api(
   async (
     _req: NextRequest,
-    { params }: { params: { nsId: TNamespaceId } },
+    { params }: { params: Promise<{ nsId: TNamespaceId }> },
   ): Promise<GetMembersResponse> => {
-    await validatePermission(params.nsId, "admin");
+    const { nsId } = await params;
+    await validatePermission(nsId, "admin");
 
-    const members = await getMembersWithRelation(params.nsId);
-
+    const members = await getMembersWithRelation(nsId);
     return {
       status: "success",
       members,

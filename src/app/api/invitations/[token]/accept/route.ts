@@ -21,13 +21,12 @@ export type PostAcceptInvitationResponse =
 export const POST = api(
   async (
     _req: NextRequest,
-    { params }: { params: { token: TNamespaceInvitationToken } },
+    { params }: { params: Promise<{ token: TNamespaceInvitationToken }> },
   ): Promise<PostAcceptInvitationResponse> => {
     const user = await requireLoggedIn();
+    const { token } = await params;
 
-    const invitation = await getNamespaceInvitationWithRelationByToken(
-      params.token,
-    );
+    const invitation = await getNamespaceInvitationWithRelationByToken(token);
 
     if (!invitation) {
       throw new NotFoundException("Invitation not found");

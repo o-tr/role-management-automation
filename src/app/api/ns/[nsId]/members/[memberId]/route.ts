@@ -28,17 +28,19 @@ export type UpdateMemberResponse =
 export const DELETE = api(
   async (
     _req: NextRequest,
-    { params }: { params: { nsId: TNamespaceId; memberId: TMemberId } },
+    {
+      params,
+    }: { params: Promise<{ nsId: TNamespaceId; memberId: TMemberId }> },
   ): Promise<DeleteMemberResponse> => {
-    await validatePermission(params.nsId, "admin");
-
-    const member = await getMember(params.nsId, params.memberId);
+    const { nsId, memberId } = await params;
+    await validatePermission(nsId, "admin");
+    const member = await getMember(nsId, memberId);
 
     if (!member) {
       throw new NotFoundException("Member not found");
     }
 
-    await deleteMember(params.nsId, params.memberId);
+    await deleteMember(nsId, memberId);
 
     return { status: "success" };
   },
@@ -47,19 +49,21 @@ export const DELETE = api(
 export const PATCH = api(
   async (
     req: NextRequest,
-    { params }: { params: { nsId: TNamespaceId; memberId: TMemberId } },
+    {
+      params,
+    }: { params: Promise<{ nsId: TNamespaceId; memberId: TMemberId }> },
   ): Promise<UpdateMemberResponse> => {
-    await validatePermission(params.nsId, "admin");
+    const { nsId, memberId } = await params;
+    await validatePermission(nsId, "admin");
 
-    const member = await getMember(params.nsId, params.memberId);
-
+    const member = await getMember(nsId, memberId);
     if (!member) {
       throw new NotFoundException("Member not found");
     }
 
     const body = ZMemberUpdateInput.parse(await req.json());
 
-    const result = await updateMember(params.nsId, params.memberId, body);
+    const result = await updateMember(nsId, memberId, body);
     return {
       status: "success",
       member: result,

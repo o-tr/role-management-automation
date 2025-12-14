@@ -25,17 +25,17 @@ export type UpdateTagResponse =
 export const DELETE = api(
   async (
     _req: NextRequest,
-    { params }: { params: { nsId: TNamespaceId; tagId: TTagId } },
+    { params }: { params: Promise<{ nsId: TNamespaceId; tagId: TTagId }> },
   ): Promise<DeleteTagResponse> => {
-    await validatePermission(params.nsId, "admin");
-
-    const tag = await getTag(params.nsId, params.tagId);
+    const { nsId, tagId } = await params;
+    await validatePermission(nsId, "admin");
+    const tag = await getTag(nsId, tagId);
 
     if (!tag) {
       throw new NotFoundException("Tag not found");
     }
 
-    await deleteTag(params.nsId, params.tagId);
+    await deleteTag(nsId, tagId);
 
     return { status: "success" };
   },
@@ -44,12 +44,12 @@ export const DELETE = api(
 export const PATCH = api(
   async (
     req: NextRequest,
-    { params }: { params: { nsId: TNamespaceId; tagId: TTagId } },
+    { params }: { params: Promise<{ nsId: TNamespaceId; tagId: TTagId }> },
   ): Promise<UpdateTagResponse> => {
-    await validatePermission(params.nsId, "admin");
+    const { nsId, tagId } = await params;
+    await validatePermission(nsId, "admin");
 
-    const tag = await getTag(params.nsId, params.tagId);
-
+    const tag = await getTag(nsId, tagId);
     if (!tag) {
       throw new NotFoundException("Tag not found");
     }
@@ -59,7 +59,7 @@ export const PATCH = api(
       throw new BadRequestException("Invalid request body");
     }
 
-    const updated = await updateTag(params.nsId, params.tagId, {
+    const updated = await updateTag(nsId, tagId, {
       name: body.data.name,
       color: body.data.color,
     });

@@ -21,22 +21,22 @@ export type ToggleMappingResponse =
 export const POST = api(
   async (
     _req: NextRequest,
-    { params }: { params: { nsId: TNamespaceId; mappingId: TMappingId } },
+    {
+      params,
+    }: { params: Promise<{ nsId: TNamespaceId; mappingId: TMappingId }> },
   ): Promise<ToggleMappingResponse> => {
-    await validatePermission(params.nsId, "admin");
+    const { nsId, mappingId } = await params;
+    await validatePermission(nsId, "admin");
 
-    const mapping = await getExternalServiceGroupRoleMapping(
-      params.nsId,
-      params.mappingId,
-    );
+    const mapping = await getExternalServiceGroupRoleMapping(nsId, mappingId);
 
     if (!mapping) {
       throw new NotFoundException("Mapping not found");
     }
 
     const updatedMapping = await updateExternalServiceGroupRoleMapping(
-      params.nsId,
-      params.mappingId,
+      nsId,
+      mappingId,
       {
         enabled: !mapping.enabled,
       },

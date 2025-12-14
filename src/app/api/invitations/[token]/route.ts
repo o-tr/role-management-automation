@@ -22,12 +22,11 @@ export type GetNamespaceInvitationResponse =
 export const GET = api(
   async (
     _req: NextRequest,
-    { params }: { params: { token: TNamespaceInvitationToken } },
+    { params }: { params: Promise<{ token: TNamespaceInvitationToken }> },
   ): Promise<GetNamespaceInvitationResponse> => {
     const user = await requireLoggedIn();
-    const invitation = await getNamespaceInvitationWithRelationByToken(
-      params.token,
-    );
+    const { token } = await params;
+    const invitation = await getNamespaceInvitationWithRelationByToken(token);
 
     if (!invitation) {
       throw new NotFoundException("Invitation not found");

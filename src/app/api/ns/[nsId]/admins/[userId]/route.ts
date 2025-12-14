@@ -16,11 +16,10 @@ export type DeleteAdminResponse =
 export const DELETE = api(
   async (
     _req: NextRequest,
-    { params }: { params: { nsId: TNamespaceId; userId: TUserId } },
+    { params }: { params: Promise<{ nsId: TNamespaceId; userId: TUserId }> },
   ): Promise<DeleteAdminResponse> => {
-    const namespace = await validatePermission(params.nsId, "owner");
-
-    const { nsId, userId } = params;
+    const { nsId, userId } = await params;
+    const namespace = await validatePermission(nsId, "owner");
 
     if (userId === namespace.ownerId) {
       throw new BadRequestException("Cannot remove owner");
