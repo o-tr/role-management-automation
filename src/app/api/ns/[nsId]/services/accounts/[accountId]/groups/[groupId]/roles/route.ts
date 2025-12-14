@@ -25,20 +25,17 @@ export const GET = api(
     {
       params,
     }: {
-      params: {
+      params: Promise<{
         nsId: TNamespaceId;
         accountId: TExternalServiceAccountId;
         groupId: TExternalServiceGroupId;
-      };
+      }>;
     },
   ): Promise<GetExternalServiceGroupRolesResponse> => {
-    await validatePermission(params.nsId, "admin");
+    const { nsId, accountId, groupId } = await params;
+    await validatePermission(nsId, "admin");
 
-    const group = await getExternalServiceGroup(
-      params.nsId,
-      params.accountId,
-      params.groupId,
-    );
+    const group = await getExternalServiceGroup(nsId, accountId, groupId);
 
     if (!group) {
       throw new NotFoundException("Service group not found");

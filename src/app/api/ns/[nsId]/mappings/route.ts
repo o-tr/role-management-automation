@@ -42,9 +42,10 @@ export type CreateMappingBody = z.infer<typeof createMappingSchema>;
 export const POST = api(
   async (
     req: NextRequest,
-    { params }: { params: { nsId: TNamespaceId } },
+    { params }: { params: Promise<{ nsId: TNamespaceId }> },
   ): Promise<CreateMappingResponse> => {
-    await validatePermission(params.nsId, "admin");
+    const { nsId } = await params;
+    await validatePermission(nsId, "admin");
 
     const body = await req.json();
     const result = createMappingSchema.safeParse(body);
@@ -59,7 +60,7 @@ export const POST = api(
 
     const tags = await Promise.all(
       tagIds.map(async (tagId) => {
-        return (await getTag(params.nsId, tagId)) || undefined;
+        return (await getTag(nsId, tagId)) || undefined;
       }),
     );
 
@@ -72,7 +73,7 @@ export const POST = api(
     const validate = await Promise.all(
       roles.map(async (item) => {
         const group = await getExternalServiceGroup(
-          params.nsId,
+          nsId,
           item.accountId,
           item.groupId,
         );
@@ -92,7 +93,7 @@ export const POST = api(
     }
 
     const mapping = await createExternalServiceGroupRoleMapping(
-      params.nsId,
+      nsId,
       result.data,
     );
 
@@ -151,13 +152,13 @@ const extractServiceGroups = (actions: TMappingAction[]) => {
 export const GET = api(
   async (
     _req: NextRequest,
-    { params }: { params: { nsId: TNamespaceId } },
+    { params }: { params: Promise<{ nsId: TNamespaceId }> },
   ): Promise<GetSerializedMappingsResponse> => {
-    await validatePermission(params.nsId, "admin");
+    const { nsId } = await params;
+    await validatePermission(nsId, "admin");
 
-    const mappings = await getExternalServiceGroupRoleMappingsByNamespaceId(
-      params.nsId,
-    );
+    const mappings =
+      await getExternalServiceGroupRoleMappingsByNamespaceId(nsId);
 
     return {
       status: "success",

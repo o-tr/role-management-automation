@@ -18,12 +18,12 @@ export type GetExternalServiceGroupsResponse =
 export const GET = api(
   async (
     _req: NextRequest,
-    { params }: { params: { nsId: TNamespaceId } },
+    { params }: { params: Promise<{ nsId: TNamespaceId }> },
   ): Promise<GetExternalServiceGroupsResponse> => {
-    await validatePermission(params.nsId, "admin");
+    const { nsId } = await params;
+    await validatePermission(nsId, "admin");
 
-    const serviceGroups = await getExternalServiceGroups(params.nsId);
-
+    const serviceGroups = await getExternalServiceGroups(nsId);
     return {
       status: "success",
       serviceGroups,

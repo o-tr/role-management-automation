@@ -20,9 +20,10 @@ export type GetAdminsResponse =
 export const GET = api(
   async (
     _req: NextRequest,
-    { params }: { params: { nsId: TNamespaceId } },
+    { params }: { params: Promise<{ nsId: TNamespaceId }> },
   ): Promise<GetAdminsResponse> => {
-    const namespace = await validatePermission(params.nsId, "owner");
+    const { nsId } = await params;
+    const namespace = await validatePermission(nsId, "owner");
     return {
       status: "success",
       admins: namespace.admins.map((admin) => ({

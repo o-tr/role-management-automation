@@ -25,9 +25,10 @@ export type TCreateNamespaceInvitationRequestBody = z.infer<
 export const POST = api(
   async (
     req: NextRequest,
-    { params }: { params: { nsId: TNamespaceId } },
+    { params }: { params: Promise<{ nsId: TNamespaceId }> },
   ): Promise<CreateNamespaceInvitationResponse> => {
-    await validatePermission(params.nsId, "owner");
+    const { nsId } = await params;
+    await validatePermission(nsId, "owner");
 
     const body = createNamespaceInvitationSchema.safeParse(await req.json());
 
@@ -42,7 +43,7 @@ export const POST = api(
       .replace(/\//g, "_")
       .replace(/\+/g, "-")}`;
 
-    const invitation = await createNamespaceInvitation(params.nsId, {
+    const invitation = await createNamespaceInvitation(nsId, {
       token: token,
       expires: new Date(body.data.expires),
     });
@@ -64,11 +65,12 @@ export type GetNamespaceInvitationsResponse =
 export const GET = api(
   async (
     _req: NextRequest,
-    { params }: { params: { nsId: TNamespaceId } },
+    { params }: { params: Promise<{ nsId: TNamespaceId }> },
   ): Promise<GetNamespaceInvitationsResponse> => {
-    await validatePermission(params.nsId, "owner");
+    const { nsId } = await params;
+    await validatePermission(nsId, "owner");
 
-    const invitations = await getNamespaceInvitations(params.nsId);
+    const invitations = await getNamespaceInvitations(nsId);
 
     return {
       status: "success",

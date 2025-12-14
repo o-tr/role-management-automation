@@ -33,19 +33,20 @@ export const GET = api(
     {
       params,
     }: {
-      params: {
+      params: Promise<{
         nsId: TNamespaceId;
         accountId: TExternalServiceAccountId;
         groupId: TExternalServiceGroupId;
-      };
+      }>;
     },
   ): Promise<GetExternalServiceGroupMembersResponse> => {
-    await validatePermission(params.nsId, "admin");
+    const { nsId, accountId, groupId } = await params;
+    await validatePermission(nsId, "admin");
 
     const serviceGroup = await getExternalServiceGroup(
-      params.nsId,
-      params.accountId,
-      params.groupId,
+      nsId,
+      accountId,
+      groupId,
     );
 
     if (!serviceGroup) {

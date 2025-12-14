@@ -26,17 +26,18 @@ export const POST = api(
     {
       params,
     }: {
-      params: {
+      params: Promise<{
         nsId: TNamespaceId;
         accountId: TMemberExternalServiceAccountId;
-      };
+      }>;
     },
   ): Promise<RefreshMemberExternalAccountIconResponse> => {
-    await validatePermission(params.nsId, "admin");
+    const { nsId, accountId } = await params;
+    await validatePermission(nsId, "admin");
 
     const memberExternalAccount = await getMemberExternalServiceAccountById(
-      params.nsId,
-      params.accountId,
+      nsId,
+      accountId,
     );
 
     if (!memberExternalAccount) {
@@ -44,7 +45,7 @@ export const POST = api(
     }
 
     const serviceAccount = await getExternalServiceAccountByServiceName(
-      params.nsId,
+      nsId,
       memberExternalAccount.service,
     );
 
@@ -61,11 +62,7 @@ export const POST = api(
       );
 
       // Update the member external account with the new icon
-      await updateMemberExternalServiceAccountIcon(
-        params.nsId,
-        params.accountId,
-        newIcon,
-      );
+      await updateMemberExternalServiceAccountIcon(nsId, accountId, newIcon);
 
       return {
         status: "success",

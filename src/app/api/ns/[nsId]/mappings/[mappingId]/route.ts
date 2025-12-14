@@ -37,20 +37,20 @@ export type UpdateMappingBody = z.infer<typeof updateMappingSchema>;
 export const DELETE = api(
   async (
     _req: NextRequest,
-    { params }: { params: { nsId: TNamespaceId; mappingId: TMappingId } },
+    {
+      params,
+    }: { params: Promise<{ nsId: TNamespaceId; mappingId: TMappingId }> },
   ): Promise<DeleteExternalServiceGroupMappingResponse> => {
-    await validatePermission(params.nsId, "admin");
+    const { nsId, mappingId } = await params;
+    await validatePermission(nsId, "admin");
 
-    const mapping = await getExternalServiceGroupRoleMapping(
-      params.nsId,
-      params.mappingId,
-    );
+    const mapping = await getExternalServiceGroupRoleMapping(nsId, mappingId);
 
     if (!mapping) {
       throw new NotFoundException("Mapping not found");
     }
 
-    await deleteExternalServiceGroupRoleMapping(params.nsId, params.mappingId);
+    await deleteExternalServiceGroupRoleMapping(nsId, mappingId);
 
     return {
       status: "success",
@@ -61,14 +61,14 @@ export const DELETE = api(
 export const PATCH = api(
   async (
     req: NextRequest,
-    { params }: { params: { nsId: TNamespaceId; mappingId: TMappingId } },
+    {
+      params,
+    }: { params: Promise<{ nsId: TNamespaceId; mappingId: TMappingId }> },
   ): Promise<UpdateExternalServiceGroupMappingResponse> => {
-    validatePermission(params.nsId, "admin");
+    const { nsId, mappingId } = await params;
+    await validatePermission(nsId, "admin");
 
-    const mapping = await getExternalServiceGroupRoleMapping(
-      params.nsId,
-      params.mappingId,
-    );
+    const mapping = await getExternalServiceGroupRoleMapping(nsId, mappingId);
 
     if (!mapping) {
       throw new NotFoundException("Mapping not found");
@@ -77,8 +77,8 @@ export const PATCH = api(
     const body = updateMappingSchema.parse(await req.json());
 
     const updatedMapping = await updateExternalServiceGroupRoleMapping(
-      params.nsId,
-      params.mappingId,
+      nsId,
+      mappingId,
       body,
     );
 

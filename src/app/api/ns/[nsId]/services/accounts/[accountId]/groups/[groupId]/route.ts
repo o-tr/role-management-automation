@@ -23,26 +23,27 @@ export const DELETE = api(
     {
       params,
     }: {
-      params: {
+      params: Promise<{
         nsId: TNamespaceId;
         accountId: TExternalServiceAccountId;
         groupId: TExternalServiceGroupId;
-      };
+      }>;
     },
   ): Promise<DeleteExternalServiceGroupResponse> => {
-    await validatePermission(params.nsId, "owner");
+    const { nsId, accountId, groupId } = await params;
+    await validatePermission(nsId, "owner");
 
     const serviceGroup = await getExternalServiceGroup(
-      params.nsId,
-      params.accountId,
-      params.groupId,
+      nsId,
+      accountId,
+      groupId,
     );
 
     if (!serviceGroup) {
       throw new NotFoundException("Service group not found");
     }
 
-    await deleteExternalServiceGroup(params.nsId, params.groupId);
+    await deleteExternalServiceGroup(nsId, groupId);
 
     return {
       status: "success",

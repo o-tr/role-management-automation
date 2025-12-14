@@ -16,10 +16,9 @@ export type PostTransferNamespaceOwnerResponse =
 export const POST = api(
   async (
     _req: NextRequest,
-    {
-      params: { userId, nsId },
-    }: { params: { nsId: TNamespaceId; userId: TUserId } },
+    { params }: { params: Promise<{ nsId: TNamespaceId; userId: TUserId }> },
   ): Promise<PostTransferNamespaceOwnerResponse> => {
+    const { nsId, userId } = await params;
     const namespace = await validatePermission(nsId, "owner");
 
     if (userId === namespace.ownerId) {

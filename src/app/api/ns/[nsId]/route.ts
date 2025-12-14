@@ -25,9 +25,10 @@ export type GetNamespaceDetailResponse =
 export const GET = api(
   async (
     _req: NextRequest,
-    { params }: { params: { nsId: TNamespaceId } },
+    { params }: { params: Promise<{ nsId: TNamespaceId }> },
   ): Promise<GetNamespaceDetailResponse> => {
-    const namespace = await validatePermission(params.nsId, "admin");
+    const { nsId } = await params;
+    const namespace = await validatePermission(nsId, "admin");
     return {
       status: "success",
       namespace: {
@@ -49,9 +50,10 @@ const patchNamespaceSchema = z.object({
 export const PATCH = api(
   async (
     req: NextRequest,
-    { params }: { params: { nsId: TNamespaceId } },
+    { params }: { params: Promise<{ nsId: TNamespaceId }> },
   ): Promise<GetNamespaceDetailResponse> => {
-    const namespace = await validatePermission(params.nsId, "owner");
+    const { nsId } = await params;
+    const namespace = await validatePermission(nsId, "owner");
 
     const body = await req.json();
     const result = patchNamespaceSchema.safeParse(body);
@@ -62,7 +64,7 @@ export const PATCH = api(
 
     const { name } = result.data;
 
-    const updatedNamespace = await updateNamespace(params.nsId, { name });
+    const updatedNamespace = await updateNamespace(nsId, { name });
 
     return {
       status: "success",

@@ -31,10 +31,10 @@ const createTagSchema = z.object({
 export const POST = api(
   async (
     req: NextRequest,
-    { params }: { params: { nsId: TNamespaceId } },
+    { params }: { params: Promise<{ nsId: TNamespaceId }> },
   ): Promise<CreateTagResponse> => {
-    await validatePermission(params.nsId, "admin");
-
+    const { nsId } = await params;
+    await validatePermission(nsId, "admin");
     const body = await req.json();
     const result = createTagSchema.safeParse(body);
 
@@ -44,7 +44,7 @@ export const POST = api(
 
     const { name, color } = result.data;
 
-    const tag = await createTag(params.nsId, { name, color });
+    const tag = await createTag(nsId, { name, color });
 
     return {
       status: "success",
@@ -56,12 +56,12 @@ export const POST = api(
 export const GET = api(
   async (
     _req: NextRequest,
-    { params }: { params: { nsId: TNamespaceId } },
+    { params }: { params: Promise<{ nsId: TNamespaceId }> },
   ): Promise<GetTagsResponse> => {
-    await validatePermission(params.nsId, "admin");
+    const { nsId } = await params;
+    await validatePermission(nsId, "admin");
 
-    const tags = await getTags(params.nsId);
-
+    const tags = await getTags(nsId);
     return {
       status: "success",
       tags: tags,

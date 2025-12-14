@@ -32,9 +32,15 @@ export const POST = api(
     req: NextRequest,
     {
       params,
-    }: { params: { nsId: TNamespaceId; accountId: TExternalServiceAccountId } },
+    }: {
+      params: Promise<{
+        nsId: TNamespaceId;
+        accountId: TExternalServiceAccountId;
+      }>;
+    },
   ): Promise<CreateExternalServiceGroupResponse> => {
-    await validatePermission(params.nsId, "owner");
+    const { nsId, accountId } = await params;
+    await validatePermission(nsId, "owner");
 
     const body = await req.json();
     const result = createGroupSchema.safeParse(body);
@@ -45,17 +51,14 @@ export const POST = api(
 
     const { groupId } = result.data;
 
-    const serviceAccount = await getExternalServiceAccount(
-      params.nsId,
-      params.accountId,
-    );
+    const serviceAccount = await getExternalServiceAccount(nsId, accountId);
 
     if (!serviceAccount) {
       throw new NotFoundException("Service account not found");
     }
     const groupExists = await getExternalServiceGroupByGroupId(
-      params.nsId,
-      params.accountId,
+      nsId,
+      accountId,
       groupId,
     );
 
@@ -65,11 +68,7 @@ export const POST = api(
 
     const data = await getGroupDetail(serviceAccount, groupId);
 
-    const group = await createExternalServiceGroup(
-      params.nsId,
-      params.accountId,
-      data,
-    );
+    const group = await createExternalServiceGroup(nsId, accountId, data);
 
     return {
       status: "success",
