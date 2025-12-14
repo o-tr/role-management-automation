@@ -4,7 +4,8 @@ import type { TNamespaceId } from "@/types/prisma";
 export default async function GroupProvidersPage({
   params,
 }: {
-  params: { nsId: TNamespaceId };
+  params: Promise<{ nsId: TNamespaceId }>;
 }) {
-  redirect(`/ns/${params.nsId}/settings/services/accounts`);
+  const { nsId } = await params;
+  redirect(`/ns/${nsId}/settings/services/accounts`);
 }

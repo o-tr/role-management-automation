@@ -24,11 +24,12 @@ const paths = [
   },
 ];
 
-export default function AuthenticationPage({
+export default async function AuthenticationPage({
   params,
 }: {
-  params: { nsId: TNamespaceId };
+  params: Promise<{ nsId: TNamespaceId }>;
 }) {
+  const { nsId } = await params;
   return (
     <div className="h-full overflow-y-hidden flex flex-col">
       <BreadcrumbUpdater paths={paths} />
@@ -42,12 +43,12 @@ export default function AuthenticationPage({
           <DialogHeader>
             <DialogTitle>アカウントを追加</DialogTitle>
             <DialogDescription>
-              <AddAccount nsId={params.nsId} />
+              <AddAccount nsId={nsId} />
             </DialogDescription>
           </DialogHeader>
         </DialogContent>
       </Dialog>
-      <AccountList nsId={params.nsId} />
+      <AccountList nsId={nsId} />
     </div>
   );
 }

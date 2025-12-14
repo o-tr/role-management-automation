@@ -18,13 +18,14 @@ const paths = [
 export default async function GroupProvidersPage({
   params,
 }: {
-  params: { nsId: TNamespaceId };
+  params: Promise<{ nsId: TNamespaceId }>;
 }) {
+  const { nsId } = await params;
   return (
     <div className="h-full overflow-y-hidden flex flex-col gap-2">
       <BreadcrumbUpdater paths={paths} />
-      <GroupList nsId={params.nsId} />
-      <AddGroup nsId={params.nsId} />
+      <GroupList nsId={nsId} />
+      <AddGroup nsId={nsId} />
     </div>
   );
 }

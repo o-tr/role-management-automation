@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { use } from "react";
 import { Button } from "@/components/ui/button";
 import { useNamespace } from "@/hooks/use-namespace";
 import type { TNamespaceId } from "@/types/prisma";
@@ -9,10 +10,11 @@ import { DescriptionImage } from "./_assets/description.svg";
 export default function GroupPage({
   params,
 }: {
-  params: { nsId: TNamespaceId };
+  params: Promise<{ nsId: TNamespaceId }>;
 }) {
+  const { nsId } = use(params);
   const { namespace, responseError, isPending } = useNamespace({
-    namespaceId: params.nsId,
+    namespaceId: nsId,
   });
 
   if (isPending) {

@@ -7,14 +7,15 @@ const paths = [
   { label: "タグ管理", path: "/ns/[nsId]/roles/tags" },
 ];
 
-export default function GroupTagsPage({
+export default async function GroupTagsPage({
   params,
 }: {
-  params: { nsId: TNamespaceId };
+  params: Promise<{ nsId: TNamespaceId }>;
 }) {
+  const { nsId } = await params;
   return (
     <div className="h-full overflow-y-hidden flex flex-col">
-      <TagList namespaceId={params.nsId} />
+      <TagList namespaceId={nsId} />
       <BreadcrumbUpdater paths={paths} />
     </div>
   );
