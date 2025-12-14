@@ -11,7 +11,7 @@ export const formatTNamespaceInvitation = (
   return {
     id: invitation.id as TNamespaceInvitationId,
     namespaceId: invitation.namespaceId as TNamespaceId,
-    token: invitation.token,
+    token: invitation.token as TNamespaceInvitationId,
     expires: invitation.expires,
   };
 };
