@@ -1,4 +1,4 @@
-import { type FC, useLayoutEffect } from "react";
+import { type FC, useLayoutEffect, useRef } from "react";
 import { Image } from "@/app/(dashboard)/ns/[nsId]/components/Image";
 import type {
   ResolveResult,
@@ -21,10 +21,13 @@ export const MemberAccountResolveDisplay: FC<Props> = ({
 }) => {
   const { data, isLoading } = useMemberResolve(nsId, type, serviceId);
 
+  const onResolveRef = useRef(onResolve);
+  onResolveRef.current = onResolve;
+
   useLayoutEffect(() => {
     if (data?.status !== "success") return;
-    onResolve?.(data.item);
-  }, [data, onResolve]);
+    onResolveRef.current?.(data.item);
+  }, [data]);
 
   if (isLoading) return <div className="text-gray-500">Loading...</div>;
   if (data?.status !== "success")

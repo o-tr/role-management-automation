@@ -104,6 +104,7 @@ export const DiffList: FC<Props> = ({
     applyState.isPending,
     compareState.diff.length,
     compareState.startCompare,
+    compareState,
   ]);
 
   const onButtonClick = useCallback(async () => {
@@ -114,7 +115,7 @@ export const DiffList: FC<Props> = ({
       // 適用完了後に差分を再取得
       compareState.refetch();
     }
-  }, [compareState, onApplyResult, applyState.applyDiff]);
+  }, [compareState, onApplyResult, applyState.applyDiff, applyState]);
 
   return (
     <div className="flex flex-col gap-4">
