@@ -137,16 +137,12 @@ export const useCompareSSE = (nsId: TNamespaceId) => {
     };
   }, [closeEventSource]);
 
-  const refetch = useCallback(() => {
-    startCompare();
-  }, [startCompare]);
-
   return useMemo(
     () => ({
       ...state,
       startCompare,
-      refetch,
+      refetch: startCompare,
     }),
-    [state, startCompare, refetch],
+    [state, startCompare],
   );
 };
