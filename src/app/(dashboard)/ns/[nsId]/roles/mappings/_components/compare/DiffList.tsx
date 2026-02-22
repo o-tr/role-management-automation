@@ -98,14 +98,7 @@ export const DiffList: FC<Props> = ({
     ) {
       compareState.startCompare();
     }
-  }, [
-    isOpen,
-    compareState.state,
-    applyState.isPending,
-    compareState.diff.length,
-    compareState.startCompare,
-    compareState,
-  ]);
+  }, [isOpen, compareState, applyState]);
 
   const onButtonClick = useCallback(async () => {
     if (compareState.state !== "success") return;
@@ -115,7 +108,7 @@ export const DiffList: FC<Props> = ({
       // 適用完了後に差分を再取得
       compareState.refetch();
     }
-  }, [compareState, onApplyResult, applyState.applyDiff, applyState]);
+  }, [compareState, onApplyResult, applyState]);
 
   return (
     <div className="flex flex-col gap-4">

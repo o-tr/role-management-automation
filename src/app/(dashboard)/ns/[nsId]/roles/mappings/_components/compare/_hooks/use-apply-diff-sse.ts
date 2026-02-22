@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ApplyProgressUpdate } from "@/app/api/ns/[nsId]/mappings/apply/applyDiffWithProgress";
 import { processSSEChunk, processSSEFinalBuffer } from "@/lib/sse";
 import type { TNamespaceId } from "@/types/prisma";
@@ -172,8 +172,11 @@ export const useApplyDiffSSE = <TResult>(nsId: TNamespaceId) => {
     };
   }, []);
 
-  return {
-    ...state,
-    applyDiff,
-  };
+  return useMemo(
+    () => ({
+      ...state,
+      applyDiff,
+    }),
+    [state, applyDiff],
+  );
 };

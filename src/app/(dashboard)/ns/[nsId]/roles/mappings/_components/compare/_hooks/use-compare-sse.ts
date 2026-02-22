@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ProgressUpdate } from "@/app/api/ns/[nsId]/mappings/compare/route";
 import type { TMemberWithDiff } from "@/types/diff";
 import type { TNamespaceId } from "@/types/prisma";
@@ -141,9 +141,12 @@ export const useCompareSSE = (nsId: TNamespaceId) => {
     startCompare();
   }, [startCompare]);
 
-  return {
-    ...state,
-    startCompare,
-    refetch,
-  };
+  return useMemo(
+    () => ({
+      ...state,
+      startCompare,
+      refetch,
+    }),
+    [state, startCompare, refetch],
+  );
 };
