@@ -8,14 +8,15 @@ type ExtendedImageProps = ComponentProps<typeof NextImage> & {
 };
 
 export const Image: FC<ExtendedImageProps> = ({ ...props }) => {
+  const { onError } = props;
   const [hasError, setHasError] = useState(false);
 
   const handleError = useCallback<ReactEventHandler<HTMLImageElement>>(
     async (error) => {
-      props.onError?.(error);
+      onError?.(error);
       setHasError(true);
     },
-    [props.onError],
+    [onError],
   );
 
   // Show fallback when error occurs and no retry is possible
