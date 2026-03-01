@@ -58,10 +58,11 @@ const verifyAndExtractPlan = (
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { nsId: TNamespaceId } },
+  { params }: { params: Promise<{ nsId: TNamespaceId }> },
 ) {
   try {
-    await validatePermission(params.nsId, "admin");
+    const { nsId } = await params;
+    await validatePermission(nsId, "admin");
 
     // セッション情報からユーザーIDを取得
     const session = await getServerSession();
@@ -86,7 +87,7 @@ export async function POST(
     const stream = new ReadableStream({
       start(controller) {
         getMemberWithDiffFromJWTAndApplyWithProgress(
-          params.nsId,
+          nsId,
           userId,
           requestBody.token,
           (progress) => {

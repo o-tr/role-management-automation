@@ -296,7 +296,7 @@ export const ConditionsEditorComparator: FC<
         </Select>
       </FormItem>
       {isMultiSelect ? (
-        <FormItem className="min-w-[200px] max-w-[500px] flex-shrink">
+        <FormItem className="min-w-[200px] max-w-[500px] shrink">
           <MultipleTagPicker
             tags={tags || []}
             selectedTags={isArrayValue ? (conditions.value as TTagId[]) : []}
