@@ -65,7 +65,7 @@ export default function GroupTagsPage({
             <DialogHeader>
               <DialogTitle>割り当てを追加</DialogTitle>
             </DialogHeader>
-            <div className="flex-grow-0 overflow-y-scroll">
+            <div className="grow-0 overflow-y-scroll">
               <AddMapping nsId={namespace.id} onDirtyChange={setIsDirty} />
             </div>
           </DialogContent>

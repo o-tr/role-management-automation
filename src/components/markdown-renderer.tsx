@@ -17,7 +17,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
           rehypePlugins={[rehypeHighlight]}
           components={{
             h1: ({ children }) => (
-              <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent text-center">
+              <h1 className="text-5xl font-bold mb-4 bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent text-center">
                 {children}
               </h1>
             ),

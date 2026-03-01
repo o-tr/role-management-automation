@@ -68,7 +68,7 @@ export const MultipleTagPicker: FC<Props> = ({
         const tag = tags?.find((tag) => tag.id === tagId);
         if (!tag) return null;
         return (
-          <div key={tagId} className="flex-shrink-0">
+          <div key={tagId} className="shrink-0">
             <TagDisplay
               tag={tag}
               onDelete={() => {

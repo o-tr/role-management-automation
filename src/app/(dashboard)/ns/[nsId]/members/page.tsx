@@ -20,10 +20,7 @@ export default function GroupTagsPage({
         <AddMembers nsId={nsId} />
         <span>またはテーブルを貼り付け</span>
       </div>
-      <MemberList
-        namespaceId={nsId}
-        className="flex-grow-0 overflow-y-hidden"
-      />
+      <MemberList namespaceId={nsId} className="grow-0 overflow-y-hidden" />
       <AddPastedMembers nsId={nsId} />
       <BreadcrumbUpdater paths={paths} />
     </div>

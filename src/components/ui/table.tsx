@@ -23,7 +23,7 @@ const TableHeader = React.forwardRef<
   <thead
     ref={ref}
     className={cn(
-      "[&_tr]:border-b bg-[hsl(var(--background))] border-b-[1px]",
+      "[&_tr]:border-b bg-background border-b",
       className,
     )}
     {...props}
