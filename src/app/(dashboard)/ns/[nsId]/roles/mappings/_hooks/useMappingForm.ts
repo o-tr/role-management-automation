@@ -29,6 +29,7 @@ type UseMappingFormReturn = {
   conditionErrors: string[];
   actionErrors: string[];
   isDirty: boolean;
+  isSubmitting: boolean;
   setConditions: Dispatch<SetStateAction<TMappingConditionInput>>;
   setActions: Dispatch<SetStateAction<TMappingAction[]>>;
   handleSubmit: (e: FormEvent) => Promise<void>;
@@ -46,6 +47,7 @@ export const useMappingForm = ({
   const [conditionErrors, setConditionErrors] = useState<string[]>([]);
   const [actionErrors, setActionErrors] = useState<string[]>([]);
   const [isDirty, setIsDirty] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const setConditions: Dispatch<SetStateAction<TMappingConditionInput>> = (
     newConditions,
@@ -79,6 +81,7 @@ export const useMappingForm = ({
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
 
     // バリデーション実行
     const conditionResult = validateConditions(conditions);
@@ -93,7 +96,12 @@ export const useMappingForm = ({
 
     // conditionResult.dataはTMappingCondition型（バリデーション済み）
     if (conditionResult.data) {
-      await onSubmit({ conditions: conditionResult.data, actions });
+      setIsSubmitting(true);
+      try {
+        await onSubmit({ conditions: conditionResult.data, actions });
+      } finally {
+        setIsSubmitting(false);
+      }
     }
     setIsDirty(false);
   };
@@ -108,5 +116,6 @@ export const useMappingForm = ({
     setActions,
     handleSubmit,
     resetForm,
+    isSubmitting,
   };
 };

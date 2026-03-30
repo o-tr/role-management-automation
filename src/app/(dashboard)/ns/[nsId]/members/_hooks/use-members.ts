@@ -22,5 +22,6 @@ export const useMembers = (nsId: string) => {
     responseError: data?.status === "error" ? data : undefined,
     isPending: !error && !data,
     refetch: mutate,
+    mutateMembers: mutate,
   };
 };

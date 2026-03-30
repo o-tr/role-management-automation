@@ -10,18 +10,24 @@ export const useDeleteInvitation = (nsId: TNamespaceId) => {
     invitationId: TNamespaceInvitationId,
   ): Promise<DeleteNamespaceInvitationResponse> => {
     setLoading(true);
-    const response = await fetch(
-      `/api/ns/${nsId}/invitations/${invitationId}`,
-      {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
+    try {
+      const response = (await fetch(
+        `/api/ns/${nsId}/invitations/${invitationId}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
         },
-      },
-    ).then((res) => res.json());
-    setLoading(false);
-    onInvitationsChange();
-    return response;
+      ).then((res) => res.json())) as DeleteNamespaceInvitationResponse;
+      if (response.status === "error") {
+        throw new Error(response.error);
+      }
+      onInvitationsChange();
+      return response;
+    } finally {
+      setLoading(false);
+    }
   };
 
   return {

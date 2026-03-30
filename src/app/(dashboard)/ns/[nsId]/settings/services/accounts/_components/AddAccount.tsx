@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/components/ui/use-toast";
 import type { DiscordToken } from "@/lib/discord/types/token";
 import type {
   GitHubAppClientId,
@@ -27,7 +28,6 @@ import {
   ZGithubCredentials,
   ZVRChatCredentialsInput,
 } from "@/types/credentials";
-import { onServiceAccountChange } from "../../_hooks/on-accounts-change";
 
 export type Props = {
   nsId: string;
@@ -161,6 +161,7 @@ export const AddAccount: FC<Props> = ({ nsId }) => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const { createServiceAccount, loading } = useCreateServiceAccount();
+  const { toast } = useToast();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -186,16 +187,12 @@ export const AddAccount: FC<Props> = ({ nsId }) => {
       }
     })();
 
-    const result = await createServiceAccount(nsId, {
-      name,
-      service,
-      credential: credentialString,
-    });
-
-    if (result.status === "error") {
-      setError(result.error);
-    } else {
-      onServiceAccountChange();
+    try {
+      await createServiceAccount(nsId, {
+        name,
+        service,
+        credential: credentialString,
+      });
       setSuccess("Service account created successfully");
       setName("");
       setService(serviceOptions[0].value);
@@ -206,6 +203,15 @@ export const AddAccount: FC<Props> = ({ nsId }) => {
         totp: "",
         clientId: "",
         privateKey: "",
+      });
+    } catch (e) {
+      const message =
+        e instanceof Error ? e.message : "認証情報の追加に失敗しました";
+      setError(message);
+      toast({
+        title: "認証情報の追加に失敗しました",
+        description: message,
+        variant: "destructive",
       });
     }
   };

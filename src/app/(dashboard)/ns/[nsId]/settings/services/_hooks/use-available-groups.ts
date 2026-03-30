@@ -9,7 +9,9 @@ export const useAvailableGroups = (nsId: string, accountId: string) => {
 
   const fetchData = useCallback(async () => {
     if (!nsId || !accountId) {
-      setError("Namespace ID or Account ID is missing.");
+      setError(null);
+      setGroups([]);
+      setIsPending(false);
       return;
     }
     setIsPending(true);
@@ -18,10 +20,12 @@ export const useAvailableGroups = (nsId: string, accountId: string) => {
     ).then((res) => res.json())) as GetAvailableGroupsResponse;
     if (response.status === "error") {
       setError(response.error);
+      setGroups([]);
       setIsPending(false);
       return;
     }
 
+    setError(null);
     setGroups(response.groups);
     setIsPending(false);
   }, [nsId, accountId]);

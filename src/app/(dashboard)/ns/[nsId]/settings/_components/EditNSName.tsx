@@ -3,6 +3,7 @@ import { type FC, useEffect, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useToast } from "@/components/ui/use-toast";
 import { onNsChange } from "@/events/on-ns-change";
 import { useNamespace } from "@/hooks/use-namespace";
 import { useSetNamespaceName } from "@/hooks/use-set-namespace-name";
@@ -16,14 +17,26 @@ export const EditNSName: FC<Props> = ({ nsId }) => {
   const { namespace, isPending, refetch } = useNamespace({ namespaceId: nsId });
   const { setNamespaceName, isLoading } = useSetNamespaceName(nsId);
   const [name, setName] = useState("");
+  const { toast } = useToast();
 
   const inputId = useId();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await setNamespaceName(name);
-    onNsChange();
-    refetch();
+    try {
+      await setNamespaceName(name);
+      onNsChange();
+      await refetch();
+    } catch (error) {
+      toast({
+        title: "ネームスペース名の更新に失敗しました",
+        description:
+          error instanceof Error
+            ? error.message
+            : "しばらくしてから再度お試しください。",
+        variant: "destructive",
+      });
+    }
   };
 
   useEffect(() => setName(namespace?.name ?? ""), [namespace]);
@@ -48,7 +61,11 @@ export const EditNSName: FC<Props> = ({ nsId }) => {
           placeholder="新しいネームスペース名"
           disabled={isLoading}
         />
-        <Button disabled={isLoading || namespace?.name === name}>変更</Button>
+        <Button
+          disabled={isLoading || namespace?.name === name || !name.trim()}
+        >
+          変更
+        </Button>
       </div>
     </form>
   );

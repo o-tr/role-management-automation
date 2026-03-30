@@ -6,8 +6,9 @@ import { useTags } from "../../../roles/_hooks/use-tags";
 type Props = {
   member: TMemberWithRelation;
   setMember: Dispatch<SetStateAction<TMemberWithRelation>>;
+  disabled?: boolean;
 };
-export const EditTags: FC<Props> = ({ member, setMember }) => {
+export const EditTags: FC<Props> = ({ member, setMember, disabled }) => {
   const { tags } = useTags(member.namespaceId);
 
   // 現在選択されているタグIDを抽出
@@ -35,6 +36,7 @@ export const EditTags: FC<Props> = ({ member, setMember }) => {
           handleTagChange(next);
         }}
         showSelectAll
+        disabled={disabled}
       />
     </div>
   );

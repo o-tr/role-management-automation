@@ -9,6 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useToast } from "@/components/ui/use-toast";
 import type { TCreateOrUpdateMembers } from "@/lib/prisma/createOrUpdateMember";
 import { ZVRCUserId } from "@/lib/vrchat/types/brand";
 import type { TNamespaceId, TTagId } from "@/types/prisma";
@@ -63,8 +64,11 @@ export const AddPastedMembers: FC<Props> = ({ nsId }) => {
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [selectedTags, setSelectedTags] = useState<TTagId[]>([]);
   const { createMembers, loading } = useCreateMembers(nsId);
+  const { toast } = useToast();
   const { tags, isPending } = useTags(nsId);
+  const isMutating = loading;
   useOnPaste((e) => {
+    if (isMutating) return;
     const pasted = parseClipboard(e);
     if (!pasted) return;
     e.preventDefault();
@@ -96,9 +100,11 @@ export const AddPastedMembers: FC<Props> = ({ nsId }) => {
     setMembers([]);
     setKeys([]);
     setConfirmModalOpen(false);
+    setSelectedTags([]);
   });
 
   const register = async () => {
+    if (isMutating) return;
     const tags = selectedTags.map((tagId) => tagId);
     const data: TCreateOrUpdateMembers = members.map((row) => {
       const services = row.data
@@ -118,13 +124,36 @@ export const AddPastedMembers: FC<Props> = ({ nsId }) => {
       return { services, tags, memberId };
     });
 
-    await createMembers(data);
-    onMembersChange();
+    try {
+      await createMembers(data);
+      onMembersChange();
+      setSelectedTags([]);
+    } catch (error) {
+      toast({
+        title: "メンバー登録に失敗しました",
+        description:
+          error instanceof Error
+            ? error.message
+            : "しばらくしてから再度お試しください。",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
     <div className="flex flex-col space-y-2 items-start">
-      <Dialog open={members.length !== 0} onOpenChange={() => setMembers([])}>
+      <Dialog
+        open={members.length !== 0}
+        onOpenChange={(open) => {
+          if (isMutating) return;
+          if (!open) {
+            setMembers([]);
+            setKeys([]);
+            setConfirmModalOpen(false);
+            setSelectedTags([]);
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>メンバーを追加</DialogTitle>
@@ -134,10 +163,11 @@ export const AddPastedMembers: FC<Props> = ({ nsId }) => {
             keys={keys}
             setData={setMembers}
             setKeys={setKeys}
+            disabled={isMutating}
           />
           <Dialog open={confirmModalOpen} onOpenChange={setConfirmModalOpen}>
             <DialogTrigger asChild>
-              <Button disabled={loading}>確認</Button>
+              <Button disabled={isMutating}>確認</Button>
             </DialogTrigger>
             <DialogContent className="max-w-7xl max-h-full overflow-y-scroll">
               <DialogHeader>
@@ -148,16 +178,18 @@ export const AddPastedMembers: FC<Props> = ({ nsId }) => {
                 keys={keys}
                 setData={setMembers}
                 nsId={nsId}
+                disabled={isMutating}
               />
               {tags && !isPending && (
                 <MultipleTagPicker
                   tags={tags}
                   selectedTags={selectedTags}
                   onChange={setSelectedTags}
+                  disabled={isMutating}
                 />
               )}
               <DialogFooter>
-                <Button disabled={loading} onClick={register}>
+                <Button disabled={isMutating} onClick={register}>
                   登録
                 </Button>
               </DialogFooter>

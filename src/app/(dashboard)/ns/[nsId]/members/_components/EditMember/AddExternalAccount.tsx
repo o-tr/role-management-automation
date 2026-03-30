@@ -155,6 +155,7 @@ const AddExternalAccountInput: FC<{
   }, [availableResolveOprions, addAccountService]);
 
   const onConfirmClick = () => {
+    if (!addAccountValue.trim() || disabled) return;
     onConfirm(addAccountService, addAccountValue);
   };
   if (!availableServices.length) return null;
@@ -183,7 +184,10 @@ const AddExternalAccountInput: FC<{
         onChange={(e) => setAddAccountValue(e.target.value)}
         placeholder="ID"
       />
-      <Button onClick={onConfirmClick} disabled={disabled}>
+      <Button
+        onClick={onConfirmClick}
+        disabled={!addAccountValue.trim() || disabled}
+      >
         確認
       </Button>
     </div>

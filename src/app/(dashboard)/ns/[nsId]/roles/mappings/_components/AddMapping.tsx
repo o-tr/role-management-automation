@@ -3,6 +3,7 @@
 import type { FC } from "react";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 import { createNewMappingAction } from "@/types/actions";
 import { createNewMappingCondition } from "@/types/conditions";
 import { onServiceGroupMappingChange } from "../../_hooks/on-mappings-change";
@@ -19,6 +20,7 @@ type Props = {
 
 export const AddMapping: FC<Props> = ({ nsId, onDirtyChange }) => {
   const { createServiceMapping, loading } = useCreateServiceMapping(nsId);
+  const { toast } = useToast();
 
   const {
     conditions,
@@ -26,6 +28,7 @@ export const AddMapping: FC<Props> = ({ nsId, onDirtyChange }) => {
     conditionErrors,
     actionErrors,
     isDirty,
+    isSubmitting,
     setConditions,
     setActions,
     handleSubmit,
@@ -33,11 +36,23 @@ export const AddMapping: FC<Props> = ({ nsId, onDirtyChange }) => {
     initialConditions: createNewMappingCondition("comparator"),
     initialActions: [createNewMappingAction("add")],
     onSubmit: async ({ conditions, actions }) => {
-      await createServiceMapping({
-        conditions,
-        actions,
-      });
-      onServiceGroupMappingChange();
+      try {
+        await createServiceMapping({
+          conditions,
+          actions,
+        });
+        onServiceGroupMappingChange();
+      } catch (error) {
+        toast({
+          title: "割り当て作成に失敗しました",
+          description:
+            error instanceof Error
+              ? error.message
+              : "しばらくしてから再度お試しください。",
+          variant: "destructive",
+        });
+        throw error;
+      }
     },
   });
 
@@ -61,7 +76,7 @@ export const AddMapping: FC<Props> = ({ nsId, onDirtyChange }) => {
         <ActionsEditor actions={actions} onChange={setActions} nsId={nsId} />
         <ValidationError errors={actionErrors} title="アクションのエラー" />
       </fieldset>
-      <Button disabled={loading} type="submit">
+      <Button disabled={loading || isSubmitting} type="submit">
         作成
       </Button>
     </form>

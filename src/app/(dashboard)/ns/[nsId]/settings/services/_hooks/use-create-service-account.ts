@@ -17,16 +17,22 @@ export const useCreateServiceAccount = () => {
     body: AuthenticationBody,
   ): Promise<CreateExternalServiceAccountResponse> => {
     setLoading(true);
-    const response = await fetch(`/api/ns/${nsId}/services/accounts`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    }).then((res) => res.json());
-    setLoading(false);
-    onServiceAccountChange();
-    return response;
+    try {
+      const response = (await fetch(`/api/ns/${nsId}/services/accounts`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      }).then((res) => res.json())) as CreateExternalServiceAccountResponse;
+      if (response.status === "error") {
+        throw new Error(response.error);
+      }
+      onServiceAccountChange();
+      return response;
+    } finally {
+      setLoading(false);
+    }
   };
 
   return {

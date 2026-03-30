@@ -8,19 +8,25 @@ export const useCreateServiceGroup = (nsId: string, accountId: string) => {
   const createServiceGroup = useCallback(
     async (groupId: string): Promise<CreateExternalServiceGroupResponse> => {
       setLoading(true);
-      const response = await fetch(
-        `/api/ns/${nsId}/services/accounts/${accountId}/groups/`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+      try {
+        const response = (await fetch(
+          `/api/ns/${nsId}/services/accounts/${accountId}/groups/`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ groupId }),
           },
-          body: JSON.stringify({ groupId }),
-        },
-      ).then((res) => res.json());
-      setLoading(false);
-      onServiceAccountChange();
-      return response;
+        ).then((res) => res.json())) as CreateExternalServiceGroupResponse;
+        if (response.status === "error") {
+          throw new Error(response.error);
+        }
+        onServiceAccountChange();
+        return response;
+      } finally {
+        setLoading(false);
+      }
     },
     [nsId, accountId],
   );
