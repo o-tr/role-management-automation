@@ -138,18 +138,15 @@ export const applyDiffWithProgress = async (
       services: servicesState,
     });
 
-    const tasksByService = tasks.reduce<Map<ServiceName, Task[]>>(
-      (acc, task) => {
-        const serviceTasks = acc.get(task.service);
-        if (serviceTasks) {
-          serviceTasks.push(task);
-        } else {
-          acc.set(task.service, [task]);
-        }
-        return acc;
-      },
-      new Map<ServiceName, Task[]>(),
-    );
+    const tasksByService = new Map<ServiceName, Task[]>();
+    for (const task of tasks) {
+      const serviceTasks = tasksByService.get(task.service);
+      if (serviceTasks) {
+        serviceTasks.push(task);
+      } else {
+        tasksByService.set(task.service, [task]);
+      }
+    }
 
     const serviceAccountPromiseCache = new Map<
       ServiceName,
