@@ -26,7 +26,7 @@ import {
 } from "@/lib/vrchat/types/brand";
 import { ZDiscordCredentials } from "@/types/credentials";
 import type { TDiffItem, TMemberWithDiff } from "@/types/diff";
-import type { TNamespaceId } from "@/types/prisma";
+import type { TExternalServiceAccount, TNamespaceId } from "@/types/prisma";
 
 export type ApplyDiffResultStatus = "success" | "error" | "skipped";
 
@@ -74,11 +74,16 @@ export const applyDiffWithProgress = async (
   onProgress?: ApplyProgressCallback,
 ): Promise<void> => {
   try {
-    // すべての差分を個別タスクとして扱う
+    type ServiceName = TDiffItem["serviceGroup"]["service"];
+    type Member = (typeof members)[number]["member"];
     type Task = {
       key: string;
-      member: (typeof members)[number]["member"];
+      member: Member;
+      memberIndex: number;
+      diffIndex: number;
       diffItem: TDiffItem;
+      service: ServiceName;
+      accountName: string;
     };
 
     const tasks: Task[] = [];
@@ -86,13 +91,23 @@ export const applyDiffWithProgress = async (
       const { member, diff } = members[mi];
       for (let di = 0; di < diff.length; di++) {
         const diffItem = diff[di];
-        // 一意キーを生成（インデックス＋重要フィールド）
+        const accountName =
+          member.externalAccounts?.find(
+            (acc) => acc.service === diffItem.serviceGroup.service,
+          )?.name || member.id;
         const key = makeDiffKeyFromItem(mi, di, diffItem);
-        tasks.push({ key, member, diffItem });
+        tasks.push({
+          key,
+          member,
+          memberIndex: mi,
+          diffIndex: di,
+          diffItem,
+          service: diffItem.serviceGroup.service,
+          accountName,
+        });
       }
     }
 
-    // 初期進捗（タスク単位）
     const servicesState: {
       [taskKey: string]: {
         status: "pending" | "in_progress" | "completed" | "error" | "skipped";
@@ -104,23 +119,17 @@ export const applyDiffWithProgress = async (
         error?: string;
       };
     } = Object.fromEntries(
-      tasks.map((t) => {
-        const accountName =
-          t.member.externalAccounts?.find(
-            (acc) => acc.service === t.diffItem.serviceGroup.service,
-          )?.name || t.member.id;
-        return [
-          t.key,
-          {
-            status: "pending",
-            current: 0,
-            total: 1,
-            success: 0,
-            errors: 0,
-            message: `${t.diffItem.serviceGroup.service} - ${accountName} の準備中...`,
-          },
-        ];
-      }),
+      tasks.map((t) => [
+        t.key,
+        {
+          status: "pending",
+          current: 0,
+          total: 1,
+          success: 0,
+          errors: 0,
+          message: `${t.diffItem.serviceGroup.service} - ${t.accountName} の準備中...`,
+        },
+      ]),
     );
 
     onProgress?.({
@@ -129,86 +138,97 @@ export const applyDiffWithProgress = async (
       services: servicesState,
     });
 
-    // 結果をメンバー毎に収集するマップ
-    const resultsMap: Map<string, ApplyDiffResult> = new Map();
+    const tasksByService = tasks.reduce<Map<ServiceName, Task[]>>(
+      (acc, task) => {
+        const serviceTasks = acc.get(task.service);
+        if (serviceTasks) {
+          serviceTasks.push(task);
+        } else {
+          acc.set(task.service, [task]);
+        }
+        return acc;
+      },
+      new Map<ServiceName, Task[]>(),
+    );
 
-    // タスク単位で順次処理
-    for (const { key, member, diffItem } of tasks) {
-      // メンバー結果を準備
-      if (!resultsMap.has(member.id)) {
-        resultsMap.set(member.id, { member, diff: [] });
+    const serviceAccountPromiseCache = new Map<
+      ServiceName,
+      Promise<TExternalServiceAccount | null>
+    >();
+    const getServiceAccount = (service: ServiceName) => {
+      const cached = serviceAccountPromiseCache.get(service);
+      if (cached) {
+        return cached;
       }
-      let memberResult = resultsMap.get(member.id);
-      if (!memberResult) {
-        // 保険: ここに来ることは想定していないが型安全のため初期化
-        memberResult = { member, diff: [] };
-        resultsMap.set(member.id, memberResult);
-      }
+      const promise = getExternalServiceAccountByServiceName(nsId, service);
+      serviceAccountPromiseCache.set(service, promise);
+      return promise;
+    };
 
-      // 進捗: タスク開始
+    const memberResultStore = new Map<
+      number,
+      { member: Member; diff: Array<ApplyDiffResultItem | undefined> }
+    >();
+    for (let mi = 0; mi < members.length; mi++) {
+      memberResultStore.set(mi, {
+        member: members[mi].member,
+        diff: new Array(members[mi].diff.length).fill(undefined),
+      });
+    }
+
+    const processTask = async (task: Task): Promise<void> => {
+      const { key, diffItem, memberIndex, diffIndex, service, accountName } =
+        task;
+
       servicesState[key] = {
         ...servicesState[key],
         status: "in_progress",
-        message: `${member.externalAccounts?.find((acc) => acc.service === diffItem.serviceGroup.service)?.name || member.id} を処理中...`,
+        message: `${accountName} を処理中...`,
       };
-
       onProgress?.({
         type: "progress",
         stage: "applying_changes",
         services: { ...servicesState },
-        currentMember:
-          member.externalAccounts?.find(
-            (acc) => acc.service === diffItem.serviceGroup.service,
-          )?.name || member.id,
+        currentMember: accountName,
       });
 
+      let resultItem: ApplyDiffResultItem;
       if (diffItem.ignore) {
-        const skipped: ApplyDiffResultItem = {
+        resultItem = {
           ...diffItem,
           status: "skipped",
           reason: "Ignored",
         };
-        memberResult.diff.push(skipped);
-        servicesState[key] = {
-          ...servicesState[key],
-          status: "skipped",
-          current: 1,
-          message: `${servicesState[key].message} (skipped)`,
-        };
-        onProgress?.({
-          type: "progress",
-          stage: "applying_changes",
-          services: { ...servicesState },
-        });
-        continue;
-      }
-
-      let resultItem: ApplyDiffResultItem;
-      try {
-        switch (diffItem.serviceGroup.service) {
-          case "VRCHAT":
-            resultItem = await applyVRChatDiff(nsId, diffItem);
-            break;
-          case "DISCORD":
-            resultItem = await applyDiscordDiff(nsId, diffItem);
-            break;
-          case "GITHUB":
-            resultItem = await applyGitHubDiff(nsId, diffItem);
-            break;
-          default:
-            throw new Error("Unsupported service");
+      } else {
+        try {
+          const serviceAccount = await getServiceAccount(service);
+          switch (service) {
+            case "VRCHAT":
+              resultItem = await applyVRChatDiff(serviceAccount, diffItem);
+              break;
+            case "DISCORD":
+              resultItem = await applyDiscordDiff(serviceAccount, diffItem);
+              break;
+            case "GITHUB":
+              resultItem = await applyGitHubDiff(serviceAccount, diffItem);
+              break;
+            default:
+              throw new Error("Unsupported service");
+          }
+        } catch (error) {
+          resultItem = {
+            ...diffItem,
+            status: "error",
+            reason: error instanceof Error ? error.message : "Unknown error",
+          };
         }
-      } catch (error) {
-        resultItem = {
-          ...diffItem,
-          status: "error",
-          reason: error instanceof Error ? error.message : "Unknown error",
-        };
       }
 
-      memberResult.diff.push(resultItem);
+      const memberResult = memberResultStore.get(memberIndex);
+      if (memberResult) {
+        memberResult.diff[diffIndex] = resultItem;
+      }
 
-      // タスクの状態を更新
       if (resultItem.status === "success") {
         servicesState[key] = {
           ...servicesState[key],
@@ -240,10 +260,26 @@ export const applyDiffWithProgress = async (
         stage: "applying_changes",
         services: { ...servicesState },
       });
-    }
+    };
 
-    // マップを配列にして完了報告
-    const results: ApplyDiffResult[] = Array.from(resultsMap.values());
+    await Promise.all(
+      Array.from(tasksByService.values()).map(async (serviceTasks) => {
+        for (const task of serviceTasks) {
+          await processTask(task);
+        }
+      }),
+    );
+
+    const results: ApplyDiffResult[] = Array.from(memberResultStore.entries())
+      .sort(([a], [b]) => a - b)
+      .map(([, result]) => ({
+        member: result.member,
+        diff: result.diff.filter(
+          (item): item is ApplyDiffResultItem => item !== undefined,
+        ),
+      }))
+      .filter((result) => result.diff.length > 0);
+
     onProgress?.({ type: "complete", result: results });
   } catch (error) {
     onProgress?.({
@@ -254,13 +290,9 @@ export const applyDiffWithProgress = async (
 };
 
 const applyVRChatDiff = async (
-  nsId: TNamespaceId,
+  serviceAccount: TExternalServiceAccount | null,
   diff: TDiffItem,
 ): Promise<ApplyDiffResultItem> => {
-  const serviceAccount = await getExternalServiceAccountByServiceName(
-    nsId,
-    diff.serviceGroup.service,
-  );
   if (!serviceAccount) {
     return {
       ...diff,
@@ -323,7 +355,7 @@ const applyVRChatDiff = async (
 };
 
 const applyDiscordDiff = async (
-  nsId: TNamespaceId,
+  serviceAccount: TExternalServiceAccount | null,
   diff: TDiffItem,
 ): Promise<ApplyDiffResultItem> => {
   if (diff.type !== "add" && diff.type !== "remove") {
@@ -333,10 +365,6 @@ const applyDiscordDiff = async (
       reason: "Unsupported diff type for Discord",
     };
   }
-  const serviceAccount = await getExternalServiceAccountByServiceName(
-    nsId,
-    diff.serviceGroup.service,
-  );
   if (!serviceAccount) {
     return {
       ...diff,
@@ -385,7 +413,7 @@ const applyDiscordDiff = async (
 };
 
 const applyGitHubDiff = async (
-  nsId: TNamespaceId,
+  serviceAccount: TExternalServiceAccount | null,
   diff: TDiffItem,
 ): Promise<ApplyDiffResultItem> => {
   if (diff.type !== "add" && diff.type !== "remove") {
@@ -395,10 +423,6 @@ const applyGitHubDiff = async (
       reason: "Unsupported diff type for GitHub",
     };
   }
-  const serviceAccount = await getExternalServiceAccountByServiceName(
-    nsId,
-    diff.serviceGroup.service,
-  );
   if (!serviceAccount) {
     return {
       ...diff,
