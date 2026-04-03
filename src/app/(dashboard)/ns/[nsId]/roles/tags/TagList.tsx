@@ -178,7 +178,10 @@ export function TagList({ namespaceId }: TagListProps) {
         const deletedTagIds = results
           .filter((result) => result.status === "success")
           .map((result) => result.tagId);
-        const failed = results.find((result) => result.status === "error");
+        const failedMessages = results
+          .filter((result) => result.status === "error")
+          .map((result) => (result.status === "error" ? result.error : ""))
+          .filter((message) => message.length > 0);
 
         if (deletedTagIds.length > 0) {
           const deletedSet = new Set(deletedTagIds);
@@ -191,8 +194,8 @@ export function TagList({ namespaceId }: TagListProps) {
           }, false);
         }
 
-        if (failed?.status === "error") {
-          throw new Error(failed.error);
+        if (failedMessages.length > 0) {
+          throw new Error([...new Set(failedMessages)].join("\n"));
         }
       } catch (error) {
         toast({

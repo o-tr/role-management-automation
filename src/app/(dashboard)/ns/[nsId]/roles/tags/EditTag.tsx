@@ -1,4 +1,4 @@
-import { type FormEvent, useEffect, useRef, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { HexColorPicker } from "react-colorful";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,7 +39,6 @@ export const EditTag = ({
   const [color, setColor] = useState(tag.color);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const wasModalOpenRef = useRef(false);
 
   const { updateTag, loading } = useUpdateTag(nsId, tag.id);
   const { toast } = useToast();
@@ -56,9 +55,6 @@ export const EditTag = ({
         name,
         color,
       });
-      if (response.status !== "success") {
-        throw new Error("タグ更新に失敗しました");
-      }
       if (onUpdated) {
         try {
           await onUpdated(response.tag);
@@ -87,19 +83,19 @@ export const EditTag = ({
   };
 
   useEffect(() => {
-    const wasOpen = wasModalOpenRef.current;
-    if (!isModalOpen || (!wasOpen && isModalOpen)) {
-      setName(tag.name);
-      setColor(tag.color);
-    }
-    wasModalOpenRef.current = isModalOpen;
-  }, [isModalOpen, tag.color, tag.name]);
+    setName(tag.name);
+    setColor(tag.color);
+  }, [tag.color, tag.name]);
 
   return (
     <Dialog
       open={isModalOpen}
       onOpenChange={(open) => {
         if (isPending) return;
+        if (open) {
+          setName(tag.name);
+          setColor(tag.color);
+        }
         setIsModalOpen(open);
       }}
     >

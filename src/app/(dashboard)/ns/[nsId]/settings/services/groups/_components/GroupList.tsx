@@ -1,7 +1,7 @@
 "use client";
 import type { ColumnDef } from "@tanstack/react-table";
 import { redirect } from "next/navigation";
-import { type FC, useMemo } from "react";
+import type { FC } from "react";
 import {
   CommonCheckboxCell,
   CommonCheckboxHeader,
@@ -129,25 +129,6 @@ export const GroupList: FC<Props> = ({ nsId }) => {
   });
   const { deleteServiceGroups, isPending: isDeleting } =
     useDeleteServiceGroup(nsId);
-  const tableColumns = useMemo<ColumnDef<InternalServiceGroup>[]>(
-    () =>
-      baseColumns.map((column) =>
-        column.id === "actions"
-          ? {
-              ...column,
-              cell: ({ row }) => (
-                <RowActionsCell
-                  row={{
-                    ...row.original,
-                    namespaceId: nsId,
-                  }}
-                />
-              ),
-            }
-          : column,
-      ),
-    [nsId],
-  );
   if (isPending) {
     return <div>Loading...</div>;
   }
@@ -171,7 +152,7 @@ export const GroupList: FC<Props> = ({ nsId }) => {
   return (
     <div>
       <DataTable
-        columns={tableColumns}
+        columns={baseColumns}
         data={groups?.map((v) => ({ ...v, namespaceId: nsId })) || []}
         footer={({ table }) => {
           const selected = table.getSelectedRowModel();

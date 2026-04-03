@@ -1,7 +1,7 @@
 "use client";
 import type { ColumnDef } from "@tanstack/react-table";
 import { redirect } from "next/navigation";
-import { type FC, useMemo } from "react";
+import type { FC } from "react";
 import { useServiceAccounts } from "@/app/(dashboard)/ns/[nsId]/_hooks/use-service-accounts";
 import {
   CommonCheckboxCell,
@@ -104,25 +104,6 @@ export const AccountList: FC<Props> = ({ nsId }) => {
   });
   const { deleteServiceAccounts, isPending: isDeleting } =
     useDeleteServiceAccount();
-  const tableColumns = useMemo<ColumnDef<InternalServiceAccount>[]>(
-    () =>
-      baseColumns.map((column) =>
-        column.id === "actions"
-          ? {
-              ...column,
-              cell: ({ row }) => (
-                <RowActionsCell
-                  row={{
-                    ...row.original,
-                    namespaceId: nsId,
-                  }}
-                />
-              ),
-            }
-          : column,
-      ),
-    [nsId],
-  );
   if (isPending) {
     return <div>Loading...</div>;
   }
@@ -146,7 +127,7 @@ export const AccountList: FC<Props> = ({ nsId }) => {
   return (
     <div>
       <DataTable
-        columns={tableColumns}
+        columns={baseColumns}
         data={accounts?.map((v) => ({ ...v, namespaceId: nsId })) || []}
         footer={({ table }) => {
           const selected = table.getSelectedRowModel();

@@ -160,7 +160,11 @@ export const InvitationsList: FC<Props> = ({ nsId }) => {
 
   return (
     <div>
-      <DataTable columns={columns} data={invitations} />
+      <DataTable
+        columns={columns}
+        data={invitations}
+        getRowId={(row) => row.id}
+      />
     </div>
   );
 };

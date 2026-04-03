@@ -29,7 +29,6 @@ import {
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/components/ui/use-toast";
-import { convertTSerializedMappingToTMapping } from "@/lib/prisma/convert/convertTSerializedMappingToTMapping";
 import { deleteMapping } from "@/requests/deleteMapping";
 import type { TMapping, TMappingId, TSerializedMapping } from "@/types/prisma";
 import { ActionsDisplay } from "./ActionsDisplay";
@@ -182,7 +181,6 @@ export function MappingList({ namespaceId }: TagListProps) {
 
   const updateMapping = useCallback(
     async (serialized: TSerializedMapping) => {
-      const updatedMapping = convertTSerializedMappingToTMapping(serialized);
       await mutateMappings((current) => {
         if (!current || current.status !== "success") return current;
         return {
@@ -192,7 +190,6 @@ export function MappingList({ namespaceId }: TagListProps) {
           ),
         };
       }, false);
-      return updatedMapping;
     },
     [mutateMappings],
   );

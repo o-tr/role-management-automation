@@ -548,7 +548,10 @@ export function MemberList({ namespaceId, className }: MemberListProps) {
         const updatedMembers = results
           .filter((result) => result.status === "success")
           .map((result) => result.member);
-        const failed = results.find((result) => result.status === "error");
+        const failedMessages = results
+          .filter((result) => result.status === "error")
+          .map((result) => (result.status === "error" ? result.error : ""))
+          .filter((message) => message.length > 0);
 
         if (updatedMembers.length > 0) {
           const updatedById = new Map(
@@ -565,8 +568,8 @@ export function MemberList({ namespaceId, className }: MemberListProps) {
           }, false);
         }
 
-        if (failed?.status === "error") {
-          throw new Error(failed.error);
+        if (failedMessages.length > 0) {
+          throw new Error([...new Set(failedMessages)].join("\n"));
         }
       } catch (error) {
         toast({

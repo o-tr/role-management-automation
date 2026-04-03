@@ -129,7 +129,6 @@ export const AddPastedMembers: FC<Props> = ({ nsId }) => {
     try {
       await createMembers(data);
       onMembersChange();
-      setSelectedTags([]);
     } catch (error) {
       toast({
         title: "メンバー登録に失敗しました",
