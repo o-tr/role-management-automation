@@ -39,6 +39,7 @@ interface DataTableProps<T> {
   className?: string;
   calcRowClassName?: (row: Row<T>) => string;
   getFilteredRowModel?: (data: TableType<T>) => () => RowModel<T>;
+  getRowId?: (row: T) => string;
 }
 
 export function DataTable<T>({
@@ -48,6 +49,7 @@ export function DataTable<T>({
   footer: Footer,
   className,
   calcRowClassName,
+  getRowId,
 }: DataTableProps<T>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -59,6 +61,7 @@ export function DataTable<T>({
     getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
+    getRowId,
     state: {
       sorting,
       columnFilters,

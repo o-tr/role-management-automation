@@ -25,5 +25,6 @@ export const useInvitations = (nsId: TNamespaceId) => {
     error,
     isPending: !error && !data,
     refetch: mutate,
+    mutateInvitations: mutate,
   };
 };

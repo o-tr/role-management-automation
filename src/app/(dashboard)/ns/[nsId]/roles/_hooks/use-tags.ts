@@ -22,5 +22,6 @@ export const useTags = (nsId: string) => {
     responseError: data?.status === "error" ? data : undefined,
     isPending: !error && !data,
     refetch: mutate,
+    mutateTags: mutate,
   };
 };

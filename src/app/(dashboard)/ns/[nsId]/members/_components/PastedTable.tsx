@@ -33,9 +33,16 @@ type Props = {
   keys: TKeys[];
   setData: Dispatch<SetStateAction<RowObject[]>>;
   setKeys: Dispatch<SetStateAction<TKeys[]>>;
+  disabled?: boolean;
 };
 
-export const PastedTable: FC<Props> = ({ data, keys, setData, setKeys }) => {
+export const PastedTable: FC<Props> = ({
+  data,
+  keys,
+  setData,
+  setKeys,
+  disabled,
+}) => {
   const columns = useMemo<ColumnDef<RowObject>[]>(() => {
     return [
       {
@@ -58,6 +65,7 @@ export const PastedTable: FC<Props> = ({ data, keys, setData, setKeys }) => {
                   return nv;
                 })
               }
+              disabled={disabled}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="" />
@@ -74,6 +82,7 @@ export const PastedTable: FC<Props> = ({ data, keys, setData, setKeys }) => {
           cell: ({ row }) => (
             <Input
               value={row.original.data[index].value}
+              disabled={disabled}
               onChange={(e) =>
                 setData((pv) => {
                   const nv = [...pv];
@@ -96,6 +105,7 @@ export const PastedTable: FC<Props> = ({ data, keys, setData, setKeys }) => {
             onClick={() => {
               setData((pv) => pv.filter((_, i) => i !== row.index));
             }}
+            disabled={disabled}
           >
             削除
           </Button>
@@ -103,7 +113,7 @@ export const PastedTable: FC<Props> = ({ data, keys, setData, setKeys }) => {
         size: 100,
       },
     ];
-  }, [keys, setData, setKeys]);
+  }, [disabled, keys, setData, setKeys]);
   return (
     <DataTable
       columns={columns}
@@ -120,6 +130,7 @@ export const PastedTable: FC<Props> = ({ data, keys, setData, setKeys }) => {
                   pv.filter((_, i) => !selectedIndexes.includes(i)),
                 );
               }}
+              disabled={disabled}
             >
               選択した {selected.rows.length} 件を削除
             </Button>

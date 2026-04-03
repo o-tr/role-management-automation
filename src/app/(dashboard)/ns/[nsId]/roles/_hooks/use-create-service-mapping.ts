@@ -11,15 +11,21 @@ export const useCreateServiceMapping = (nsId: string) => {
     body: CreateMappingBody,
   ): Promise<CreateMappingResponse> => {
     setLoading(true);
-    const response = await fetch(`/api/ns/${nsId}/mappings`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    }).then((res) => res.json());
-    setLoading(false);
-    return response;
+    try {
+      const response = (await fetch(`/api/ns/${nsId}/mappings`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+      }).then((res) => res.json())) as CreateMappingResponse;
+      if (response.status === "error") {
+        throw new Error(response.error);
+      }
+      return response;
+    } finally {
+      setLoading(false);
+    }
   };
 
   return {

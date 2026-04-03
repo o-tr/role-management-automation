@@ -10,12 +10,15 @@ export const useDeleteServiceAccount = () => {
     accountId: string,
   ): Promise<void> => {
     setIsPending(true);
-    const response = await deleteServiceAccountRequest(nsId, accountId);
-    if (response.status === "error") {
-      throw new Error(response.error);
+    try {
+      const response = await deleteServiceAccountRequest(nsId, accountId);
+      if (response.status === "error") {
+        throw new Error(response.error);
+      }
+      onServiceAccountChange();
+    } finally {
+      setIsPending(false);
     }
-    onServiceAccountChange();
-    setIsPending(false);
   };
 
   const deleteServiceAccounts = async (
@@ -23,16 +26,19 @@ export const useDeleteServiceAccount = () => {
     accountIds: string[],
   ): Promise<void> => {
     setIsPending(true);
-    const response = await Promise.all(
-      accountIds.map((accountId) =>
-        deleteServiceAccountRequest(nsId, accountId),
-      ),
-    );
-    if (response.some((res) => res.status === "error")) {
-      throw new Error("Failed to delete some service accounts");
+    try {
+      const response = await Promise.all(
+        accountIds.map((accountId) =>
+          deleteServiceAccountRequest(nsId, accountId),
+        ),
+      );
+      if (response.some((res) => res.status === "error")) {
+        throw new Error("Failed to delete some service accounts");
+      }
+      onServiceAccountChange();
+    } finally {
+      setIsPending(false);
     }
-    onServiceAccountChange();
-    setIsPending(false);
   };
 
   return {

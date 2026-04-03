@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { useToast } from "@/components/ui/use-toast";
 import type {
   TMemberId,
   TMemberWithRelation,
@@ -22,6 +23,7 @@ type Props = {
 export const AddMembers: FC<Props> = ({ nsId }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { createMembers, loading } = useCreateMembers(nsId);
+  const { toast } = useToast();
   const defaultMember: TMemberWithRelation = useMemo<TMemberWithRelation>(
     () => ({
       id: "" as TMemberId,
@@ -33,14 +35,25 @@ export const AddMembers: FC<Props> = ({ nsId }) => {
   );
 
   const onConfirm = async (member: TMemberWithRelation) => {
-    await createMembers([
-      {
-        tags: member.tags.map((tag) => tag.id),
-        services: member.externalAccounts,
-      },
-    ]);
-    onMembersChange();
-    setIsModalOpen(false);
+    try {
+      await createMembers([
+        {
+          tags: member.tags.map((tag) => tag.id),
+          services: member.externalAccounts,
+        },
+      ]);
+      onMembersChange();
+      setIsModalOpen(false);
+    } catch (error) {
+      toast({
+        title: "メンバー追加に失敗しました",
+        description:
+          error instanceof Error
+            ? error.message
+            : "しばらくしてから再度お試しください。",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

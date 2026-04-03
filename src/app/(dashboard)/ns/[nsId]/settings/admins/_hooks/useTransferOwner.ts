@@ -8,12 +8,15 @@ export const useTransferOwner = (nsId: TNamespaceId) => {
 
   const transferOwner = async (userId: TUserId): Promise<void> => {
     setIsPending(true);
-    const response = await transferOwnerRequest(nsId, userId);
-    if (response.status === "error") {
-      throw new Error(response.error);
+    try {
+      const response = await transferOwnerRequest(nsId, userId);
+      if (response.status === "error") {
+        throw new Error(response.error);
+      }
+      onAdminsChange();
+    } finally {
+      setIsPending(false);
     }
-    onAdminsChange();
-    setIsPending(false);
   };
 
   return {

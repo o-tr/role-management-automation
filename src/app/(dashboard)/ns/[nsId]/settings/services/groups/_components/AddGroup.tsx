@@ -5,6 +5,7 @@ import { ServiceGroupPicker } from "@/app/(dashboard)/ns/[nsId]/components/Servi
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { FormItem } from "@/components/ui/form";
+import { useToast } from "@/components/ui/use-toast";
 import { useServiceAccounts } from "../../../../_hooks/use-service-accounts";
 import { onServiceGroupChange } from "../../_hooks/on-groups-change";
 import { useAvailableGroups } from "../../_hooks/use-available-groups";
@@ -23,22 +24,31 @@ export const AddGroup = ({ nsId }: { nsId: string }) => {
     accountId,
   );
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
+  const disabled = loading;
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!accountId || !groupId) {
+    if (!accountId || !groupId || disabled) {
       return;
     }
-    const result = await createServiceGroup(groupId);
-    if (result.status === "error") {
-      setError(result.error);
-      return;
+    try {
+      await createServiceGroup(groupId);
+      onServiceGroupChange();
+      setAccountId("");
+      setGroupId("");
+      setError(null);
+    } catch (e) {
+      const message =
+        e instanceof Error ? e.message : "グループ追加に失敗しました";
+      setError(message);
+      toast({
+        title: "グループ追加に失敗しました",
+        description: message,
+        variant: "destructive",
+      });
     }
-    onServiceGroupChange();
-    setAccountId("");
-    setGroupId("");
   };
-  console.log(groupId);
 
   if (isPending) {
     return <div>Loading...</div>;
@@ -49,20 +59,23 @@ export const AddGroup = ({ nsId }: { nsId: string }) => {
         <FormItem>
           <ServiceAccountPicker
             accounts={accounts || []}
-            onChange={setAccountId}
-            disabled={loading}
+            onChange={(value) => {
+              setAccountId(value);
+              setGroupId("");
+            }}
+            disabled={disabled}
             value={accountId}
           />
         </FormItem>
         <FormItem>
           <ServiceGroupPicker
             groups={availableGroups}
-            disabled={!accountId || isGroupsPending || loading}
+            disabled={!accountId || isGroupsPending || disabled}
             value={groupId}
             onChange={setGroupId}
           />
         </FormItem>
-        <Button disabled={loading}>追加</Button>
+        <Button disabled={!accountId || !groupId || disabled}>追加</Button>
       </form>
       {error && (
         <Alert

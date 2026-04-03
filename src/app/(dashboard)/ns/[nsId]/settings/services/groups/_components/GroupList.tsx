@@ -9,6 +9,7 @@ import {
 } from "@/app/(dashboard)/ns/[nsId]/components/DataTable";
 import { Image } from "@/app/(dashboard)/ns/[nsId]/components/Image";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 import type {
   TExternalServiceGroupWithAccount,
   TNamespaceId,
@@ -21,7 +22,41 @@ type InternalServiceGroup = TExternalServiceGroupWithAccount & {
   namespaceId: string;
 };
 
-export const columns: ColumnDef<InternalServiceGroup>[] = [
+type RowActionsProps = {
+  row: InternalServiceGroup;
+};
+
+const RowActionsCell: FC<RowActionsProps> = ({ row }) => {
+  const { deleteServiceGroup, isPending } = useDeleteServiceGroup(
+    row.namespaceId,
+  );
+  const { toast } = useToast();
+
+  return (
+    <Button
+      variant="outline"
+      disabled={isPending}
+      onClick={async () => {
+        try {
+          await deleteServiceGroup(row.account.id, row.id);
+        } catch (error) {
+          toast({
+            title: "グループ削除に失敗しました",
+            description:
+              error instanceof Error
+                ? error.message
+                : "しばらくしてから再度お試しください。",
+            variant: "destructive",
+          });
+        }
+      }}
+    >
+      削除
+    </Button>
+  );
+};
+
+const baseColumns: ColumnDef<InternalServiceGroup>[] = [
   {
     id: "select",
     header: CommonCheckboxHeader,
@@ -77,23 +112,7 @@ export const columns: ColumnDef<InternalServiceGroup>[] = [
   },
   {
     id: "actions",
-    cell: ({ row }) => {
-      const { deleteServiceGroup, isPending } = useDeleteServiceGroup(
-        row.original.namespaceId,
-      );
-
-      return (
-        <Button
-          variant="outline"
-          disabled={isPending}
-          onClick={() =>
-            void deleteServiceGroup(row.original.account.id, row.original.id)
-          }
-        >
-          削除
-        </Button>
-      );
-    },
+    cell: ({ row }) => <RowActionsCell row={row.original} />,
     size: 100,
   },
 ];
@@ -104,10 +123,12 @@ type Props = {
 
 export const GroupList: FC<Props> = ({ nsId }) => {
   const { groups, isPending, refetch, responseError } = useServiceGroups(nsId);
+  const { toast } = useToast();
   useOnServiceGroupChange(() => {
     void refetch();
   });
-  const { deleteServiceGroups } = useDeleteServiceGroup(nsId);
+  const { deleteServiceGroups, isPending: isDeleting } =
+    useDeleteServiceGroup(nsId);
   if (isPending) {
     return <div>Loading...</div>;
   }
@@ -131,7 +152,7 @@ export const GroupList: FC<Props> = ({ nsId }) => {
   return (
     <div>
       <DataTable
-        columns={columns}
+        columns={baseColumns}
         data={groups?.map((v) => ({ ...v, namespaceId: nsId })) || []}
         footer={({ table }) => {
           const selected = table.getSelectedRowModel();
@@ -139,11 +160,35 @@ export const GroupList: FC<Props> = ({ nsId }) => {
             <div>
               <Button
                 variant="outline"
-                onClick={() => {
-                  deleteServiceGroups(
-                    nsId,
-                    selected.rows.map((v) => v.original.id),
-                  );
+                disabled={isDeleting || selected.rows.length === 0}
+                onClick={async () => {
+                  if (selected.rows.length === 0) return;
+                  try {
+                    const groupedIdsByAccount = new Map<string, string[]>();
+                    for (const row of selected.rows) {
+                      const accountId = row.original.account.id;
+                      if (!groupedIdsByAccount.has(accountId)) {
+                        groupedIdsByAccount.set(accountId, []);
+                      }
+                      groupedIdsByAccount.get(accountId)?.push(row.original.id);
+                    }
+
+                    await Promise.all(
+                      [...groupedIdsByAccount.entries()].map(
+                        ([accountId, groupIds]) =>
+                          deleteServiceGroups(accountId, groupIds),
+                      ),
+                    );
+                  } catch (error) {
+                    toast({
+                      title: "グループ削除に失敗しました",
+                      description:
+                        error instanceof Error
+                          ? error.message
+                          : "しばらくしてから再度お試しください。",
+                      variant: "destructive",
+                    });
+                  }
                 }}
               >
                 選択した {selected.rows.length} 件を削除

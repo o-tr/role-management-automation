@@ -13,16 +13,22 @@ export const useCreateInvitation = (nsId: TNamespaceId) => {
     args: TCreateNamespaceInvitationRequestBody,
   ): Promise<CreateNamespaceInvitationResponse> => {
     setLoading(true);
-    const response = await fetch(`/api/ns/${nsId}/invitations`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(args),
-    }).then((res) => res.json());
-    setLoading(false);
-    onInvitationsChange();
-    return response;
+    try {
+      const response = (await fetch(`/api/ns/${nsId}/invitations`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(args),
+      }).then((res) => res.json())) as CreateNamespaceInvitationResponse;
+      if (response.status === "error") {
+        throw new Error(response.error);
+      }
+      onInvitationsChange();
+      return response;
+    } finally {
+      setLoading(false);
+    }
   };
 
   return {

@@ -18,12 +18,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import type { TNamespaceId } from "@/types/prisma";
-import {
-  onInvitationsChange,
-  useOnInvitationsChange,
-} from "../_hook/onInvitationsChange";
+import { useOnInvitationsChange } from "../_hook/onInvitationsChange";
 import { useCreateInvitation } from "../_hook/useCreateInvitation";
 
 type Props = {
@@ -34,28 +32,47 @@ export const CreateInvitation: FC<Props> = ({ nsId }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [expiresAt, setExpiresAt] = useState<Date>(addDays(new Date(), 7));
   const { createInvitation, loading } = useCreateInvitation(nsId);
+  const { toast } = useToast();
 
   const inputId = useId();
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!expiresAt) return;
+    if (!expiresAt || loading) return;
 
-    await createInvitation({
-      expires: setMilliseconds(
-        setSeconds(setMinutes(setHours(expiresAt, 23), 59), 59),
-        0,
-      ).toISOString(),
-    });
-    onInvitationsChange();
+    try {
+      await createInvitation({
+        expires: setMilliseconds(
+          setSeconds(setMinutes(setHours(expiresAt, 23), 59), 59),
+          0,
+        ).toISOString(),
+      });
+    } catch (error) {
+      toast({
+        title: "招待作成に失敗しました",
+        description:
+          error instanceof Error
+            ? error.message
+            : "しばらくしてから再度お試しください。",
+        variant: "destructive",
+      });
+    }
   };
 
   useOnInvitationsChange(() => setIsModalOpen(false));
 
   return (
-    <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+    <Dialog
+      open={isModalOpen}
+      onOpenChange={(open) => {
+        if (loading) return;
+        setIsModalOpen(open);
+      }}
+    >
       <DialogTrigger asChild>
-        <Button onClick={() => setIsModalOpen(true)}>招待を作成</Button>
+        <Button onClick={() => setIsModalOpen(true)} disabled={loading}>
+          招待を作成
+        </Button>
       </DialogTrigger>
       <DialogContent className="w-[400px]">
         <form onSubmit={handleSubmit}>
@@ -69,6 +86,7 @@ export const CreateInvitation: FC<Props> = ({ nsId }) => {
                     "w-[280px] justify-start text-left font-normal",
                     !expiresAt && "text-muted-foreground",
                   )}
+                  disabled={loading}
                 >
                   <TbCalendar className="mr-2" />
                   {expiresAt ? (
@@ -86,6 +104,7 @@ export const CreateInvitation: FC<Props> = ({ nsId }) => {
                   selected={expiresAt}
                   onSelect={(date) => setExpiresAt((pv) => date || pv)}
                   initialFocus
+                  disabled={loading}
                 />
               </PopoverContent>
             </Popover>

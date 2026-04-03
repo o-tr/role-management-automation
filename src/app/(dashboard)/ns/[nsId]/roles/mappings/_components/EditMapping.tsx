@@ -1,6 +1,7 @@
 import type { FC } from "react";
 import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 import { convertConditionToInput } from "@/types/conditions";
 import type { TMapping } from "@/types/prisma";
 import { onServiceGroupMappingChange } from "../../_hooks/on-mappings-change";
@@ -17,7 +18,11 @@ type Props = {
 };
 
 export const EditMapping: FC<Props> = ({ nsId, mapping, onDirtyChange }) => {
-  const { updateServiceMapping } = useUpdateServiceMapping(nsId, mapping.id);
+  const { updateServiceMapping, loading } = useUpdateServiceMapping(
+    nsId,
+    mapping.id,
+  );
+  const { toast } = useToast();
 
   const {
     conditions,
@@ -25,6 +30,7 @@ export const EditMapping: FC<Props> = ({ nsId, mapping, onDirtyChange }) => {
     conditionErrors,
     actionErrors,
     isDirty,
+    isSubmitting,
     setConditions,
     setActions,
     handleSubmit,
@@ -32,11 +38,23 @@ export const EditMapping: FC<Props> = ({ nsId, mapping, onDirtyChange }) => {
     initialConditions: convertConditionToInput(mapping.conditions),
     initialActions: mapping.actions,
     onSubmit: async ({ conditions, actions }) => {
-      await updateServiceMapping({
-        conditions,
-        actions,
-      });
-      onServiceGroupMappingChange();
+      try {
+        await updateServiceMapping({
+          conditions,
+          actions,
+        });
+        onServiceGroupMappingChange();
+      } catch (error) {
+        toast({
+          title: "割り当て更新に失敗しました",
+          description:
+            error instanceof Error
+              ? error.message
+              : "しばらくしてから再度お試しください。",
+          variant: "destructive",
+        });
+        throw error;
+      }
     },
   });
 
@@ -52,15 +70,23 @@ export const EditMapping: FC<Props> = ({ nsId, mapping, onDirtyChange }) => {
           conditions={conditions}
           onChange={setConditions}
           nsId={nsId}
+          disabled={loading || isSubmitting}
         />
         <ValidationError errors={conditionErrors} title="条件のエラー" />
       </fieldset>
       <fieldset>
         <legend>以下のアクションを実行する</legend>
-        <ActionsEditor actions={actions} onChange={setActions} nsId={nsId} />
+        <ActionsEditor
+          actions={actions}
+          onChange={setActions}
+          nsId={nsId}
+          disabled={loading || isSubmitting}
+        />
         <ValidationError errors={actionErrors} title="アクションのエラー" />
       </fieldset>
-      <Button type="submit">更新</Button>
+      <Button type="submit" disabled={loading || isSubmitting}>
+        更新
+      </Button>
     </form>
   );
 };

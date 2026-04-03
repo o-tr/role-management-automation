@@ -9,15 +9,21 @@ export const useUpdateTag = (nsId: TNamespaceId, tagId: TTagId) => {
   const updateTag = useCallback(
     async (body: UpdateTagInput): Promise<UpdateTagResponse> => {
       setLoading(true);
-      const response = await fetch(`/api/ns/${nsId}/tags/${tagId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      }).then((res) => res.json());
-      setLoading(false);
-      return response;
+      try {
+        const response = (await fetch(`/api/ns/${nsId}/tags/${tagId}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        }).then((res) => res.json())) as UpdateTagResponse;
+        if (response.status === "error") {
+          throw new Error(response.error);
+        }
+        return response;
+      } finally {
+        setLoading(false);
+      }
     },
     [nsId, tagId],
   );

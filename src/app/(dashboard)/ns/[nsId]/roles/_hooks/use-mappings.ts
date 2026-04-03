@@ -28,5 +28,6 @@ export const useMappings = (nsId: string) => {
     isPending: isLoading,
     error,
     refetch: mutate,
+    mutateMappings: mutate,
   };
 };

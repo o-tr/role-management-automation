@@ -12,15 +12,23 @@ export const useUpdateServiceMapping = (nsId: string, mappingId: string) => {
       body: UpdateMappingBody,
     ): Promise<UpdateExternalServiceGroupMappingResponse> => {
       setLoading(true);
-      const response = await fetch(`/api/ns/${nsId}/mappings/${mappingId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(body),
-      }).then((res) => res.json());
-      setLoading(false);
-      return response;
+      try {
+        const response = (await fetch(`/api/ns/${nsId}/mappings/${mappingId}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(body),
+        }).then((res) =>
+          res.json(),
+        )) as UpdateExternalServiceGroupMappingResponse;
+        if (response.status === "error") {
+          throw new Error(response.error);
+        }
+        return response;
+      } finally {
+        setLoading(false);
+      }
     },
     [nsId, mappingId],
   );

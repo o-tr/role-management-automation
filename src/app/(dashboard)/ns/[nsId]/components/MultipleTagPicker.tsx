@@ -20,6 +20,7 @@ type Props = {
   tags: TTag[];
   selectedTags: TTagId[];
   showSelectAll?: boolean;
+  disabled?: boolean;
   onChange: Dispatch<SetStateAction<TTagId[]>>;
 };
 
@@ -28,6 +29,7 @@ export const MultipleTagPicker: FC<Props> = ({
   tags,
   selectedTags,
   showSelectAll,
+  disabled,
 }) => {
   const [inputValue, setInputValue] = useState("");
 
@@ -40,6 +42,7 @@ export const MultipleTagPicker: FC<Props> = ({
   const inputId = useId();
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (disabled) return;
     if (e.key === "Enter" && !e.nativeEvent.isComposing) {
       e.preventDefault();
       e.stopPropagation();
@@ -72,6 +75,7 @@ export const MultipleTagPicker: FC<Props> = ({
             <TagDisplay
               tag={tag}
               onDelete={() => {
+                if (disabled) return;
                 onChange((prev) => prev.filter((v) => v !== tagId));
               }}
               deleteArea="all"
@@ -89,6 +93,7 @@ export const MultipleTagPicker: FC<Props> = ({
         onChange={(e) => setInputValue(e.target.value)}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setTimeout(() => setIsFocused(false), 100)}
+        disabled={disabled}
       />
       <Command
         className={
@@ -102,6 +107,7 @@ export const MultipleTagPicker: FC<Props> = ({
             {showSelectAll && filteredTags.length > 0 && (
               <CommandItem
                 onSelect={() => {
+                  if (disabled) return;
                   onChange(tags?.map((tag) => tag.id) || []);
                   setInputValue("");
                 }}
@@ -112,6 +118,7 @@ export const MultipleTagPicker: FC<Props> = ({
             {showSelectAll && filteredTags.length === 0 && (
               <CommandItem
                 onSelect={() => {
+                  if (disabled) return;
                   onChange([]);
                   setInputValue("");
                 }}
@@ -123,6 +130,7 @@ export const MultipleTagPicker: FC<Props> = ({
               <CommandItem
                 key={tag.id}
                 onSelect={() => {
+                  if (disabled) return;
                   onChange((prev) => [...prev, tag.id]);
                   setInputValue("");
                 }}

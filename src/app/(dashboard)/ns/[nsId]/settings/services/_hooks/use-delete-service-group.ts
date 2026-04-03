@@ -8,16 +8,19 @@ export const useDeleteServiceGroup = (nsId: string) => {
   const deleteServiceGroup = useCallback(
     async (accountId: string, groupId: string): Promise<void> => {
       setIsPending(true);
-      const response = await deleteServiceGroupRequest(
-        nsId,
-        accountId,
-        groupId,
-      );
-      if (response.status === "error") {
-        throw new Error(response.error);
+      try {
+        const response = await deleteServiceGroupRequest(
+          nsId,
+          accountId,
+          groupId,
+        );
+        if (response.status === "error") {
+          throw new Error(response.error);
+        }
+        onServiceGroupChange();
+      } finally {
+        setIsPending(false);
       }
-      onServiceGroupChange();
-      setIsPending(false);
     },
     [nsId],
   );
@@ -25,16 +28,19 @@ export const useDeleteServiceGroup = (nsId: string) => {
   const deleteServiceGroups = useCallback(
     async (accountId: string, groupIds: string[]): Promise<void> => {
       setIsPending(true);
-      const response = await Promise.all(
-        groupIds.map((groupId) =>
-          deleteServiceGroupRequest(nsId, accountId, groupId),
-        ),
-      );
-      if (response.some((res) => res.status === "error")) {
-        throw new Error("Failed to delete some service accounts");
+      try {
+        const response = await Promise.all(
+          groupIds.map((groupId) =>
+            deleteServiceGroupRequest(nsId, accountId, groupId),
+          ),
+        );
+        if (response.some((res) => res.status === "error")) {
+          throw new Error("Failed to delete some service groups");
+        }
+        onServiceGroupChange();
+      } finally {
+        setIsPending(false);
       }
-      onServiceGroupChange();
-      setIsPending(false);
     },
     [nsId],
   );

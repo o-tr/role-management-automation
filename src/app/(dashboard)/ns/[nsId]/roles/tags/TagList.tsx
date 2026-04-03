@@ -1,8 +1,8 @@
 "use client";
 
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef, Table } from "@tanstack/react-table";
 import { redirect } from "next/navigation";
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   CommonCheckboxCell,
   CommonCheckboxHeader,
@@ -17,57 +17,49 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/components/ui/use-toast";
 import { createTag } from "@/requests/createTag";
 import { deleteTag } from "@/requests/deleteTag";
-import type { TNamespaceId, TTag } from "@/types/prisma";
+import type { TNamespaceId, TTag, TTagId } from "@/types/prisma";
 import { TagDisplay } from "../../components/TagDisplay";
-import { onTagsChange } from "../_hooks/on-tags-change";
 import { useTags } from "../_hooks/use-tags";
 import { EditTag } from "./EditTag";
 
 type InternalTag = TTag & { namespaceId: TNamespaceId };
 
-export const columns: ColumnDef<InternalTag>[] = [
-  {
-    id: "select",
-    header: CommonCheckboxHeader,
-    cell: CommonCheckboxCell,
-    size: 50,
-    maxSize: 50,
-  },
-  {
-    accessorKey: "name",
-    header: "Name",
-    cell: ({ row }) => <TagDisplay tag={row.original} variant="ghost" />,
-    size: -1,
-  },
-  {
-    id: "actions",
-    cell: ({ row }) => (
-      <div className="flex space-x-2">
-        <EditTag
-          nsId={row.original.namespaceId}
-          tag={row.original}
-          key={row.original.id}
-        />
-        <Button
-          variant="outline"
-          onClick={async () => {
-            await deleteTag(row.original.namespaceId, row.original.id);
-            onTagsChange();
-          }}
-        >
-          削除
-        </Button>
-      </div>
-    ),
-    size: 150,
-  },
-];
+const Footer = ({
+  table,
+  disabled,
+  pendingTagIds,
+  onDeleteSelected,
+}: {
+  table: Table<InternalTag>;
+  disabled: boolean;
+  pendingTagIds: Set<TTagId>;
+  onDeleteSelected: (tagIds: TTagId[]) => Promise<void>;
+}) => {
+  const selected = table.getSelectedRowModel();
+  if (selected.rows.length === 0) {
+    return <div className="h-[40px]">&nbsp;</div>;
+  }
+  const selectedIds = selected.rows.map((v) => v.original.id);
+  const hasPendingSelected = selectedIds.some((id) => pendingTagIds.has(id));
+  const isDisabled = disabled || hasPendingSelected;
 
-const deleteTags = async (groupId: string, tagIds: string[]) => {
-  await Promise.all(tagIds.map((tagId) => deleteTag(groupId, tagId)));
-  onTagsChange();
+  return (
+    <div>
+      <Button
+        variant="outline"
+        disabled={isDisabled}
+        onClick={() => {
+          if (isDisabled) return;
+          void onDeleteSelected(selectedIds);
+        }}
+      >
+        選択した {selected.rows.length} 件を削除
+      </Button>
+    </div>
+  );
 };
 
 type TagListProps = {
@@ -75,15 +67,222 @@ type TagListProps = {
 };
 
 export function TagList({ namespaceId }: TagListProps) {
-  const { tags, refetch, isPending, responseError } = useTags(namespaceId);
+  const { tags, mutateTags, isPending, responseError } = useTags(namespaceId);
   const [newTagName, setNewTagName] = useState("");
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [pendingTagIds, setPendingTagIds] = useState<Set<TTagId>>(
+    () => new Set(),
+  );
+  const [isCreatePending, setIsCreatePending] = useState(false);
+  const [isBulkPending, setIsBulkPending] = useState(false);
+  const { toast } = useToast();
+
+  const setPendingTags = useCallback((tagIds: TTagId[], pending: boolean) => {
+    setPendingTagIds((prev) => {
+      const next = new Set(prev);
+      for (const tagId of tagIds) {
+        if (pending) {
+          next.add(tagId);
+        } else {
+          next.delete(tagId);
+        }
+      }
+      return next;
+    });
+  }, []);
 
   const handleAddTag = async (e: React.FormEvent) => {
     e.preventDefault();
-    await createTag(namespaceId, newTagName);
-    await refetch();
-    setNewTagName("");
+    if (!newTagName.trim() || isCreatePending) {
+      return;
+    }
+
+    setIsCreatePending(true);
+    try {
+      const createdTag = await createTag(namespaceId, newTagName);
+      await mutateTags((current) => {
+        if (!current || current.status !== "success") return current;
+        return {
+          ...current,
+          tags: [...current.tags, createdTag],
+        };
+      }, false);
+      setNewTagName("");
+      setIsCreateModalOpen(false);
+    } catch (error) {
+      toast({
+        title: "タグ追加に失敗しました",
+        description:
+          error instanceof Error
+            ? error.message
+            : "しばらくしてから再度お試しください。",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCreatePending(false);
+    }
   };
+
+  const deleteSingleTag = useCallback(
+    async (tagId: TTagId) => {
+      setPendingTags([tagId], true);
+      try {
+        await deleteTag(namespaceId, tagId);
+        await mutateTags((current) => {
+          if (!current || current.status !== "success") return current;
+          return {
+            ...current,
+            tags: current.tags.filter((tag) => tag.id !== tagId),
+          };
+        }, false);
+      } catch (error) {
+        toast({
+          title: "タグ削除に失敗しました",
+          description:
+            error instanceof Error
+              ? error.message
+              : "しばらくしてから再度お試しください。",
+          variant: "destructive",
+        });
+      } finally {
+        setPendingTags([tagId], false);
+      }
+    },
+    [mutateTags, namespaceId, setPendingTags, toast],
+  );
+
+  const deleteBulkTags = useCallback(
+    async (tagIds: TTagId[]) => {
+      if (tagIds.length === 0) return;
+      if (tagIds.some((tagId) => pendingTagIds.has(tagId))) return;
+      setIsBulkPending(true);
+      setPendingTags(tagIds, true);
+      try {
+        const results = await Promise.all(
+          tagIds.map(async (tagId) => {
+            try {
+              await deleteTag(namespaceId, tagId);
+              return { status: "success" as const, tagId };
+            } catch (error) {
+              return {
+                status: "error" as const,
+                tagId,
+                error:
+                  error instanceof Error
+                    ? error.message
+                    : "タグ削除に失敗しました",
+              };
+            }
+          }),
+        );
+        const deletedTagIds = results
+          .filter((result) => result.status === "success")
+          .map((result) => result.tagId);
+        const failedMessages = results
+          .filter((result) => result.status === "error")
+          .map((result) => (result.status === "error" ? result.error : ""))
+          .filter((message) => message.length > 0);
+
+        if (deletedTagIds.length > 0) {
+          const deletedSet = new Set(deletedTagIds);
+          await mutateTags((current) => {
+            if (!current || current.status !== "success") return current;
+            return {
+              ...current,
+              tags: current.tags.filter((tag) => !deletedSet.has(tag.id)),
+            };
+          }, false);
+        }
+
+        if (failedMessages.length > 0) {
+          throw new Error([...new Set(failedMessages)].join("\n"));
+        }
+      } catch (error) {
+        toast({
+          title: "タグ削除に失敗しました",
+          description:
+            error instanceof Error
+              ? error.message
+              : "しばらくしてから再度お試しください。",
+          variant: "destructive",
+        });
+      } finally {
+        setPendingTags(tagIds, false);
+        setIsBulkPending(false);
+      }
+    },
+    [mutateTags, namespaceId, pendingTagIds, setPendingTags, toast],
+  );
+
+  const handleTagUpdated = useCallback(
+    async (updatedTag: TTag) => {
+      await mutateTags((current) => {
+        if (!current || current.status !== "success") return current;
+        return {
+          ...current,
+          tags: current.tags.map((tag) =>
+            tag.id === updatedTag.id ? updatedTag : tag,
+          ),
+        };
+      }, false);
+    },
+    [mutateTags],
+  );
+
+  const columns = useMemo<ColumnDef<InternalTag>[]>(
+    () => [
+      {
+        id: "select",
+        header: CommonCheckboxHeader,
+        cell: CommonCheckboxCell,
+        size: 50,
+        maxSize: 50,
+      },
+      {
+        accessorKey: "name",
+        header: "Name",
+        cell: ({ row }) => <TagDisplay tag={row.original} variant="ghost" />,
+        size: -1,
+      },
+      {
+        id: "actions",
+        cell: ({ row }) => {
+          const disabled = isBulkPending || pendingTagIds.has(row.original.id);
+          return (
+            <div className="flex space-x-2">
+              <EditTag
+                nsId={row.original.namespaceId}
+                tag={row.original}
+                key={row.original.id}
+                disabled={disabled}
+                onSubmittingChange={(pending) => {
+                  setPendingTags([row.original.id], pending);
+                }}
+                onUpdated={handleTagUpdated}
+              />
+              <Button
+                variant="outline"
+                disabled={disabled}
+                onClick={() => {
+                  void deleteSingleTag(row.original.id);
+                }}
+              >
+                削除
+              </Button>
+            </div>
+          );
+        },
+        size: 150,
+      },
+    ],
+    [
+      deleteSingleTag,
+      handleTagUpdated,
+      isBulkPending,
+      pendingTagIds,
+      setPendingTags,
+    ],
+  );
 
   if (isPending) {
     return <div>loading...</div>;
@@ -102,9 +301,20 @@ export function TagList({ namespaceId }: TagListProps) {
   return (
     <div className="overflow-y-hidden flex flex-col gap-2">
       <div className="flex flex-row justify-end">
-        <Dialog>
-          <DialogTrigger>
-            <Button>タグを追加</Button>
+        <Dialog
+          open={isCreateModalOpen}
+          onOpenChange={(open) => {
+            if (isCreatePending) return;
+            setIsCreateModalOpen(open);
+            if (!open) {
+              setNewTagName("");
+            }
+          }}
+        >
+          <DialogTrigger asChild>
+            <Button disabled={isCreatePending || isBulkPending}>
+              タグを追加
+            </Button>
           </DialogTrigger>
           <DialogContent>
             <form onSubmit={handleAddTag} className="flex flex-col gap-2">
@@ -114,10 +324,17 @@ export function TagList({ namespaceId }: TagListProps) {
                 onChange={(e) => setNewTagName(e.target.value)}
                 placeholder="新しいタグ名"
                 required
-                disabled={isPending}
+                disabled={isCreatePending || isBulkPending}
               />
               <DialogFooter>
-                <Button type="submit" disabled={isPending}>
+                <Button
+                  type="submit"
+                  disabled={
+                    isCreatePending ||
+                    isBulkPending ||
+                    newTagName.trim().length === 0
+                  }
+                >
                   追加
                 </Button>
               </DialogFooter>
@@ -128,29 +345,14 @@ export function TagList({ namespaceId }: TagListProps) {
       <DataTable
         columns={columns}
         data={tags?.map((v) => ({ ...v, namespaceId })) || []}
-        footer={({ table }) => {
-          const selected = table.getSelectedRowModel();
-
-          if (selected.rows.length === 0) {
-            return <div className="h-[40px]">&nbsp;</div>;
-          }
-
-          return (
-            <div>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  deleteTags(
-                    namespaceId,
-                    selected.rows.map((v) => v.original.id),
-                  );
-                }}
-              >
-                選択した {selected.rows.length} 件を削除
-              </Button>
-            </div>
-          );
-        }}
+        footer={({ table }) => (
+          <Footer
+            table={table}
+            disabled={isCreatePending || isBulkPending}
+            pendingTagIds={pendingTagIds}
+            onDeleteSelected={deleteBulkTags}
+          />
+        )}
       />
     </div>
   );

@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import { HexColorPicker } from "react-colorful";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +15,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useToast } from "@/components/ui/use-toast";
 import type { TColorCode } from "@/types/brand";
 import type { TNamespaceId, TTag } from "@/types/prisma";
 import { onTagsChange } from "../_hooks/on-tags-change";
@@ -23,28 +24,88 @@ import { useUpdateTag } from "../_hooks/use-update-tag";
 type Props = {
   nsId: TNamespaceId;
   tag: TTag;
+  disabled?: boolean;
+  onSubmittingChange?: (isSubmitting: boolean) => void;
+  onUpdated?: (tag: TTag) => void | Promise<void>;
 };
-export const EditTag = ({ nsId, tag }: Props) => {
+export const EditTag = ({
+  nsId,
+  tag,
+  disabled,
+  onSubmittingChange,
+  onUpdated,
+}: Props) => {
   const [name, setName] = useState(tag.name);
   const [color, setColor] = useState(tag.color);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { updateTag, loading } = useUpdateTag(nsId, tag.id);
+  const { toast } = useToast();
+  const isPending = disabled || loading || isSubmitting;
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    await updateTag({
-      name,
-      color,
-    });
-    onTagsChange();
-    setIsModalOpen(false);
+    if (isPending) return;
+    onSubmittingChange?.(true);
+    setIsSubmitting(true);
+    let callbackError: unknown;
+    try {
+      const response = await updateTag({
+        name,
+        color,
+      });
+      if (response.status !== "success") {
+        throw new Error("タグ更新に失敗しました");
+      }
+      if (onUpdated) {
+        try {
+          await onUpdated(response.tag);
+        } catch (error) {
+          callbackError = error;
+        }
+      }
+      onTagsChange();
+      setIsModalOpen(false);
+      if (callbackError) {
+        throw callbackError;
+      }
+    } catch (error) {
+      toast({
+        title: "タグ更新に失敗しました",
+        description:
+          error instanceof Error
+            ? error.message
+            : "しばらくしてから再度お試しください。",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+      onSubmittingChange?.(false);
+    }
   };
 
+  useEffect(() => {
+    setName(tag.name);
+    setColor(tag.color);
+  }, [tag.color, tag.name]);
+
   return (
-    <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+    <Dialog
+      open={isModalOpen}
+      onOpenChange={(open) => {
+        if (isPending) return;
+        if (open) {
+          setName(tag.name);
+          setColor(tag.color);
+        }
+        setIsModalOpen(open);
+      }}
+    >
       <DialogTrigger asChild>
-        <Button variant="outline">編集</Button>
+        <Button variant="outline" disabled={isPending}>
+          編集
+        </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
@@ -57,6 +118,7 @@ export const EditTag = ({ nsId, tag }: Props) => {
               placeholder="Name"
               value={name}
               onChange={(v) => setName(v.target.value)}
+              disabled={isPending}
             />
           </div>
 
@@ -70,6 +132,7 @@ export const EditTag = ({ nsId, tag }: Props) => {
                     type="button"
                     className="w-[200px]"
                     style={{ backgroundColor: color }}
+                    disabled={isPending}
                   />
                 </PopoverTrigger>
                 <PopoverContent className="p-2 w-fit">
@@ -83,11 +146,12 @@ export const EditTag = ({ nsId, tag }: Props) => {
                 value={color}
                 placeholder="#000000"
                 onChange={(v) => setColor(v.target.value as TColorCode)}
+                disabled={isPending}
               />
             </div>
           </div>
           <DialogFooter>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={isPending}>
               更新
             </Button>
           </DialogFooter>
