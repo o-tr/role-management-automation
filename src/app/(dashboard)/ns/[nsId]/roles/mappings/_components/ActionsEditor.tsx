@@ -31,9 +31,15 @@ type Props = {
   nsId: string;
   actions: TMappingAction[];
   onChange: Dispatch<SetStateAction<TMappingAction[]>>;
+  disabled?: boolean;
 };
 
-export const ActionsEditor: FC<Props> = ({ actions, onChange, nsId }) => {
+export const ActionsEditor: FC<Props> = ({
+  actions,
+  onChange,
+  nsId,
+  disabled = false,
+}) => {
   return (
     <Card className="space-y-1 p-2">
       {actions.map((action) => (
@@ -49,10 +55,12 @@ export const ActionsEditor: FC<Props> = ({ actions, onChange, nsId }) => {
                 return newActions;
               })
             }
+            disabled={disabled}
           />
           <Button
             variant="secondary"
             type="button"
+            disabled={disabled}
             onClick={() =>
               onChange((actions) => actions.filter((a) => a !== action))
             }
@@ -63,6 +71,7 @@ export const ActionsEditor: FC<Props> = ({ actions, onChange, nsId }) => {
       ))}
       <Button
         type="button"
+        disabled={disabled}
         onClick={() =>
           onChange((actions) => [...actions, createNewMappingAction("add")])
         }
@@ -83,9 +92,15 @@ type ActionsItemProps = {
   nsId: string;
   action: TMappingAction;
   onChange: (action: TMappingAction) => void;
+  disabled?: boolean;
 };
 
-const ActionsItem: FC<ActionsItemProps> = ({ action, onChange, nsId }) => {
+const ActionsItem: FC<ActionsItemProps> = ({
+  action,
+  onChange,
+  nsId,
+  disabled = false,
+}) => {
   const { accounts } = useServiceAccounts(nsId);
   const { groups: tmpGroups, isPending: isGroupsPending } =
     useServiceGroups(nsId);
@@ -113,11 +128,12 @@ const ActionsItem: FC<ActionsItemProps> = ({ action, onChange, nsId }) => {
             })
           }
           value={action.targetServiceAccountId}
+          disabled={disabled}
         />
       </FormItem>
       <FormItem>
         <ServiceGroupPicker
-          disabled={isGroupsPending || groups.length === 0}
+          disabled={disabled || isGroupsPending || groups.length === 0}
           groups={groups ?? []}
           onChange={(value) =>
             onChange({
@@ -131,6 +147,7 @@ const ActionsItem: FC<ActionsItemProps> = ({ action, onChange, nsId }) => {
       <FormItem>
         <Select
           value={action.type}
+          disabled={disabled}
           onValueChange={(value) => {
             const nextType = value as TMappingActionType;
             if (nextType === action.type) {
@@ -177,7 +194,7 @@ const ActionsItem: FC<ActionsItemProps> = ({ action, onChange, nsId }) => {
         <FormItem>
           <Select
             value={action.targetServiceRoleId}
-            disabled={!roles}
+            disabled={disabled || !roles}
             onValueChange={(value) =>
               onChange({
                 ...action,

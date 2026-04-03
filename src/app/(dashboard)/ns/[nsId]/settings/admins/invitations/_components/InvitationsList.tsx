@@ -47,7 +47,7 @@ type Props = {
 };
 
 export const InvitationsList: FC<Props> = ({ nsId }) => {
-  const { invitations, isPending, responseError, refetch } =
+  const { invitations, isPending, responseError, mutateInvitations } =
     useInvitations(nsId);
   const { deleteNamespaceInvitation, loading } = useDeleteInvitation(nsId);
   const { toast } = useToast();
@@ -62,7 +62,15 @@ export const InvitationsList: FC<Props> = ({ nsId }) => {
         await deleteNamespaceInvitation(
           invitationId as TNamespaceInvitation["id"],
         );
-        await refetch();
+        await mutateInvitations((current) => {
+          if (!current || current.status !== "success") return current;
+          return {
+            ...current,
+            invitations: current.invitations.filter(
+              (invitation) => invitation.id !== invitationId,
+            ),
+          };
+        }, false);
       } catch (error) {
         toast({
           title: "招待削除に失敗しました",
@@ -80,7 +88,7 @@ export const InvitationsList: FC<Props> = ({ nsId }) => {
         });
       }
     },
-    [deleteNamespaceInvitation, refetch, toast],
+    [deleteNamespaceInvitation, mutateInvitations, toast],
   );
 
   const columns = useMemo<TColumnDef<TNamespaceInvitation>[]>(

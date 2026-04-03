@@ -35,7 +35,7 @@ export const useDeleteServiceGroup = (nsId: string) => {
           ),
         );
         if (response.some((res) => res.status === "error")) {
-          throw new Error("Failed to delete some service accounts");
+          throw new Error("Failed to delete some service groups");
         }
         onServiceGroupChange();
       } finally {

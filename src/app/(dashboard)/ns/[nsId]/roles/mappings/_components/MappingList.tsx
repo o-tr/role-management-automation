@@ -270,21 +270,38 @@ export function MappingList({ namespaceId }: TagListProps) {
   const deleteBulkMappings = useCallback(
     async (mappingIds: TMappingId[]) => {
       if (mappingIds.length === 0) return;
+      if (mappingIds.some((mappingId) => pendingMappingIds.has(mappingId))) {
+        return;
+      }
       setIsBulkPending(true);
       setPendingMappings(mappingIds, true);
       try {
         const results = await Promise.all(
           mappingIds.map(async (mappingId) => {
-            const response = await deleteMapping(namespaceId, mappingId);
-            return { mappingId, response };
+            try {
+              const response = await deleteMapping(namespaceId, mappingId);
+              return { mappingId, response };
+            } catch (error) {
+              return {
+                mappingId,
+                response: {
+                  status: "error" as const,
+                  code: 500,
+                  error: error instanceof Error ? error.message : String(error),
+                },
+              };
+            }
           }),
         );
         const deletedIds = results
           .filter((result) => result.response.status === "success")
           .map((result) => result.mappingId);
-        const failed = results.find(
-          (result) => result.response.status === "error",
-        );
+        const failedMessages = results
+          .filter((result) => result.response.status === "error")
+          .map((result) =>
+            result.response.status === "error" ? result.response.error : "",
+          )
+          .filter((message) => message.length > 0);
 
         if (deletedIds.length > 0) {
           const deletedSet = new Set(deletedIds);
@@ -299,8 +316,8 @@ export function MappingList({ namespaceId }: TagListProps) {
           }, false);
         }
 
-        if (failed && failed.response.status === "error") {
-          throw new Error(failed.response.error);
+        if (failedMessages.length > 0) {
+          throw new Error([...new Set(failedMessages)].join("\n"));
         }
       } catch (error) {
         toast({
@@ -316,7 +333,7 @@ export function MappingList({ namespaceId }: TagListProps) {
         setIsBulkPending(false);
       }
     },
-    [mutateMappings, namespaceId, setPendingMappings, toast],
+    [mutateMappings, namespaceId, pendingMappingIds, setPendingMappings, toast],
   );
 
   const columns = useMemo<TColumnDef<InternalMapping>[]>(
@@ -419,16 +436,23 @@ export function MappingList({ namespaceId }: TagListProps) {
           if (selected.rows.length === 0) {
             return <div className="h-[40px]">&nbsp;</div>;
           }
+          const selectedIds = selected.rows.map((v) => v.original.id);
+          const hasPendingSelected = selectedIds.some((id) =>
+            pendingMappingIds.has(id),
+          );
+          const isDeleteDisabled = isBulkPending || hasPendingSelected;
+          const deletableIds = selectedIds.filter(
+            (id) => !pendingMappingIds.has(id),
+          );
 
           return (
             <div>
               <Button
                 variant="outline"
-                disabled={isBulkPending}
+                disabled={isDeleteDisabled}
                 onClick={() => {
-                  void deleteBulkMappings(
-                    selected.rows.map((v) => v.original.id),
-                  );
+                  if (deletableIds.length === 0 || isDeleteDisabled) return;
+                  void deleteBulkMappings(deletableIds);
                 }}
               >
                 選択した {selected.rows.length} 件を削除

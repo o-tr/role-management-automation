@@ -242,12 +242,20 @@ const Footer: FC<{
   table: Table<TMemberWithRelation>;
   tags: TTag[];
   disabled: boolean;
+  pendingMemberIds: Set<TMemberId>;
   onDeleteSelected: (members: TMemberWithRelation[]) => Promise<void>;
   onAddTagsSelected: (
     members: TMemberWithRelation[],
     selectedTagIds: TTagId[],
   ) => Promise<void>;
-}> = ({ table, tags, disabled, onDeleteSelected, onAddTagsSelected }) => {
+}> = ({
+  table,
+  tags,
+  disabled,
+  pendingMemberIds,
+  onDeleteSelected,
+  onAddTagsSelected,
+}) => {
   const selected = table.getSelectedRowModel();
   const [selectedTags, setSelectedTags] = useState<TTagId[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -257,13 +265,18 @@ const Footer: FC<{
   }
 
   const selectedMembers = selected.rows.map((v) => v.original);
+  const hasSelectedPending =
+    pendingMemberIds.size > 0 ||
+    selectedMembers.some((member) => pendingMemberIds.has(member.id));
+  const isFooterDisabled = disabled || hasSelectedPending;
 
   return (
     <div className="h-[40px]">
       <Button
         variant="outline"
-        disabled={disabled}
+        disabled={isFooterDisabled}
         onClick={() => {
+          if (isFooterDisabled) return;
           void onDeleteSelected(selectedMembers);
         }}
       >
@@ -272,7 +285,7 @@ const Footer: FC<{
       <Dialog
         open={isDialogOpen}
         onOpenChange={(open) => {
-          if (disabled) return;
+          if (isFooterDisabled) return;
           setIsDialogOpen(open);
           if (!open) {
             setSelectedTags([]);
@@ -280,7 +293,7 @@ const Footer: FC<{
         }}
       >
         <DialogTrigger asChild>
-          <Button variant="outline" disabled={disabled}>
+          <Button variant="outline" disabled={isFooterDisabled}>
             選択した {selected.rows.length} 件にタグを追加
           </Button>
         </DialogTrigger>
@@ -292,12 +305,13 @@ const Footer: FC<{
             tags={tags}
             selectedTags={selectedTags}
             onChange={setSelectedTags}
-            disabled={disabled}
+            disabled={isFooterDisabled}
           />
           <Button
             variant="outline"
-            disabled={disabled || selectedTags.length === 0}
+            disabled={isFooterDisabled || selectedTags.length === 0}
             onClick={async () => {
+              if (isFooterDisabled) return;
               await onAddTagsSelected(selectedMembers, selectedTags);
               setIsDialogOpen(false);
               setSelectedTags([]);
@@ -410,21 +424,38 @@ export function MemberList({ namespaceId, className }: MemberListProps) {
     async (selectedMembers: TMemberWithRelation[]) => {
       if (selectedMembers.length === 0) return;
       const selectedIds = selectedMembers.map((member) => member.id);
+      if (selectedIds.some((memberId) => pendingMemberIds.has(memberId))) {
+        return;
+      }
       setIsBulkPending(true);
       setPendingMembers(selectedIds, true);
       try {
         const results = await Promise.all(
-          selectedIds.map(async (memberId) => ({
-            memberId,
-            response: await deleteMember(namespaceId, memberId),
-          })),
+          selectedIds.map(async (memberId) => {
+            try {
+              const response = await deleteMember(namespaceId, memberId);
+              return { memberId, response };
+            } catch (error) {
+              return {
+                memberId,
+                response: {
+                  status: "error" as const,
+                  code: 500,
+                  error: error instanceof Error ? error.message : String(error),
+                },
+              };
+            }
+          }),
         );
         const deletedIds = results
           .filter((result) => result.response.status === "success")
           .map((result) => result.memberId);
-        const failed = results.find(
-          (result) => result.response.status === "error",
-        );
+        const failedMessages = results
+          .filter((result) => result.response.status === "error")
+          .map((result) =>
+            result.response.status === "error" ? result.response.error : "",
+          )
+          .filter((message) => message.length > 0);
 
         if (deletedIds.length > 0) {
           await mutateMembers((current) => {
@@ -439,8 +470,8 @@ export function MemberList({ namespaceId, className }: MemberListProps) {
           }, false);
         }
 
-        if (failed && failed.response.status === "error") {
-          throw new Error(failed.response.error);
+        if (failedMessages.length > 0) {
+          throw new Error([...new Set(failedMessages)].join("\n"));
         }
       } catch (error) {
         toast({
@@ -456,7 +487,7 @@ export function MemberList({ namespaceId, className }: MemberListProps) {
         setIsBulkPending(false);
       }
     },
-    [mutateMembers, namespaceId, setPendingMembers, toast],
+    [mutateMembers, namespaceId, pendingMemberIds, setPendingMembers, toast],
   );
 
   const addTagsToSelectedMembers = useCallback(
@@ -465,6 +496,10 @@ export function MemberList({ namespaceId, className }: MemberListProps) {
       selectedTagIds: TTagId[],
     ) => {
       if (selectedMembers.length === 0 || selectedTagIds.length === 0) {
+        return;
+      }
+      const selectedIds = selectedMembers.map((member) => member.id);
+      if (selectedIds.some((memberId) => pendingMemberIds.has(memberId))) {
         return;
       }
       const tagById = new Map((tags || []).map((tag) => [tag.id, tag]));
@@ -547,7 +582,14 @@ export function MemberList({ namespaceId, className }: MemberListProps) {
         setIsBulkPending(false);
       }
     },
-    [mutateMembers, patchMembers, setPendingMembers, tags, toast],
+    [
+      mutateMembers,
+      patchMembers,
+      pendingMemberIds,
+      setPendingMembers,
+      tags,
+      toast,
+    ],
   );
 
   const columns = useMemo<ColumnDef<TMemberWithRelation>[]>(
@@ -660,6 +702,7 @@ export function MemberList({ namespaceId, className }: MemberListProps) {
             table={table}
             tags={tags || []}
             disabled={isBulkPending}
+            pendingMemberIds={pendingMemberIds}
             onDeleteSelected={deleteSelectedMembers}
             onAddTagsSelected={addTagsToSelectedMembers}
           />

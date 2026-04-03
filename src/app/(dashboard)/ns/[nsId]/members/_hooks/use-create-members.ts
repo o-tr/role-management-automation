@@ -1,13 +1,18 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { AddMembersResponse } from "@/app/api/ns/[nsId]/members/route";
 import type { TCreateOrUpdateMembers } from "@/lib/prisma/createOrUpdateMember";
 
 export const useCreateMembers = (nsId: string) => {
   const [loading, setLoading] = useState(false);
+  const inFlightRef = useRef(false);
 
   const createMembers = async (
     body: TCreateOrUpdateMembers,
   ): Promise<AddMembersResponse> => {
+    if (inFlightRef.current) {
+      throw new Error("メンバー登録処理を実行中です");
+    }
+    inFlightRef.current = true;
     setLoading(true);
     try {
       const response = (await fetch(`/api/ns/${nsId}/members`, {
@@ -22,6 +27,7 @@ export const useCreateMembers = (nsId: string) => {
       }
       return response;
     } finally {
+      inFlightRef.current = false;
       setLoading(false);
     }
   };

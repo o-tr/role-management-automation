@@ -70,12 +70,18 @@ export const EditMapping: FC<Props> = ({ nsId, mapping, onDirtyChange }) => {
           conditions={conditions}
           onChange={setConditions}
           nsId={nsId}
+          disabled={loading || isSubmitting}
         />
         <ValidationError errors={conditionErrors} title="条件のエラー" />
       </fieldset>
       <fieldset>
         <legend>以下のアクションを実行する</legend>
-        <ActionsEditor actions={actions} onChange={setActions} nsId={nsId} />
+        <ActionsEditor
+          actions={actions}
+          onChange={setActions}
+          nsId={nsId}
+          disabled={loading || isSubmitting}
+        />
         <ValidationError errors={actionErrors} title="アクションのエラー" />
       </fieldset>
       <Button type="submit" disabled={loading || isSubmitting}>

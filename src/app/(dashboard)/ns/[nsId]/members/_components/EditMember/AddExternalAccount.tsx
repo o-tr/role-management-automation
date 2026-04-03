@@ -155,8 +155,9 @@ const AddExternalAccountInput: FC<{
   }, [availableResolveOprions, addAccountService]);
 
   const onConfirmClick = () => {
-    if (!addAccountValue.trim() || disabled) return;
-    onConfirm(addAccountService, addAccountValue);
+    const value = addAccountValue.trim();
+    if (!value || disabled) return;
+    onConfirm(addAccountService, value);
   };
   if (!availableServices.length) return null;
 

@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useEffect, useRef, useState } from "react";
 import { HexColorPicker } from "react-colorful";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,13 +25,21 @@ type Props = {
   nsId: TNamespaceId;
   tag: TTag;
   disabled?: boolean;
+  onSubmittingChange?: (isSubmitting: boolean) => void;
   onUpdated?: (tag: TTag) => void | Promise<void>;
 };
-export const EditTag = ({ nsId, tag, disabled, onUpdated }: Props) => {
+export const EditTag = ({
+  nsId,
+  tag,
+  disabled,
+  onSubmittingChange,
+  onUpdated,
+}: Props) => {
   const [name, setName] = useState(tag.name);
   const [color, setColor] = useState(tag.color);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const wasModalOpenRef = useRef(false);
 
   const { updateTag, loading } = useUpdateTag(nsId, tag.id);
   const { toast } = useToast();
@@ -40,18 +48,29 @@ export const EditTag = ({ nsId, tag, disabled, onUpdated }: Props) => {
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (isPending) return;
+    onSubmittingChange?.(true);
     setIsSubmitting(true);
+    let callbackError: unknown;
     try {
       const response = await updateTag({
         name,
         color,
       });
-      if (response.status === "success") {
-        await onUpdated?.(response.tag);
-      } else {
-        onTagsChange();
+      if (response.status !== "success") {
+        throw new Error("タグ更新に失敗しました");
       }
+      if (onUpdated) {
+        try {
+          await onUpdated(response.tag);
+        } catch (error) {
+          callbackError = error;
+        }
+      }
+      onTagsChange();
       setIsModalOpen(false);
+      if (callbackError) {
+        throw callbackError;
+      }
     } catch (error) {
       toast({
         title: "タグ更新に失敗しました",
@@ -63,8 +82,18 @@ export const EditTag = ({ nsId, tag, disabled, onUpdated }: Props) => {
       });
     } finally {
       setIsSubmitting(false);
+      onSubmittingChange?.(false);
     }
   };
+
+  useEffect(() => {
+    const wasOpen = wasModalOpenRef.current;
+    if (!isModalOpen || (!wasOpen && isModalOpen)) {
+      setName(tag.name);
+      setColor(tag.color);
+    }
+    wasModalOpenRef.current = isModalOpen;
+  }, [isModalOpen, tag.color, tag.name]);
 
   return (
     <Dialog

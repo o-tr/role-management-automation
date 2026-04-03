@@ -23,8 +23,12 @@ export const EditNSName: FC<Props> = ({ nsId }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const trimmedName = name.trim();
+    if (!trimmedName || !namespace || namespace.name.trim() === trimmedName) {
+      return;
+    }
     try {
-      await setNamespaceName(name);
+      await setNamespaceName(trimmedName);
       onNsChange();
       await refetch();
     } catch (error) {
@@ -62,7 +66,9 @@ export const EditNSName: FC<Props> = ({ nsId }) => {
           disabled={isLoading}
         />
         <Button
-          disabled={isLoading || namespace?.name === name || !name.trim()}
+          disabled={
+            isLoading || namespace?.name.trim() === name.trim() || !name.trim()
+          }
         >
           変更
         </Button>

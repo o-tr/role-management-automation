@@ -30,24 +30,30 @@ type InternalTag = TTag & { namespaceId: TNamespaceId };
 const Footer = ({
   table,
   disabled,
+  pendingTagIds,
   onDeleteSelected,
 }: {
   table: Table<InternalTag>;
   disabled: boolean;
+  pendingTagIds: Set<TTagId>;
   onDeleteSelected: (tagIds: TTagId[]) => Promise<void>;
 }) => {
   const selected = table.getSelectedRowModel();
   if (selected.rows.length === 0) {
     return <div className="h-[40px]">&nbsp;</div>;
   }
+  const selectedIds = selected.rows.map((v) => v.original.id);
+  const hasPendingSelected = selectedIds.some((id) => pendingTagIds.has(id));
+  const isDisabled = disabled || hasPendingSelected;
 
   return (
     <div>
       <Button
         variant="outline"
-        disabled={disabled}
+        disabled={isDisabled}
         onClick={() => {
-          void onDeleteSelected(selected.rows.map((v) => v.original.id));
+          if (isDisabled) return;
+          void onDeleteSelected(selectedIds);
         }}
       >
         選択した {selected.rows.length} 件を削除
@@ -148,6 +154,7 @@ export function TagList({ namespaceId }: TagListProps) {
   const deleteBulkTags = useCallback(
     async (tagIds: TTagId[]) => {
       if (tagIds.length === 0) return;
+      if (tagIds.some((tagId) => pendingTagIds.has(tagId))) return;
       setIsBulkPending(true);
       setPendingTags(tagIds, true);
       try {
@@ -201,7 +208,7 @@ export function TagList({ namespaceId }: TagListProps) {
         setIsBulkPending(false);
       }
     },
-    [mutateTags, namespaceId, setPendingTags, toast],
+    [mutateTags, namespaceId, pendingTagIds, setPendingTags, toast],
   );
 
   const handleTagUpdated = useCallback(
@@ -245,6 +252,9 @@ export function TagList({ namespaceId }: TagListProps) {
                 tag={row.original}
                 key={row.original.id}
                 disabled={disabled}
+                onSubmittingChange={(pending) => {
+                  setPendingTags([row.original.id], pending);
+                }}
                 onUpdated={handleTagUpdated}
               />
               <Button
@@ -262,7 +272,13 @@ export function TagList({ namespaceId }: TagListProps) {
         size: 150,
       },
     ],
-    [deleteSingleTag, handleTagUpdated, isBulkPending, pendingTagIds],
+    [
+      deleteSingleTag,
+      handleTagUpdated,
+      isBulkPending,
+      pendingTagIds,
+      setPendingTags,
+    ],
   );
 
   if (isPending) {
@@ -330,6 +346,7 @@ export function TagList({ namespaceId }: TagListProps) {
           <Footer
             table={table}
             disabled={isCreatePending || isBulkPending}
+            pendingTagIds={pendingTagIds}
             onDeleteSelected={deleteBulkTags}
           />
         )}

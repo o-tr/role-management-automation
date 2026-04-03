@@ -1,4 +1,4 @@
-import { type FC, useState } from "react";
+import { type FC, useCallback, useState } from "react";
 import type { ResolveResult } from "@/app/api/ns/[nsId]/members/resolve/[type]/[serviceId]/route";
 import { Button } from "@/components/ui/button";
 import {
@@ -67,6 +67,13 @@ export const AddPastedMembers: FC<Props> = ({ nsId }) => {
   const { toast } = useToast();
   const { tags, isPending } = useTags(nsId);
   const isMutating = loading;
+  const resetState = useCallback(() => {
+    setMembers([]);
+    setKeys([]);
+    setConfirmModalOpen(false);
+    setSelectedTags([]);
+  }, []);
+
   useOnPaste((e) => {
     if (isMutating) return;
     const pasted = parseClipboard(e);
@@ -96,12 +103,7 @@ export const AddPastedMembers: FC<Props> = ({ nsId }) => {
     );
     setKeys(keys);
   });
-  useOnMembersChange(() => {
-    setMembers([]);
-    setKeys([]);
-    setConfirmModalOpen(false);
-    setSelectedTags([]);
-  });
+  useOnMembersChange(resetState);
 
   const register = async () => {
     if (isMutating) return;
@@ -147,10 +149,7 @@ export const AddPastedMembers: FC<Props> = ({ nsId }) => {
         onOpenChange={(open) => {
           if (isMutating) return;
           if (!open) {
-            setMembers([]);
-            setKeys([]);
-            setConfirmModalOpen(false);
-            setSelectedTags([]);
+            resetState();
           }
         }}
       >
@@ -165,7 +164,13 @@ export const AddPastedMembers: FC<Props> = ({ nsId }) => {
             setKeys={setKeys}
             disabled={isMutating}
           />
-          <Dialog open={confirmModalOpen} onOpenChange={setConfirmModalOpen}>
+          <Dialog
+            open={confirmModalOpen}
+            onOpenChange={(open) => {
+              if (isMutating && !open) return;
+              setConfirmModalOpen(open);
+            }}
+          >
             <DialogTrigger asChild>
               <Button disabled={isMutating}>確認</Button>
             </DialogTrigger>

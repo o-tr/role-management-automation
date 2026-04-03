@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { GetAvailableGroupsResponse } from "@/app/api/ns/[nsId]/services/accounts/[accountId]/groups/availables/route";
 import type { TAvailableGroup } from "@/types/prisma";
 
@@ -15,22 +15,31 @@ export const useAvailableGroups = (nsId: string, accountId: string) => {
       return;
     }
     setIsPending(true);
-    const response = (await fetch(
-      `/api/ns/${nsId}/services/accounts/${accountId}/groups/availables`,
-    ).then((res) => res.json())) as GetAvailableGroupsResponse;
-    if (response.status === "error") {
-      setError(response.error);
-      setGroups([]);
-      setIsPending(false);
-      return;
-    }
+    try {
+      const response = (await fetch(
+        `/api/ns/${nsId}/services/accounts/${accountId}/groups/availables`,
+      ).then((res) => res.json())) as GetAvailableGroupsResponse;
+      if (response.status === "error") {
+        setError(response.error);
+        setGroups([]);
+        return;
+      }
 
-    setError(null);
-    setGroups(response.groups);
-    setIsPending(false);
+      setError(null);
+      setGroups(response.groups);
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "利用可能グループの取得に失敗しました",
+      );
+      setGroups([]);
+    } finally {
+      setIsPending(false);
+    }
   }, [nsId, accountId]);
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     void fetchData();
   }, [fetchData]);
 

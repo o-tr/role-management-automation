@@ -99,11 +99,11 @@ export const useMappingForm = ({
       setIsSubmitting(true);
       try {
         await onSubmit({ conditions: conditionResult.data, actions });
+        setIsDirty(false);
       } finally {
         setIsSubmitting(false);
       }
     }
-    setIsDirty(false);
   };
 
   return {

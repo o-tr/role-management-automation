@@ -35,6 +35,7 @@ type Props<T extends TMappingConditionInput> = {
   nsId: string;
   conditions: T;
   onChange: (conditions: T) => void;
+  disabled?: boolean;
 };
 
 const typesLabel: { [key in TMappingType]: string } = {
@@ -48,6 +49,7 @@ export const ConditionsEditor: FC<Props<TMappingConditionInput>> = ({
   conditions,
   onChange,
   nsId,
+  disabled = false,
 }) => {
   const onChangeType = (value: TMappingType) => {
     onChange(createNewMappingCondition(value));
@@ -58,6 +60,7 @@ export const ConditionsEditor: FC<Props<TMappingConditionInput>> = ({
       <FormItem>
         <Select
           value={conditions.type}
+          disabled={disabled}
           onValueChange={(value) => onChangeType(value as TMappingType)}
         >
           <SelectTrigger>
@@ -77,6 +80,7 @@ export const ConditionsEditor: FC<Props<TMappingConditionInput>> = ({
           conditions={conditions as TMappingConditionComparatorInput}
           onChange={(value) => onChange(value)}
           nsId={nsId}
+          disabled={disabled}
         />
       )}
       {conditions.type === "not" && (
@@ -84,6 +88,7 @@ export const ConditionsEditor: FC<Props<TMappingConditionInput>> = ({
           conditions={conditions as TMappingConditionNotInput}
           onChange={(value) => onChange(value)}
           nsId={nsId}
+          disabled={disabled}
         />
       )}
       {conditions.type === "and" && (
@@ -91,6 +96,7 @@ export const ConditionsEditor: FC<Props<TMappingConditionInput>> = ({
           conditions={conditions as TMappingConditionAndInput}
           onChange={(value) => onChange(value)}
           nsId={nsId}
+          disabled={disabled}
         />
       )}
       {conditions.type === "or" && (
@@ -98,6 +104,7 @@ export const ConditionsEditor: FC<Props<TMappingConditionInput>> = ({
           conditions={conditions as TMappingConditionOrInput}
           onChange={(value) => onChange(value)}
           nsId={nsId}
+          disabled={disabled}
         />
       )}
     </Card>
@@ -108,6 +115,7 @@ export const ConditionsEditorOr: FC<Props<TMappingConditionOrInput>> = ({
   conditions,
   onChange,
   nsId,
+  disabled = false,
 }) => {
   const { tags } = useTags(nsId);
   const hasTags = tags && tags.length > 0;
@@ -130,9 +138,11 @@ export const ConditionsEditorOr: FC<Props<TMappingConditionOrInput>> = ({
               })
             }
             nsId={nsId}
+            disabled={disabled}
           />
           <Button
             type="button"
+            disabled={disabled}
             onClick={() =>
               onChange({
                 ...conditions,
@@ -148,7 +158,7 @@ export const ConditionsEditorOr: FC<Props<TMappingConditionOrInput>> = ({
       <div>
         <Button
           type="button"
-          disabled={!hasTags}
+          disabled={disabled || !hasTags}
           onClick={() => {
             if (!hasTags) return;
             onChange({
@@ -178,6 +188,7 @@ export const ConditionsEditorAnd: FC<Props<TMappingConditionAndInput>> = ({
   conditions,
   onChange,
   nsId,
+  disabled = false,
 }) => {
   const { tags } = useTags(nsId);
   const hasTags = tags && tags.length > 0;
@@ -200,9 +211,11 @@ export const ConditionsEditorAnd: FC<Props<TMappingConditionAndInput>> = ({
               })
             }
             nsId={nsId}
+            disabled={disabled}
           />
           <Button
             type="button"
+            disabled={disabled}
             onClick={() =>
               onChange({
                 ...conditions,
@@ -218,7 +231,7 @@ export const ConditionsEditorAnd: FC<Props<TMappingConditionAndInput>> = ({
       <div>
         <Button
           type="button"
-          disabled={!hasTags}
+          disabled={disabled || !hasTags}
           onClick={() => {
             if (!hasTags) return;
             onChange({
@@ -248,6 +261,7 @@ export const ConditionsEditorNot: FC<Props<TMappingConditionNotInput>> = ({
   conditions,
   onChange,
   nsId,
+  disabled = false,
 }) => {
   return (
     <div className="p-1">
@@ -255,6 +269,7 @@ export const ConditionsEditorNot: FC<Props<TMappingConditionNotInput>> = ({
         conditions={conditions.condition}
         onChange={(value) => onChange({ ...conditions, condition: value })}
         nsId={nsId}
+        disabled={disabled}
       />
     </div>
   );
@@ -262,7 +277,7 @@ export const ConditionsEditorNot: FC<Props<TMappingConditionNotInput>> = ({
 
 export const ConditionsEditorComparator: FC<
   Props<TMappingConditionComparatorInput>
-> = ({ conditions, onChange, nsId }) => {
+> = ({ conditions, onChange, nsId, disabled = false }) => {
   const { tags } = useTags(nsId);
 
   const isArrayValue = Array.isArray(conditions.value);
@@ -279,6 +294,7 @@ export const ConditionsEditorComparator: FC<
       <FormItem>
         <Select
           value={conditions.key}
+          disabled={disabled}
           onValueChange={(value) =>
             onChange({ ...conditions, key: value as TMappingKey })
           }
@@ -312,12 +328,14 @@ export const ConditionsEditorComparator: FC<
                 value: newSelectedTags as TMappingValue[],
               });
             }}
+            disabled={disabled}
           />
         </FormItem>
       ) : (
         <FormItem>
           <Select
             value={isArrayValue ? "" : (conditions.value as string)}
+            disabled={disabled}
             onValueChange={(value) =>
               onChange({ ...conditions, value: value as TMappingValue })
             }
@@ -340,6 +358,7 @@ export const ConditionsEditorComparator: FC<
       <FormItem>
         <Select
           value={conditions.comparator ?? ""}
+          disabled={disabled}
           onValueChange={(value) => {
             const newComparator = value as TMappingComparator;
             const isNewMultiSelect =

@@ -21,10 +21,7 @@ import {
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 import type { TNamespaceId } from "@/types/prisma";
-import {
-  onInvitationsChange,
-  useOnInvitationsChange,
-} from "../_hook/onInvitationsChange";
+import { useOnInvitationsChange } from "../_hook/onInvitationsChange";
 import { useCreateInvitation } from "../_hook/useCreateInvitation";
 
 type Props = {
@@ -50,7 +47,6 @@ export const CreateInvitation: FC<Props> = ({ nsId }) => {
           0,
         ).toISOString(),
       });
-      onInvitationsChange();
     } catch (error) {
       toast({
         title: "招待作成に失敗しました",
