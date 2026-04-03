@@ -55,6 +55,9 @@ export const EditTag = ({
         name,
         color,
       });
+      if (response.status !== "success") {
+        throw new Error("タグ更新に失敗しました");
+      }
       if (onUpdated) {
         try {
           await onUpdated(response.tag);
